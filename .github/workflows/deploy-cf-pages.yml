@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # 允许推送 gh-pages 分支（Gitee Pages 国内镜像源）
+  contents: write
 
 jobs:
   deploy:
@@ -23,7 +23,25 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy . --project-name=gjsvip-blog --branch=main
 
-      - name: Update gh-pages branch (Gitee Pages 国内镜像源)
+      - name: Summary
+        run: |
+          {
+            echo "### 博客已部署 :books:"
+            echo ""
+            echo "- 自定义域名：https://blog.520691.xyz"
+            echo "- GitHub Pages 镜像：https://gjsvip.github.io/blog/"
+          } >> $GITHUB_STEP_SUMMARY
+
+  # GitHub Pages / Gitee Pages 镜像源：干净 checkout，只含仓库文件（无 node_modules）
+  update-gh-pages:
+    name: Update gh-pages branch (Gitee Pages 国内镜像源)
+    runs-on: ubuntu-latest
+    needs: deploy
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -32,13 +50,4 @@ jobs:
           force_orphan: true
           user_name: github-actions[bot]
           user_email: 41898282+github-actions[bot]@users.noreply.github.com
-
-      - name: Summary
-        run: |
-          {
-            echo "### 博客已部署 :books:"
-            echo ""
-            echo "- 自定义域名：https://blog.520691.xyz"
-            echo "- GitHub Pages 镜像：https://gjsvip.github.io/blog/"
-            echo "- Gitee Pages 镜像：https://dujie_nb_admin.gitee.io/blog/（需在 Gitee 网页端开启 Pages 服务）"
-          } >> $GITHUB_STEP_SUMMARY
+          commit_message: "deploy: gh-pages ${{ github.sha }}"
