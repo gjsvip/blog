@@ -1,49 +1,39 @@
-# gjsvip.github.io/blog
+# 渡劫小站（dujie blog）
 
-gjsvip 的技术博客，深色 IDE 风格纯静态站。由渡劫code 项目体系自动部署。
+独立开发者 gjsvip（渡劫）的技术博客。**纯静态 HTML**，零构建、零依赖，评论与互动由 Cloudflare D1 + Worker 驱动。
 
-- **主域**：https://blog.520691.xyz （Cloudflare Pages，345 账号）
-- **GitHub Pages 镜像**：https://gjsvip.github.io/blog/
-- **个人官网**：https://www.520691.xyz
-- **渡劫code**：https://dujie_cone.520691.xyz
-- **关联项目**：[gjsvip/dujiecode](https://github.com/gjsvip/dujiecode)（云端 IDE，GitHub + Gitee + Cloudflare 三端同步）
+## 三端同步
+
+| 端 | 地址 | 触发方式 |
+|---|---|---|
+| Cloudflare Pages | https://blog.520691.xyz | push main → wrangler pages deploy |
+| GitHub Pages | https://gjsvip.github.io/blog/ | push main → gh-pages 分支（Gitee 镜像源） |
+| Gitee Pages | https://dujie_nb_admin.gitee.io/blog/ | mirror-to-gitee.yml 自动同步 |
+
+**评论全球同步**：三端前端共用同一 API `https://dujie_cone.520691.xyz/api/blog/*`，
+国内 Gitee 入口发布的评论，海外 GitHub / CF 入口实时可见（同一套 D1 数据）。
+
+## 功能
+
+- 深/浅双主题（localStorage 记忆）
+- Ctrl+K 站内搜索（标题/标签/摘要）
+- 树形评论 + 楼中楼回复 + Gravatar 头像 + emoji
+- 点赞 / 浏览（UV 级）/ 评论数统计
+- 阅读进度条、TOC 目录、代码一键复制 + 轻量高亮
+- 归档时间线、标签云、友链、说说
+- RSS（rss.xml）+ sitemap.xml + IndexNow 收录
+
+## 目录
+
+```
+├── index.html / archive / tags / says / friends / about
+├── posts/            # 4 篇文章
+├── assets/           # style.css（设计系统）+ blog.js
+├── posts.json        # 文章元数据（搜索/列表/归档共用）
+├── rss.xml / sitemap.xml / robots.txt
+└── .github/workflows/  # deploy-cf-pages.yml + mirror-to-gitee.yml
+```
 
 ## 本地预览
 
-纯静态、无构建依赖，任选其一：
-
-```bash
-python3 -m http.server 8080   # http://localhost:8080
-npx serve .
-```
-
-## 目录结构
-
-```
-blog/
-├── index.html                  # 文章列表首页
-├── posts/
-│   ├── hello-world.html        # 保留文章（原 Hexo 博客迁移）
-│   ├── dujiecode-release.html  # 渡劫code 发布记
-│   └── three-end-sync.html     # 三端同步架构记
-├── assets/style.css            # 深色 IDE 主题
-├── robots.txt                  # 相对路径 Sitemap
-├── sitemap.xml                 # 博客 sitemap
-└── .nojekyll                   # 跳过 Jekyll
-```
-
-## 新增文章
-
-1. 在 `posts/` 新建 `xxx.html`（复制现有文章头部结构，使用相对路径 `../assets/style.css`）
-2. 在 `index.html` 的 `.post-list` 添加卡片（倒序排列）
-3. 在 `sitemap.xml` 添加 URL
-4. 提交推送，GitHub Pages 自动发布
-
-## 部署
-
-双通道自动发布：
-1. **GitHub Pages**（项目页，主分支根目录）→ https://gjsvip.github.io/blog/
-2. **Cloudflare Pages**（345 账号，项目名 `gjsvip-blog`，`.github/workflows/deploy-cf-pages.yml`）→ https://blog.520691.xyz
-
-所需 Secrets：`CF_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`（f608546bec281f207409d11f3be5c89d）。
-收录：sitemap + robots + IndexNow（密钥 `51734a6916d2725aa31f3e62ef9a59b5.txt` 托管于本站根路径）。
+任意静态服务器即可，如 `python3 -m http.server 8080`。

@@ -3,87 +3,193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>渡劫code 发布记：打开网页就能写代码的云端 IDE · gjsvip 的博客</title>
+<title>渡劫code 发布记：打开网页就能写代码的云端 IDE · 渡劫小站</title>
 <meta name="description" content="对话式编程 + Monaco 编辑器 + 虚拟 Shell + 远程执行后端融为一体。零安装，打开网页即用——渡劫code 第一个公开版本发布。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="渡劫code 发布记：打开网页就能写代码的云端 IDE · 渡劫小站">
+<meta property="og:description" content="对话式编程 + Monaco 编辑器 + 虚拟 Shell + 远程执行后端融为一体。零安装，打开网页即用——渡劫code 第一个公开版本发布。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://blog.520691.xyz/posts/dujiecode-release.html">
+<link rel="canonical" href="https://blog.520691.xyz/posts/dujiecode-release.html">
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫小站 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 </head>
 <body>
+<div id="progress-bar"></div>
+
 <header class="site-header">
-  <div class="inner">
-    <a class="brand" href="../index.html">
-      <span class="dot"></span>gjsvip<span class="path">~/blog</span>
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫小站<small>dujie.dev</small>
     </a>
     <nav class="nav">
-      <a href="../index.html">文章</a>
-      <a href="https://www.520691.xyz/">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/">渡劫code</a>
-      <a href="https://github.com/gjsvip">GitHub</a>
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
     </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
   </div>
 </header>
 
-<main class="wrap">
-  <article>
-    <div class="article-head">
-      <a class="back" href="../index.html">← 返回文章列表</a>
-      <h1>渡劫code 发布记：打开网页就能写代码的云端 IDE</h1>
-      <div class="meta"><span>2026-10-20</span><span>发布</span></div>
-    </div>
+<main class="layout" style="grid-template-columns: 1fr 260px;">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>渡劫code 发布记：打开网页就能写代码的云端 IDE</div>
 
-    <div class="article-body">
-      <p>渡劫code 的第一个公开版本，今天上线。它把<strong>对话式编程</strong>、<strong>Monaco 编辑器</strong>、<strong>虚拟 Shell</strong> 与<strong>远程执行后端</strong>融为一体——打开网页即用，无需安装任何环境。</p>
+    <article>
+      <div class="article-header">
+        <h1>渡劫code 发布记：打开网页就能写代码的云端 IDE</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-20</span>
+          <span>📂 项目发布</span>
+        </div>
+      </div>
 
-      <h2>它是什么</h2>
-      <p>一个跑在 Cloudflare 边缘网络上的云端开发环境：</p>
-      <ul>
-        <li><strong>AI 对话式编程</strong>：自然语言描述需求，流式生成代码，SSE 实时推送</li>
-        <li><strong>Monaco 编辑器</strong>：VS Code 同款内核，语法高亮、多标签、虚拟文件系统</li>
-        <li><strong>虚拟 Shell</strong>：浏览器内模拟 <code>ls/cat/echo/cd</code> 等命令，即时反馈</li>
-        <li><strong>远程执行后端</strong>：注册后端节点，通过 WebSocket 分发任务到任意机器执行</li>
-        <li><strong>多用户隔离</strong>：账号体系 + 令牌鉴权，数据按账号隔离</li>
-      </ul>
+      <div class="article-cover" aria-hidden="true">🚀</div>
 
-      <h2>技术栈</h2>
-      <table>
-        <tr><th>层</th><th>选型</th></tr>
-        <tr><td>前端</td><td>Vite + React + MUI + Tailwind CSS</td></tr>
-        <tr><td>边缘运行时</td><td>Cloudflare Workers（Hono 路由）</td></tr>
-        <tr><td>存储</td><td>D1（SQLite）+ KV + R2</td></tr>
-        <tr><td>实时通道</td><td>Durable Objects WebSocket</td></tr>
-        <tr><td>CI/CD</td><td>GitHub Actions + Wrangler + Pages</td></tr>
-      </table>
+      <div class="article-body">
+<p>渡劫code 的第一个公开版本，今天上线。它把<strong>对话式编程</strong>、<strong>Monaco 编辑器</strong>、<strong>虚拟 Shell</strong> 与<strong>远程执行后端</strong>融为一体——打开网页即用，无需安装任何环境。</p>
 
-      <h2>立即体验</h2>
-      <p>主域直达，国内外均可访问：</p>
-      <pre><code>https://gjsvip.github.io/</code></pre>
-      <p>本地一行命令启动开发：</p>
-      <pre><code>git clone https://github.com/gjsvip/dujiecode.git
+<h2>它是什么</h2>
+<p>一个跑在 Cloudflare 边缘网络上的云端开发环境：</p>
+<ul>
+  <li><strong>AI 对话式编程</strong>：自然语言描述需求，流式生成代码，SSE 实时推送</li>
+  <li><strong>Monaco 编辑器</strong>：VS Code 同款内核，语法高亮、多标签、虚拟文件系统</li>
+  <li><strong>虚拟 Shell</strong>：浏览器内模拟 <code>ls/cat/echo/cd</code> 等命令，即时反馈</li>
+  <li><strong>远程执行后端</strong>：注册后端节点，通过 WebSocket 分发任务到任意机器执行</li>
+  <li><strong>多用户隔离</strong>：账号体系 + 令牌鉴权，数据按账号隔离</li>
+</ul>
+
+<h2>技术栈</h2>
+<table>
+  <tr><th>层</th><th>选型</th></tr>
+  <tr><td>前端</td><td>Vite + React + MUI + Tailwind CSS</td></tr>
+  <tr><td>边缘运行时</td><td>Cloudflare Workers（Hono 路由）</td></tr>
+  <tr><td>存储</td><td>D1（SQLite）+ KV + R2</td></tr>
+  <tr><td>实时通道</td><td>Durable Objects WebSocket</td></tr>
+  <tr><td>CI/CD</td><td>GitHub Actions + Wrangler + Pages</td></tr>
+</table>
+
+<h2>立即体验</h2>
+<p>主域直达，国内外均可访问：</p>
+<pre><code class="language-bash">https://dujie_cone.520691.xyz/</code></pre>
+<p>本地一行命令启动开发：</p>
+<pre><code class="language-bash">git clone https://github.com/gjsvip/dujiecode.git
 cd dujiecode
 npm install
 npm run dev</code></pre>
 
-      <h2>关于名字</h2>
-      <p>「渡劫」——修炼度过天劫，方能更上一层。每一次开发，都像一次渡劫般顺畅，这是这个名字的由来。</p>
+<h2>域名体系</h2>
+<p>项目现已迁入统一的 <code>520691.xyz</code> 域名体系：</p>
+<table>
+  <tr><th>地址</th><th>用途</th></tr>
+  <tr><td>dujie_cone.520691.xyz</td><td>渡劫code 主站（Workers 边缘直服）</td></tr>
+  <tr><td>www.520691.xyz</td><td>个人官网（CF Pages）</td></tr>
+  <tr><td>blog.520691.xyz</td><td>本博客（CF Pages + Gitee 镜像）</td></tr>
+</table>
 
-      <blockquote>项目完全开源：<a href="https://github.com/gjsvip/dujiecode">github.com/gjsvip/dujiecode</a>，欢迎 Star 与 Issue。</blockquote>
+<h2>关于名字</h2>
+<p>「渡劫」——修炼度过天劫，方能更上一层。每一次开发，都像一次渡劫般顺畅，这是这个名字的由来。</p>
+
+<blockquote><p>项目完全开源：<a href="https://github.com/gjsvip/dujiecode">github.com/gjsvip/dujiecode</a>，欢迎 Star 与 Issue。</p></blockquote>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
     </div>
-
-    <nav class="post-nav">
-      <a href="hello-world.html">← 上一篇：Hello World</a>
-      <a href="three-end-sync.html">下一篇：三端同步架构记 →</a>
-    </nav>
-  </article>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
 </main>
 
 <footer class="site-footer">
-  <div class="links">
-    <a href="https://www.520691.xyz/">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/">渡劫code</a>
-    <a href="https://github.com/gjsvip/dujiecode">GitHub 仓库</a>
-    <a href="https://gitee.com/dujie_nb_admin/dujiecode">Gitee 镜像</a>
-    <a href="../sitemap.xml">Sitemap</a>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫小站</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
   </div>
-  <div>© 2024-2026 gjsvip · Powered by 渡劫code 三端同步部署</div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫小站 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
 </footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js" defer></script>
 </body>
 </html>

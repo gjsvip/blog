@@ -3,65 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gjsvip 的博客 · 渡劫code 技术手记</title>
-<meta name="description" content="gjsvip 的技术博客：渡劫code 开发手记、Cloudflare 三端同步部署架构、Web 全栈实践。">
+<title>渡劫小站 · 独立开发者的技术自留地</title>
+<meta name="description" content="渡劫小站——独立开发者 gjsvip（渡劫）的技术博客，记录云端 IDE、Cloudflare 全栈部署、自动化工作流与踩坑实录。">
+<meta name="keywords" content="渡劫code,独立开发,Cloudflare,Workers,Pages,博客,gjsvip,dujie">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="渡劫小站 · 独立开发者的技术自留地">
+<meta property="og:description" content="记录云端 IDE、Cloudflare 全栈部署、自动化工作流与踩坑实录。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://blog.520691.xyz/">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="canonical" href="https://blog.520691.xyz/">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫小站 RSS" href="rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Blog","name":"渡劫小站","url":"https://blog.520691.xyz/","author":{"@type":"Person","name":"gjsvip"},"description":"独立开发者的技术自留地"}
+</script>
 </head>
 <body>
+<div id="progress-bar"></div>
+
 <header class="site-header">
-  <div class="inner">
-    <a class="brand" href="index.html">
-      <span class="dot"></span>gjsvip<span class="path">~/blog</span>
+  <div class="header-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-badge">🌊</span>渡劫小站<small>dujie.dev</small>
     </a>
     <nav class="nav">
-      <a href="index.html">文章</a>
-      <a href="https://www.520691.xyz/">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/">渡劫code</a>
-      <a href="https://github.com/gjsvip">GitHub</a>
+      <a href="index.html">首页</a>
+      <a href="archive.html">归档</a>
+      <a href="tags.html">标签</a>
+      <a href="says.html">说说</a>
+      <a href="friends.html">友链</a>
+      <a href="about.html">关于</a>
     </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
   </div>
 </header>
 
-<main class="wrap">
+<main class="layout">
+  <!-- Hero -->
   <section class="hero">
-    <div class="term">$ hexo new "hello-world" --render dark-ide</div>
-    <h1>渡劫途中，皆成文章<span class="cursor"></span></h1>
-    <p>记录渡劫code 的开发与部署实践：Cloudflare Workers / GitHub Pages / Gitee 三端同步、国内外可达架构、SEO 收录。每一篇都是踩过坑的实录。</p>
+    <span class="hero-tag"><span class="dot"></span>持续更新中 · 独立开发实录</span>
+    <h1>在代码的海洋里<br><span class="grad-text">渡劫、修炼、飞升</span></h1>
+    <p>这里是渡劫的小站——记录云端 IDE「渡劫code」的诞生、Cloudflare 全栈部署的实践、三端同步的架构思考，以及一个独立开发者的所有踩坑与顿悟。Stay hungry, stay shipping.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="posts/dujiecode-release.html">🚀 读读旗舰项目</a>
+      <a class="btn btn-ghost" href="posts/three-end-sync.html">☁️ 三端同步架构</a>
+      <a class="btn btn-ghost" href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">💻 打开渡劫code</a>
+    </div>
   </section>
 
-  <section class="post-list">
-    <a class="post-card" href="posts/three-end-sync.html">
-      <div class="meta"><span>2026-10-20</span><span class="tag">架构</span></div>
-      <h2>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</h2>
-      <p>一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、主域 GitHub Pages，并镜像推送到 Gitee。国内 Gitee、海外 CF/GitHub，全链路自动化实录。</p>
-      <span class="more">阅读全文 →</span>
-    </a>
+  <!-- 文章列表 -->
+  <div>
+    <div class="section-head">
+      <h2>最新文章</h2>
+      <a class="more" href="archive.html">查看全部归档 →</a>
+    </div>
+    <div class="post-list" id="post-list">
+      <div class="loading">正在加载文章…</div>
+    </div>
+  </div>
 
-    <a class="post-card" href="posts/dujiecode-release.html">
-      <div class="meta"><span>2026-10-20</span><span class="tag">发布</span></div>
-      <h2>渡劫code 发布记：打开网页就能写代码的云端 IDE</h2>
-      <p>对话式编程 + Monaco 编辑器 + 虚拟 Shell + 远程执行后端，融为一体。零安装，打开网页即用。这是它的第一个公开版本。</p>
-      <span class="more">阅读全文 →</span>
-    </a>
+  <!-- 侧栏 -->
+  <aside class="side">
+    <div class="panel author-card">
+      <div class="author-avatar">🌊</div>
+      <h3>渡劫 · gjsvip</h3>
+      <div class="role">全栈独立开发者</div>
+      <p class="bio">相信代码即正义。沉迷 Cloudflare 生态与一切能让创意快速落地的工具。白天写业务，晚上渡劫飞升。</p>
+      <div class="author-stats">
+        <div class="stat"><b id="stat-posts">-</b><span>文章</span></div>
+        <div class="stat"><b id="stat-comments">-</b><span>评论</span></div>
+        <div class="stat"><b id="stat-views">-</b><span>浏览</span></div>
+      </div>
+    </div>
 
-    <a class="post-card" href="posts/hello-world.html">
-      <div class="meta"><span>2024-12-26</span><span class="tag">随笔</span></div>
-      <h2>Hello World</h2>
-      <p>一切从这里开始。原 Hexo 博客迁移保留的第一篇文章——欢迎来到 gjsvip 的小站。</p>
-      <span class="more">阅读全文 →</span>
-    </a>
-  </section>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔥</span>热门文章</div>
+      <div class="hot-list" id="hot-list">
+        <div class="loading" style="padding:12px 0">加载中…</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🏷</span>标签云</div>
+      <div class="tag-cloud" id="side-tags">
+        <div class="loading" style="padding:12px 0">加载中…</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>快速入口</div>
+      <div class="tag-cloud">
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+        <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://github.com/gjsvip" target="_blank" rel="noopener">🐙 GitHub</a>
+        <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">🦊 Gitee</a>
+      </div>
+    </div>
+  </aside>
 </main>
 
 <footer class="site-footer">
-  <div class="links">
-    <a href="https://www.520691.xyz/">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/">渡劫code</a>
-    <a href="https://github.com/gjsvip/dujiecode">GitHub 仓库</a>
-    <a href="https://gitee.com/dujie_nb_admin/dujiecode">Gitee 镜像</a>
-    <a href="sitemap.xml">Sitemap</a>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="index.html"><span class="logo-badge">🌊</span>渡劫小站</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="archive.html">文章归档</a>
+      <a href="tags.html">标签</a>
+      <a href="says.html">说说</a>
+      <a href="about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
   </div>
-  <div>© 2024-2026 gjsvip · Powered by 渡劫code 三端同步部署</div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫小站 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="rss.xml">RSS 订阅</a>
+  </div>
 </footer>
+
+<!-- 搜索弹窗 -->
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="assets/blog.js" defer></script>
 </body>
 </html>

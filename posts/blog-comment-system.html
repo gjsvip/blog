@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>给静态博客装上全球同步的评论系统：D1 + Worker 实战 · 渡劫小站</title>
+<meta name="description" content="不引入任何第三方评论服务，用 Cloudflare D1 + Worker 自建评论 API，GitHub / Gitee / CF 三端静态站共用一套数据，国内发的评论国际站也能看到。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="给静态博客装上全球同步的评论系统：D1 + Worker 实战 · 渡劫小站">
+<meta property="og:description" content="不引入任何第三方评论服务，用 Cloudflare D1 + Worker 自建评论 API，GitHub / Gitee / CF 三端静态站共用一套数据，国内发的评论国际站也能看到。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://blog.520691.xyz/posts/blog-comment-system.html">
+<link rel="canonical" href="https://blog.520691.xyz/posts/blog-comment-system.html">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫小站 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫小站<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout" style="grid-template-columns: 1fr 260px;">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>给静态博客装上全球同步的评论系统：D1 + Worker 实战</div>
+
+    <article>
+      <div class="article-header">
+        <h1>给静态博客装上全球同步的评论系统：D1 + Worker 实战</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-22</span>
+          <span>📂 实战</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">💬</div>
+
+      <div class="article-body">
+<p>静态博客最大的短板是<strong>没有动态能力</strong>——评论、点赞、浏览量，全都要服务端。第三方评论服务（Disqus、Giscus 之流）要么国内访问困难，要么强依赖 GitHub 账号。这次干脆自己造：<strong>Cloudflare D1 做存储，Worker 做 API，三个静态站共用一套后端</strong>。</p>
+
+<h2>需求拆解</h2>
+<ul>
+  <li><strong>全球数据同步</strong>：国内用户从 Gitee Pages 发评论，海外用户从 GitHub Pages / blog.520691.xyz 看到的必须是同一条</li>
+  <li><strong>零依赖静态站</strong>：博客本身还是纯 HTML，不引入构建工具</li>
+  <li><strong>树形评论</strong>：支持楼中楼回复</li>
+  <li><strong>互动统计</strong>：点赞（toggle）、浏览量（UV 级）、评论数</li>
+  <li><strong>防滥用</strong>：访客指纹限流，无需登录</li>
+</ul>
+
+<h2>架构总览</h2>
+<pre><code class="language-bash">┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+│  blog.520691.xyz │   │ gjsvip.github.io│   │ gitee 镜像      │
+│  (CF Pages)      │   │ /blog/          │   │ (Gitee Pages)   │
+└────────┬────────┘   └────────┬────────┘   └────────┬────────┘
+         │                     │                     │
+         └─────────────────────┼─────────────────────┘
+                               ▼
+              https://dujie_cone.520691.xyz/api/blog/*
+                    （Cloudflare Worker）
+                               │
+                    ┌──────────┴──────────┐
+                    │  BLOG_DB (D1)       │
+                    │  comments / likes   │
+                    │  views / says       │
+                    └─────────────────────┘</code></pre>
+<p>关键决策：三个静态站的前端<strong>调用同一个 API 根地址</strong>（<code>API_BASE = 'https://dujie_cone.520691.xyz'</code>），数据天然同步。Worker 已按 zone 路由绑定到主域，无需额外域名。</p>
+
+<h2>数据模型</h2>
+<table>
+  <tr><th>表</th><th>字段要点</th></tr>
+  <tr><td>comments</td><td>slug + parent_id 树形结构、status 审核位、visitor 指纹</td></tr>
+  <tr><td>likes</td><td>UNIQUE(visitor, comment_id) 保证一人一赞，重复提交即取消</td></tr>
+  <tr><td>views</td><td>UNIQUE(slug, visitor) UPSERT 累加，UV 级浏览统计</td></tr>
+  <tr><td>says</td><td>说说流，独立于文章的轻内容</td></tr>
+</table>
+
+<h2>API 契约</h2>
+<p>统一信封 <code>{code: 0, data}</code>：</p>
+<pre><code class="language-bash">GET  /api/blog/comments?slug=xxx     # 树形列表 + total
+POST /api/blog/comments              # {slug, nickname, email?, content, parent_id?}
+POST /api/blog/like                  # {slug?} 或 {comment_id} — toggle 语义
+POST /api/blog/view                  # {slug, visitor}
+GET  /api/blog/stats?slugs=a,b,c     # 批量 views/likes/comments
+GET  /api/blog/says                  # 说说流</code></pre>
+
+<h2>几个实现细节</h2>
+
+<h3>1. 访客指纹与限流</h3>
+<p>不登录就要防刷。用 <code>sha256(IP + User-Agent + salt)</code> 生成匿名指纹，评论限流 2 条/分钟（KV 桶），UV 去重（D1 UNIQUE 约束），前端再持久化一个 <code>visitorId</code> 到 localStorage 保持点赞状态。</p>
+
+<h3>2. Gravatar 头像</h3>
+<p>邮箱（选填）走 MD5 取 Gravatar 哈希，未填则显示昵称首字。MD5 用公有领域实现，零依赖。</p>
+
+<h3>3. 回复的层级校验</h3>
+<p>楼中楼只允许两层：回复必须挂在同一 slug 下已审核的评论上，防止跨文章串楼。</p>
+
+<h3>4. 亮暗双主题 + 移动端适配</h3>
+<p>设计系统用 CSS 变量驱动，<code>[data-theme]</code> 切换即全站换肤，选择记忆在 localStorage。640px 以下导航折叠为抽屉菜单。</p>
+
+<h2>前端功能清单</h2>
+<ul>
+  <li>Ctrl+K 搜索弹窗（标题/标签/摘要模糊匹配，键盘上下选择）</li>
+  <li>阅读进度条 + 返回顶部 + 滚动入场动画</li>
+  <li>文章页 TOC 目录（IntersectionObserver 滚动高亮）</li>
+  <li>代码块一键复制 + 轻量语法高亮</li>
+  <li>点赞 / 浏览 / 评论数实时展示</li>
+  <li>emoji 选择器、昵称记忆、回复楼中楼</li>
+  <li>归档时间线、标签云、友链、说说页</li>
+</ul>
+
+<h2>效果</h2>
+<p>三端任意入口发布的评论、点赞、浏览，在其余入口实时可见——因为它们本来就读写同一套 D1。静态站的纯粹性与动态互动的丰富度，这次都要了。</p>
+
+<blockquote><p>API 已开源在 <a href="https://github.com/gjsvip/dujiecode">gjsvip/dujiecode</a> 的 <code>worker/routes/blog.ts</code>，欢迎围观。</p></blockquote>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫小站</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫小站 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js" defer></script>
+</body>
+</html>

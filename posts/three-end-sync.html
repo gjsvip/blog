@@ -3,107 +3,222 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare · gjsvip 的博客</title>
-<meta name="description" content="一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、主域 GitHub Pages 并镜像 Gitee，国内外全可达。">
+<title>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare · 渡劫小站</title>
+<meta name="description" content="一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare · 渡劫小站">
+<meta property="og:description" content="一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://blog.520691.xyz/posts/three-end-sync.html">
+<link rel="canonical" href="https://blog.520691.xyz/posts/three-end-sync.html">
 <link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫小站 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 </head>
 <body>
+<div id="progress-bar"></div>
+
 <header class="site-header">
-  <div class="inner">
-    <a class="brand" href="../index.html">
-      <span class="dot"></span>gjsvip<span class="path">~/blog</span>
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫小站<small>dujie.dev</small>
     </a>
     <nav class="nav">
-      <a href="../index.html">文章</a>
-      <a href="https://www.520691.xyz/">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/">渡劫code</a>
-      <a href="https://github.com/gjsvip">GitHub</a>
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
     </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
   </div>
 </header>
 
-<main class="wrap">
-  <article>
-    <div class="article-head">
-      <a class="back" href="../index.html">← 返回文章列表</a>
-      <h1>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</h1>
-      <div class="meta"><span>2026-10-20</span><span>架构</span></div>
-    </div>
+<main class="layout" style="grid-template-columns: 1fr 260px;">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</div>
 
-    <div class="article-body">
-      <p>目标很朴素：<strong>一次 <code>git push</code>，三端全部自动更新</strong>，国内用户走 Gitee、海外用户走 GitHub / Cloudflare，谁都能打开官网。这篇记录完整的落地过程与踩过的坑。</p>
+    <article>
+      <div class="article-header">
+        <h1>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-21</span>
+          <span>📂 架构</span>
+        </div>
+      </div>
 
-      <h2>整体架构</h2>
-      <table>
-        <tr><th>端</th><th>地址</th><th>职责</th></tr>
-        <tr><td>主域（GitHub Pages）</td><td>gjsvip.github.io</td><td>官网唯一主入口，国内外可达，干净无路径</td></tr>
-        <tr><td>Cloudflare Workers</td><td>dujiecode.dujie-nb.workers.dev</td><td>完整版：API + 静态资源，边缘直服，不做跳转</td></tr>
-        <tr><td>Cloudflare Pages</td><td>dujiecode.pages.dev</td><td>静态镜像 + 备用入口</td></tr>
-        <tr><td>Gitee 镜像</td><td>dujie_nb_admin.gitee.io/dujiecode/</td><td>国内加速镜像</td></tr>
-        <tr><td>代码仓库</td><td>GitHub + Gitee 双库</td><td>双向可访问，Issue 集中</td></tr>
-      </table>
+      <div class="article-cover" aria-hidden="true">☁️</div>
 
-      <h2>工作流拆分</h2>
-      <p><code>deploy.yml</code> 负责部署，<code>mirror-to-gitee.yml</code> 负责镜像，互不阻塞：</p>
-      <pre><code>push to main
+      <div class="article-body">
+<p>目标很朴素：<strong>一次 <code>git push</code>，三端全部自动更新</strong>，国内用户走 Gitee、海外用户走 GitHub / Cloudflare，谁都能打开官网。这篇记录完整的落地过程与踩过的坑。</p>
+
+<h2>整体架构</h2>
+<table>
+  <tr><th>端</th><th>地址</th><th>职责</th></tr>
+  <tr><td>Cloudflare Workers</td><td>dujie_cone.520691.xyz</td><td>主站完整版：API + 静态资源，边缘直服，不做跳转</td></tr>
+  <tr><td>Cloudflare Pages</td><td>dujiecode-9ka.pages.dev</td><td>静态镜像 + 备用入口</td></tr>
+  <tr><td>个人官网</td><td>www.520691.xyz</td><td>CF Pages 承载，国内可达</td></tr>
+  <tr><td>博客</td><td>blog.520691.xyz</td><td>CF Pages + Gitee Pages 双镜像</td></tr>
+  <tr><td>代码仓库</td><td>GitHub + Gitee 双库</td><td>双向可访问，Issue 集中</td></tr>
+</table>
+
+<h2>域名与 DNS</h2>
+<p>全部域名收拢在 <code>520691.xyz</code> 之下，三条 CNAME 记录全部走 Cloudflare 代理（小云朵），自动签发 TLS：</p>
+<pre><code class="language-bash">www         CNAME   gjsvip-homepage.pages.dev   ✅ proxied
+blog        CNAME   gjsvip-blog.pages.dev      ✅ proxied
+dujie_cone  CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
+<blockquote><p>注意：主机名带下划线（<code>dujie_cone</code>）在部分 DNS 服务商处不被接受，Cloudflare 正常解析且自动签证书，实测 HTTPS 200。</p></blockquote>
+
+<h2>工作流拆分</h2>
+<p><code>deploy.yml</code> 负责部署，<code>mirror-to-gitee.yml</code> 负责镜像，互不阻塞：</p>
+<pre><code class="language-bash">push to main
  ├─ deploy.yml
- │   ├─ build &amp; test（tsc + vitest 64 项）
+ │   ├─ build &amp; test（tsc + vitest）
  │   ├─ D1 幂等初始化
  │   ├─ wrangler deploy → Cloudflare Workers
  │   ├─ wrangler pages deploy → Cloudflare Pages
- │   └─ peaceiris/actions-gh-pages → gjsvip.github.io 主域
+ │   └─ peaceiris/actions-gh-pages → gh-pages 分支
  └─ mirror-to-gitee.yml
-     └─ git push --mirror → Gitee（main + tags）</code></pre>
+     ├─ git push --force gitee main:main
+     └─ git push origin/gh-pages → gitee gh-pages（Gitee Pages 源）</code></pre>
 
-      <h2>踩坑记录</h2>
+<h2>踩坑记录</h2>
 
-      <h3>1. peaceiris 跨仓库部署必须用 personal_token</h3>
-      <p>最初给 <code>github_token</code> 传入 PAT，action 直接报错「does not support to push to an external repository」。读源码发现：<code>github_token</code> 输入仅用于同仓库，跨 <code>external_repository</code> 必须用 <code>personal_token</code> 或 <code>deploy_key</code>。</p>
+<h3>1. Workers 域名绑定：workers/domains API 全线 10405</h3>
+<p>对所有令牌类型 POST <code>/accounts/{id}/workers/domains</code> 均返回 <code>10405 Method not allowed for this authentication scheme</code>。最终解法是走 <strong>zone 级 routes API</strong>：<code>POST /zones/{zone_id}/workers/routes</code>，body 为 <code>{pattern, script}</code>，配合 Global API Key 一次成功。</p>
 
-      <h3>2. Gitee 拒绝 <code>--mirror</code> 推送</h3>
-      <p><code>deny updating a hidden ref</code>——镜像前先 <code>git remote remove origin</code>，只推 <code>refs/heads/*</code> 与 tags 即可。</p>
+<h3>2. 令牌权限的三级体系</h3>
+<table>
+  <tr><th>凭证类型</th><th>能力</th></tr>
+  <tr><td>Account API Token（cfat_）</td><td>账号端点可用，Zone DNS / Workers domains 全部拒绝</td></tr>
+  <tr><td>User API Token（cfut_）</td><td>DNS 可读，POST 写仍 10000（权限只选到 Read）</td></tr>
+  <tr><td>Global API Key</td><td>全端点通吃，唯一能写 DNS 的凭证</td></tr>
+</table>
 
-      <h3>3. Job 级 <code>if: secrets.X</code> 导致零任务静默失败</h3>
-      <p>密钥缺失时整个 job 不生成任务、不报错。改为步骤内 shell 判断，缺失时明确打印提示。</p>
+<h3>3. wrangler Pages 部署账号解析陷阱</h3>
+<p>Pages 部署报 <code>AuthenticationError</code>，真凶不是全局配置，而是 <code>node_modules/.cache/wrangler/pages.json</code> 缓存了旧账号 ID（getCacheFolder 会向上查找 node_modules）。删掉它和 <code>~/.config/.wrangler/wrangler-account.json</code> 即恢复。</p>
 
-      <h3>4. 主域与博客的目录冲突</h3>
-      <p>官网主域要「不带 /」的干净地址，博客又要在同一域名下。最终方案：官网占根路径，博客独立仓库 <code>gjsvip/blog</code> 以项目页形式挂载到 <code>/blog/</code>，两套 Pages 构建互不覆盖。</p>
+<h3>4. gh-pages 推送 403</h3>
+<p>GitHub Actions 默认 <code>permissions: contents: read</code>，GITHUB_TOKEN 无权推分支。改为 <code>contents: write</code> 后 peaceiris 一次通过。</p>
 
-      <h2>国内外可达性</h2>
-      <p>国内网络对 workers.dev 与 pages.dev 的 SNI 时有干扰，因此：</p>
-      <ul>
-        <li><strong>主域 gjsvip.github.io</strong> 由 GitHub Pages 承载，国内直连稳定，作为唯一主入口</li>
-        <li>Gitee Pages 镜像作为国内加速备份</li>
-        <li>Cloudflare Workers 侧移除地域跳转，任何访客直达服务，国内访客仅在落地页顶部看到镜像推荐条（软提示，不强制）</li>
-      </ul>
+<h3>5. Gitee 拒绝 mirror 推送</h3>
+<p><code>deny updating a hidden ref</code>——改为显式 refspec 保活推送：<code>git push --force gitee main:main</code> 加 <code>refs/remotes/origin/gh-pages:refs/heads/gh-pages</code>。</p>
 
-      <h2>收录（SEO）</h2>
-      <ul>
-        <li><code>robots.txt</code> 使用相对路径 Sitemap 指令，各托管端各自解析</li>
-        <li><code>sitemap.xml</code> 覆盖主域各页、博客三篇文章、workers.dev 与 pages.dev</li>
-        <li>通过 <strong>IndexNow</strong> 协议主动推送收录（key 托管于主域根路径）</li>
-      </ul>
+<h3>6. 令牌明文进 Git 被 push protection 拦截</h3>
+<p>GitHub 的 secret scanning（GH013）会拦截 CF 令牌明文。文档中的令牌一律占位符化（<code>cfat_xxx...</code>），真实值只进 Secrets。</p>
 
-      <h2>小结</h2>
-      <p>三端同步的核心是「职责分离」：GitHub Actions 管部署，Gitee 只做代码与 Pages 镜像，Cloudflare 管边缘运行时。一次推送，全链路生效——剩下的，交给自动化。</p>
+<h2>国内外可达性</h2>
+<ul>
+  <li><strong>dujie_cone.520691.xyz</strong> 由 Workers 承载，边缘直服，不做地域跳转</li>
+  <li>Gitee Pages 作为国内加速镜像（需在 Gitee 网页端开启 Pages 服务，选 gh-pages 分支）</li>
+  <li>全站 9 个 URL 实测 200，Cloudflare 自动 TLS，无需手动签证书</li>
+</ul>
+
+<h2>收录（SEO）</h2>
+<ul>
+  <li><code>robots.txt</code> + <code>sitemap.xml</code> 覆盖全部域名与文章</li>
+  <li>通过 <strong>IndexNow</strong> 协议主动推送（key 文件托管于各站根路径，7/7 主机验证通过）</li>
+  <li>结构化数据（JSON-LD Blog / SoftwareApplication）已内嵌页面</li>
+</ul>
+
+<h2>小结</h2>
+<p>三端同步的核心是「职责分离」：GitHub Actions 管部署，Gitee 只做代码与 Pages 镜像，Cloudflare 管边缘运行时。一次推送，全链路生效——剩下的，交给自动化。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
     </div>
-
-    <nav class="post-nav">
-      <a href="dujiecode-release.html">← 上一篇：渡劫code 发布记</a>
-      <a></a>
-    </nav>
-  </article>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
 </main>
 
 <footer class="site-footer">
-  <div class="links">
-    <a href="https://www.520691.xyz/">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/">渡劫code</a>
-    <a href="https://github.com/gjsvip/dujiecode">GitHub 仓库</a>
-    <a href="https://gitee.com/dujie_nb_admin/dujiecode">Gitee 镜像</a>
-    <a href="../sitemap.xml">Sitemap</a>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫小站</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
   </div>
-  <div>© 2024-2026 gjsvip · Powered by 渡劫code 三端同步部署</div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫小站 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
 </footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js" defer></script>
 </body>
 </html>

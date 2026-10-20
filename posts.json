@@ -1,0 +1,59 @@
+{
+  "posts": [
+    {
+      "slug": "dujiecode-release",
+      "title": "渡劫code 发布记：打开网页就能写代码的云端 IDE",
+      "date": "2026-10-20",
+      "category": "项目发布",
+      "tags": [
+        "渡劫code",
+        "Cloudflare",
+        "Workers",
+        "发布"
+      ],
+      "cover": "🚀",
+      "excerpt": "对话式编程 + Monaco 编辑器 + 虚拟 Shell + 远程执行后端融为一体。零安装，打开网页即用——渡劫code 第一个公开版本发布。",
+      "pinned": true
+    },
+    {
+      "slug": "blog-comment-system",
+      "title": "给静态博客装上全球同步的评论系统：D1 + Worker 实战",
+      "date": "2026-10-22",
+      "category": "实战",
+      "tags": [
+        "D1",
+        "Worker",
+        "评论系统",
+        "全栈"
+      ],
+      "cover": "💬",
+      "excerpt": "不引入任何第三方评论服务，用 Cloudflare D1 + Worker 自建评论 API，三端静态站共用一套数据，国内发的评论国际站也能看到。"
+    },
+    {
+      "slug": "three-end-sync",
+      "title": "渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare",
+      "date": "2026-10-21",
+      "category": "架构",
+      "tags": [
+        "三端同步",
+        "GitHub Actions",
+        "Gitee",
+        "DNS"
+      ],
+      "cover": "☁️",
+      "excerpt": "一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。"
+    },
+    {
+      "slug": "hello-world",
+      "title": "Hello World",
+      "date": "2024-12-26",
+      "category": "随笔",
+      "tags": [
+        "随笔",
+        "开始"
+      ],
+      "cover": "🌱",
+      "excerpt": "一切从这里开始。原 Hexo 博客迁移保留的第一篇文章——欢迎来到渡劫小站。"
+    }
+  ]
+}

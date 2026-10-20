@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>说说 · 渡劫小站</title>
+<meta name="description" content="渡劫的碎片想法与日常记录。">
+<link rel="canonical" href="https://blog.520691.xyz/says.html">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫小站 RSS" href="rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-badge">🌊</span>渡劫小站<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="index.html">首页</a>
+      <a href="archive.html">归档</a>
+      <a href="tags.html">标签</a>
+      <a href="says.html">说说</a>
+      <a href="friends.html">友链</a>
+      <a href="about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout no-side">
+  <div>
+    <div class="section-head">
+      <h2>🐟 说说</h2>
+    </div>
+<div class="says-list" id="says-list"><div class="loading">正在加载…</div></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="index.html"><span class="logo-badge">🌊</span>渡劫小站</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="archive.html">文章归档</a>
+      <a href="tags.html">标签</a>
+      <a href="says.html">说说</a>
+      <a href="about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫小站 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="assets/blog.js" defer></script>
+</body>
+</html>
