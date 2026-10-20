@@ -1,0 +1,33 @@
+name: Deploy Blog to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: 部署博客到 Cloudflare Pages（345 账号）
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy . --project-name=gjsvip-blog --branch=main
+
+      - name: Summary
+        run: |
+          {
+            echo "### 博客已部署 :books:"
+            echo ""
+            echo "- 自定义域名：https://blog.520691.xyz"
+            echo "- GitHub Pages 镜像：https://gjsvip.github.io/blog/"
+          } >> $GITHUB_STEP_SUMMARY

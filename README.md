@@ -2,8 +2,10 @@
 
 gjsvip 的技术博客，深色 IDE 风格纯静态站。由渡劫code 项目体系自动部署。
 
-- **线上地址**：https://gjsvip.github.io/blog/
-- **官网主域**：https://gjsvip.github.io/ （渡劫code，GitHub Pages 根路径）
+- **主域**：https://blog.520691.xyz （Cloudflare Pages，345 账号）
+- **GitHub Pages 镜像**：https://gjsvip.github.io/blog/
+- **个人官网**：https://www.520691.xyz
+- **渡劫code**：https://dujie_cone.520691.xyz
 - **关联项目**：[gjsvip/dujiecode](https://github.com/gjsvip/dujiecode)（云端 IDE，GitHub + Gitee + Cloudflare 三端同步）
 
 ## 本地预览
@@ -39,5 +41,9 @@ blog/
 
 ## 部署
 
-GitHub Pages 项目页（主分支根目录），push 即自动发布。
-收录：sitemap + robots + IndexNow（密钥托管于主域 gjsvip.github.io 根路径）。
+双通道自动发布：
+1. **GitHub Pages**（项目页，主分支根目录）→ https://gjsvip.github.io/blog/
+2. **Cloudflare Pages**（345 账号，项目名 `gjsvip-blog`，`.github/workflows/deploy-cf-pages.yml`）→ https://blog.520691.xyz
+
+所需 Secrets：`CF_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`（f608546bec281f207409d11f3be5c89d）。
+收录：sitemap + robots + IndexNow（密钥 `51734a6916d2725aa31f3e62ef9a59b5.txt` 托管于本站根路径）。
