@@ -71,7 +71,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:description" content="__EXCERPT__">
 <meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
-<link rel="stylesheet" href="../assets/style.css?v=20261021a">
+<link rel="stylesheet" href="../assets/style.css?v=20261021b">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
@@ -102,7 +102,7 @@ __JSONLD__
   </div>
 </header>
 
-<main class="layout" style="grid-template-columns: 1fr 260px;">
+<main class="layout has-side">
   <div>
     <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>__TITLE__</div>
 

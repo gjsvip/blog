@@ -141,8 +141,15 @@ input, textarea { font-family: inherit; }
 .menu-toggle { display: none; }
 
 /* ---------- 布局 ---------- */
-.layout { max-width: var(--max-w); margin: 0 auto; padding: 28px 24px 80px; display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start; }
-.layout.no-side { grid-template-columns: 1fr; }
+/* 轨道用 minmax(0, 1fr) 而非 1fr：1fr 的自动最小值等于子项 min-content，
+   会被 pre 代码块（white-space: pre，最长行不换行）等撑爆导致整页横向溢出 */
+.layout { max-width: var(--max-w); margin: 0 auto; padding: 28px 24px 80px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+.layout.no-side { grid-template-columns: minmax(0, 1fr); }
+/* 桌面端双列（正文 + 260px 侧栏）由类名控制；手机端由 !important 兜底（见下方 1024px 媒体查询），
+   以兼容历史文章页 HTML 中残留的内联 grid-template-columns 样式 */
+.layout.has-side { grid-template-columns: minmax(0, 1fr) 260px; }
+/* 网格子项允许收缩：否则子项的自动最小尺寸（min-width: auto = min-content）仍会撑破轨道 */
+.layout > * { min-width: 0; }
 
 /* ---------- Hero ---------- */
 .hero {
@@ -291,6 +298,12 @@ input, textarea { font-family: inherit; }
 }
 .article-body blockquote p { margin: 0; }
 .article-body ul, .article-body ol { margin: 14px 0 14px 24px; display: grid; gap: 7px; }
+/* li 作为网格项默认 min-width: auto（= min-content）：li 内嵌 pre/长代码时会被撑爆轨道，
+   导致整个列表（含所有兄弟 li）宽出正文区。允许收缩到 0，让 pre 自行内部滚动 */
+.article-body li { min-width: 0; }
+/* 长 URL / 行内代码 token（如 node_modules/.cache/wrangler/pages.json）不可断，
+   窄屏下会顶破行箱；overflow-wrap: anywhere 仅在必要时任意点断行，不影响桌面排版 */
+.article-body p, .article-body li, .article-body a, .article-body code:not(pre code) { overflow-wrap: anywhere; }
 .article-body li::marker { color: var(--accent); font-weight: 700; }
 .article-body code:not(pre code) {
   font-family: var(--mono); font-size: 0.88em; padding: 2.5px 8px; border-radius: 6px;
@@ -317,6 +330,8 @@ input, textarea { font-family: inherit; }
 .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
 .copy-btn.copied { color: var(--ok); border-color: var(--ok); }
 .article-body table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; display: block; overflow-x: auto; }
+/* 文章页以外的表格（友链页 card-box 内的本站信息表等）：同样包裹滚动，防止窄屏撑破布局 */
+.card-box table { width: 100%; display: block; overflow-x: auto; }
 .article-body th, .article-body td { padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
 .article-body th { background: var(--grad-soft); font-weight: 700; }
 .article-body tr:nth-child(even) td { background: color-mix(in srgb, var(--card) 60%, transparent); }
@@ -575,8 +590,10 @@ input, textarea { font-family: inherit; }
 /* ---------- 响应式 ---------- */
 /* 平板横屏 / 小桌面（≤1024px）：侧栏落到底部 */
 @media (max-width: 1024px) {
-  .layout { grid-template-columns: 1fr; }
-  .side { position: static; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  /* !important + minmax(0,1fr)：覆盖历史文章页 main 标签上的内联 style="grid-template-columns: 1fr 260px"
+     （内联样式优先级高于普通选择器），并防止代码块 min-content 撑爆单列轨道 */
+  .layout { grid-template-columns: minmax(0, 1fr) !important; }
+  .side { position: static; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
   .hero { padding: 38px 28px; }
 }
 
