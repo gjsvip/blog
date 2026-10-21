@@ -65,6 +65,35 @@
     });
   }
 
+  /* ---------- 点赞本地记忆（worker stats 不回传 liked，用 localStorage 兜底） ---------- */
+  var LIKED_POSTS_KEY = 'dujie-liked-posts';
+  var LIKED_COMMENTS_KEY = 'dujie-liked-comments';
+  function readLiked(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function isLiked(key, id) {
+    return readLiked(key).some(function (x) { return String(x) === String(id); });
+  }
+  function saveLiked(key, id) {
+    try {
+      var arr = readLiked(key);
+      if (arr.map(String).indexOf(String(id)) === -1) {
+        arr.push(id);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }
+    } catch (e) {}
+  }
+  function forgetLiked(key, id) {
+    try {
+      var arr = readLiked(key).filter(function (x) { return String(x) !== String(id); });
+      localStorage.setItem(key, JSON.stringify(arr));
+    } catch (e) {}
+  }
+
   /* ---------- 主题 ---------- */
   function initTheme() {
     var saved = null;
@@ -194,11 +223,19 @@
         es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
       }, { threshold: 0.06 });
       $$('.reveal', list).forEach(function (el) { io.observe(el); });
-      // 统计数据
+      // 统计数据（兼容数组与对象两种返回形态；comments 缺失按 0 处理）
       var slugs = posts.map(function (p) { return p.slug; }).join(',');
+      var normStats = function (data) {
+        if (Array.isArray(data)) return data;
+        if (data && typeof data === 'object') {
+          return Object.keys(data).map(function (k) { return Object.assign({ slug: k }, data[k]); });
+        }
+        return [];
+      };
       api('/api/blog/stats?slugs=' + encodeURIComponent(slugs)).then(function (data) {
+        var arr = normStats(data);
         var map = {};
-        (data || []).forEach(function (s) { map[s.slug] = s; });
+        arr.forEach(function (s) { map[s.slug] = s; });
         $$('.post-foot', list).forEach(function (foot) {
           var s = map[foot.getAttribute('data-slug')] || {};
           var v = $('.v-views', foot), l = $('.v-likes', foot), c = $('.v-comments', foot);
@@ -206,13 +243,19 @@
           if (l) l.textContent = s.likes || 0;
           if (c) c.textContent = s.comments || 0;
         });
+        // 侧栏死 ID 修复：文章数 / 评论总数 / 浏览总数
+        var sp = $('#stat-posts'), sc = $('#stat-comments'), sv = $('#stat-views');
+        if (sp) sp.textContent = posts.length;
+        if (sc) sc.textContent = arr.reduce(function (sum, s) { return sum + (s.comments || 0); }, 0);
+        if (sv) sv.textContent = arr.reduce(function (sum, s) { return sum + (s.views || 0); }, 0);
       }).catch(function () {});
       // 侧栏热门
       api('/api/blog/stats?slugs=' + encodeURIComponent(slugs)).then(function (data) {
         var hot = $('#hot-list');
-        if (!hot || !data) return;
-        data.sort(function (a, b) { return (b.views || 0) - (a.views || 0); });
-        hot.innerHTML = data.slice(0, 5).map(function (s, i) {
+        if (!hot) return;
+        var arr = normStats(data);
+        arr.sort(function (a, b) { return (b.views || 0) - (a.views || 0); });
+        hot.innerHTML = arr.slice(0, 5).map(function (s, i) {
           var p = posts.filter(function (x) { return x.slug === s.slug; })[0] || {};
           return '<div class="hot-item"><span class="rank">' + (i + 1) + '</span><a href="posts/' + esc(s.slug) + '.html">' + esc(p.title || s.slug) + '</a></div>';
         }).join('');
@@ -261,6 +304,7 @@
         }).then(function (d) {
           btn.classList.toggle('liked', !!d.liked);
           $('b', btn).textContent = d.likes;
+          if (d.liked) saveLiked(LIKED_COMMENTS_KEY, id); else forgetLiked(LIKED_COMMENTS_KEY, id);
         }).catch(function (e) { toast(e.message, 'err'); });
       });
     });
@@ -288,7 +332,7 @@
         api('/api/blog/comments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug: getSlug(), nickname: nick, email: ($('#c-email') || {}).value || '', content: text, parent_id: Number(id), visitor: visitorId() })
+          body: JSON.stringify({ slug: getSlug(), nickname: nick, email: ($('#c-email') || {}).value || '', content: text, parentId: Number(id), visitor: visitorId() })
         }).then(function () {
           toast('回复成功', 'ok');
           $('textarea', box).value = '';
@@ -304,7 +348,7 @@
     if (!box) return;
     box.innerHTML = '<div class="loading">评论加载中…</div>';
     api('/api/blog/comments?slug=' + encodeURIComponent(commentsSlug)).then(function (data) {
-      var list = (data && data.comments) || data || [];
+      var list = (data && (data.comments || data.list)) || [];
       var total = (data && data.total != null) ? data.total : list.length;
       var cnt = $('#comment-count');
       if (cnt) cnt.textContent = total;
@@ -314,6 +358,10 @@
       }
       box.innerHTML = list.map(function (c) { return renderComment(c, false); }).join('');
       bindCommentActions(box);
+      // 用本地点赞记忆预置 .liked 高亮（worker 不回传评论维度 liked）
+      $$('.c-like', box).forEach(function (btn) {
+        if (isLiked(LIKED_COMMENTS_KEY, btn.getAttribute('data-id'))) btn.classList.add('liked');
+      });
     }).catch(function (e) {
       box.innerHTML = '<div class="comments-empty"><div class="big">⚠️</div>评论加载失败：' + esc(e.message) + '</div>';
     });
@@ -377,14 +425,15 @@
     }).then(function (d) { var v = $('#stat-views'); if (v) v.textContent = d.views; }).catch(function () {});
     // 统计 + 点赞状态
     api('/api/blog/stats?slugs=' + encodeURIComponent(slug)).then(function (data) {
-      var s = (data && data[0]) || {};
+      // 兼容数组 data[0] 与对象 data[slug] 两种返回形态
+      var s = (data && (Array.isArray(data) ? data[0] : (data[slug] || {}))) || {};
       var v = $('#stat-views'), l = $('#stat-likes'), c = $('#stat-comments');
       if (v) v.textContent = s.views || 0;
       if (l) l.textContent = s.likes || 0;
       if (c) c.textContent = s.comments || 0;
       var btn = $('#like-btn');
       if (btn) {
-        if (s.liked) btn.classList.add('liked');
+        if (s.liked || isLiked(LIKED_POSTS_KEY, slug)) btn.classList.add('liked');
         btn.addEventListener('click', function () {
           api('/api/blog/like', {
             method: 'POST',
@@ -393,6 +442,7 @@
           }).then(function (d) {
             btn.classList.toggle('liked', !!d.liked);
             if (l) l.textContent = d.likes;
+            if (d.liked) saveLiked(LIKED_POSTS_KEY, slug); else forgetLiked(LIKED_POSTS_KEY, slug);
             toast(d.liked ? '感谢点赞 ❤️' : '已取消点赞');
           }).catch(function (e) { toast(e.message, 'err'); });
         });
@@ -512,7 +562,7 @@
       var list = (data && data.list) || data || [];
       if (!list.length) { box.innerHTML = '<div class="empty"><div class="big">🐟</div>暂无说说</div>'; return; }
       box.innerHTML = list.map(function (s) {
-        return '<div class="say-item reveal in"><span class="say-mood">' + esc(s.mood || '🐟') + '</span><time>' + esc(s.created_at) + '</time><p>' + esc(s.content) + '</p></div>';
+        return '<div class="say-item reveal in"><span class="say-mood">' + esc(s.mood || '🐟') + '</span><time>' + esc(s.created_at || s.createdAt) + '</time><p>' + esc(s.content) + '</p></div>';
       }).join('');
     }).catch(function () { box.innerHTML = '<div class="empty"><div class="big">⚠️</div>说说加载失败</div>'; });
   }
