@@ -10,6 +10,10 @@
 - --check：仅校验磁盘产物是否为最新（供 CI 使用），不写入任何文件
 - 强校验：slug 格式、日期格式、必需字段、正文非空、中文字数下限（告警）
 
+SEO 注入（每篇文章页）：
+- BlogPosting + BreadcrumbList 双 JSON-LD 结构化数据
+- og:image / twitter:card 等 OG 与 Twitter 分享标签
+
 用法：
     python3 gen_posts.py            # 生成全部文章
     python3 gen_posts.py --check    # 校验产物是否最新，过期则退出码 2
@@ -37,6 +41,10 @@ CJK_RE = re.compile(r"[\u4e00-\u9fff]")
 SITE_NAME = "渡劫博客"
 SITE_URL = "https://www.520691.xyz"
 AUTHOR = "gjsvip · 渡劫"
+#: 作者 Person 实体统一指向关于页（结构化数据 author.url）
+AUTHOR_URL = f"{SITE_URL}/about"
+#: 默认 OG 分享图（1200x630，由 scripts/gen_og_image.py 生成）
+OG_IMAGE = f"{SITE_URL}/assets/og-default.png"
 FAVICON = (
     "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
     "<text y='.9em' font-size='90'>🌊</text></svg>"
@@ -57,6 +65,11 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="__SITE_NAME__">
 <meta property="og:url" content="__CANONICAL__">
+<meta property="og:image" content="__OG_IMAGE__">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="__TITLE__ · 渡劫博客">
+<meta name="twitter:description" content="__EXCERPT__">
+<meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
@@ -202,24 +215,53 @@ __BODY__
 
 
 def build_jsonld(meta: dict) -> str:
-    """构造文章页的 BlogPosting 结构化数据（JSON-LD）。"""
+    """构造文章页的结构化数据（JSON-LD）：BlogPosting + BreadcrumbList 两块。
+
+    字段值全部取自 posts.json 真实元数据，不编造。
+    """
     canonical = f"{SITE_URL}/posts/{meta['slug']}"
-    data = {
+    posting = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": meta["title"],
+        "description": meta.get("excerpt", ""),
+        "image": OG_IMAGE,
+        "url": canonical,
         "datePublished": meta["date"],
         "dateModified": meta["date"],
-        "author": {"@type": "Person", "name": "gjsvip"},
-        "publisher": {"@type": "Organization", "name": SITE_NAME},
-        "mainEntityOfPage": canonical,
-        "description": meta.get("excerpt", ""),
+        "inLanguage": "zh-CN",
+        "keywords": ", ".join(meta.get("tags", [])),
+        "author": {
+            "@type": "Person",
+            "name": "gjsvip",
+            "alternateName": "渡劫",
+            "url": AUTHOR_URL,
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": SITE_NAME,
+            "url": f"{SITE_URL}/",
+            "logo": {"@type": "ImageObject", "url": OG_IMAGE},
+        },
+        "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
     }
-    return (
-        '<script type="application/ld+json">\n'
-        + json.dumps(data, ensure_ascii=False)
-        + "\n</script>"
-    )
+    breadcrumb = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "首页", "item": f"{SITE_URL}/"},
+            {"@type": "ListItem", "position": 2, "name": "归档", "item": f"{SITE_URL}/archive"},
+            {"@type": "ListItem", "position": 3, "name": meta["title"], "item": canonical},
+        ],
+    }
+    blocks = []
+    for data in (posting, breadcrumb):
+        blocks.append(
+            '<script type="application/ld+json">\n'
+            + json.dumps(data, ensure_ascii=False)
+            + "\n</script>"
+        )
+    return "\n".join(blocks)
 
 
 def render_page(meta: dict, body: str) -> str:
@@ -234,6 +276,7 @@ def render_page(meta: dict, body: str) -> str:
         "__AUTHOR__": AUTHOR,
         "__SITE_NAME__": SITE_NAME,
         "__CANONICAL__": canonical,
+        "__OG_IMAGE__": OG_IMAGE,
         "__FAVICON__": FAVICON,
         "__JSONLD__": build_jsonld(meta),
         "__BODY__": body.rstrip("\n"),
@@ -278,6 +321,7 @@ def count_cjk(text: str) -> int:
 
 
 def main(argv: list) -> int:
+    """入口：生成或校验全部文章产物。"""
     check_only = "--check" in argv
     try:
         posts = load_posts()

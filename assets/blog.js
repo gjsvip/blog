@@ -223,6 +223,16 @@
         if (items[searchIdx]) items[searchIdx].scrollIntoView({ block: 'nearest' });
       }
     });
+    // 支持 ?q= 查询参数：Google 站内搜索框（SearchAction）落地后自动执行搜索
+    try {
+      var qParam = new URLSearchParams(location.search).get('q');
+      if (qParam) {
+        modal.classList.add('open');
+        input.value = qParam;
+        render(qParam);
+        input.focus();
+      }
+    } catch (e) { /* 老浏览器无 URLSearchParams 时静默跳过 */ }
   }
 
   /* ---------- 首页 ---------- */
