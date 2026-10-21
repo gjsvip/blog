@@ -22,8 +22,9 @@
     });
   }
   function getSlug() {
-    var m = location.pathname.match(/posts\/([^/]+)\.html/);
-    return m ? m[1] : null;
+    // 兼容三种形态：/posts/xxx.html、/posts/xxx（CF Pages 无扩展名规范 URL）、/posts/xxx/
+    var m = location.pathname.match(/posts\/([^/]+?)(?:\.html)?\/?$/);
+    return m ? decodeURIComponent(m[1]) : null;
   }
   function visitorId() {
     try {
@@ -112,13 +113,35 @@
   }
 
   /* ---------- 公共 UI ---------- */
+  function isMobile() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+  }
+  function closeMenu() {
+    var nav = $('.nav');
+    if (nav) nav.classList.remove('open');
+    $$('.menu-toggle').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+  }
   function initChrome() {
     initTheme();
     $$('.theme-toggle').forEach(function (b) { b.addEventListener('click', toggleTheme); });
-    // 移动端菜单
+    // 移动端菜单：开 / 关（点链接、点外部、ESC 均关闭）
     $$('.menu-toggle').forEach(function (b) {
-      b.addEventListener('click', function () { $('.nav').classList.toggle('open'); });
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var nav = $('.nav');
+        var open = nav.classList.toggle('open');
+        b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
     });
+    var navEl = $('.nav');
+    if (navEl) {
+      $$('a', navEl).forEach(function (a) { a.addEventListener('click', closeMenu); });
+    }
+    document.addEventListener('click', function (e) {
+      var nav = $('.nav');
+      if (nav && nav.classList.contains('open') && !e.target.closest('.nav') && !e.target.closest('.menu-toggle')) closeMenu();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
     // 进度条 + 返回顶部
     var bar = $('#progress-bar'), top = $('#back-top');
     function onScroll() {
@@ -153,6 +176,14 @@
   function initSearch() {
     var modal = $('#search-modal'), input = $('#search-input'), box = $('#search-results');
     if (!modal || !input) return;
+    // 底部提示：桌面显示快捷键，手机显示「点击搜索」
+    var panel = $('.search-panel', modal);
+    if (panel && !$('.kbd-hint', panel)) {
+      var hint = document.createElement('div');
+      hint.className = 'kbd-hint';
+      hint.textContent = isMobile() ? '点击输入框搜索文章 · ESC 关闭' : 'Ctrl/⌘ K 随时搜索 · ESC 关闭';
+      panel.appendChild(hint);
+    }
     function open() { modal.classList.add('open'); input.value = ''; render(''); input.focus(); }
     function close() { modal.classList.remove('open'); searchIdx = -1; }
     function render(q) {
@@ -494,6 +525,29 @@
           });
         }, { rootMargin: '-80px 0px -70% 0px' });
         heads.forEach(function (h) { spy.observe(h); });
+        // 移动端：目录默认收起为「目录 ▾」折叠按钮，点击展开；回到桌面自动恢复
+        var tocPanel = tocBox.closest('.panel');
+        var tocTitle = tocPanel ? $('.panel-title', tocPanel) : null;
+        if (tocPanel && tocTitle && !$('.toc-collapse-btn', tocTitle)) {
+          var collapseBtn = document.createElement('button');
+          collapseBtn.type = 'button';
+          collapseBtn.className = 'toc-collapse-btn';
+          collapseBtn.setAttribute('aria-expanded', 'false');
+          function refreshCollapse() {
+            var mobile = isMobile();
+            tocPanel.classList.toggle('toc-collapsed', mobile);
+            if (!mobile) tocPanel.classList.remove('toc-open');
+            collapseBtn.textContent = tocPanel.classList.contains('toc-open') ? '收起 ▴' : '目录 ▾';
+            collapseBtn.setAttribute('aria-expanded', tocPanel.classList.contains('toc-open') ? 'true' : 'false');
+          }
+          collapseBtn.addEventListener('click', function () {
+            tocPanel.classList.toggle('toc-open');
+            refreshCollapse();
+          });
+          tocTitle.appendChild(collapseBtn);
+          refreshCollapse();
+          window.addEventListener('resize', refreshCollapse);
+        }
       }
     }
     // 上下篇

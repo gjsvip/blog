@@ -551,32 +551,159 @@ input, textarea { font-family: inherit; }
 .kbd-hint kbd { font-family: var(--mono); border: 1px solid var(--border-strong); border-radius: 5px; padding: 1px 6px; background: var(--bg-soft); font-size: 11px; }
 
 /* ---------- 响应式 ---------- */
+/* 平板横屏 / 小桌面（≤1024px）：侧栏落到底部 */
 @media (max-width: 1024px) {
   .layout { grid-template-columns: 1fr; }
   .side { position: static; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
   .hero { padding: 38px 28px; }
 }
+
+/* 平板竖屏中间态（≤768px） */
+@media (max-width: 768px) {
+  .layout { padding: 24px 20px 72px; gap: 22px; }
+  .hero { padding: 36px 26px 32px; }
+  .hero p { font-size: 15px; }
+  .panel { padding: 20px; }
+  .article-wrap { padding: 24px 20px 72px; }
+  .article-body { font-size: 15.8px; }
+  .article-cover { aspect-ratio: 16/9; font-size: 56px; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .friends-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .comment-form { padding: 18px; }
+  .article-actions { padding: 18px; }
+  .post-card { grid-template-columns: 120px 1fr; gap: 16px; }
+  .toc { max-height: none; }
+}
+
+/* 手机（≤640px） */
 @media (max-width: 640px) {
   body { font-size: 15px; }
   .header-inner { padding: 0 16px; gap: 12px; }
   .nav { position: fixed; top: var(--header-h); left: 0; right: 0; flex-direction: column; padding: 12px 16px 18px;
-    background: var(--card-solid); border-bottom: 1px solid var(--border); display: none; box-shadow: var(--shadow-lg); }
+    background: var(--card-solid); border-bottom: 1px solid var(--border); display: none; box-shadow: var(--shadow-lg);
+    max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
   .nav.open { display: flex; }
-  .nav a { padding: 11px 14px; font-size: 15.5px; }
-  .menu-toggle { display: grid; }
-  .search-trigger { min-width: 0; padding: 0 11px; }
+  .nav a { padding: 11px 14px; font-size: 15.5px; min-height: 44px; display: flex; align-items: center; }
+  .menu-toggle { display: grid; width: 44px; height: 44px; }
+  .search-trigger { min-width: 0; padding: 0 11px; width: 44px; height: 44px; justify-content: center; }
   .search-trigger span, .search-trigger kbd { display: none; }
+  .icon-btn.theme-toggle { width: 44px; height: 44px; }
   .layout { padding: 20px 16px 60px; }
-  .hero { padding: 32px 20px; }
-  .post-card { grid-template-columns: 1fr; }
-  .post-cover { aspect-ratio: 21/9; }
-  .post-nav { grid-template-columns: 1fr; }
-  .article-wrap { padding: 20px 16px 60px; }
-  .article-body h2 { font-size: 21px; }
+  .hero { padding: 30px 18px 26px; border-radius: var(--radius); }
+  .hero h1 { font-size: 27px; }
+  .hero p { font-size: 14.5px; }
+  .hero-cta { gap: 10px; }
+  .hero-cta .btn { flex: 1; justify-content: center; min-height: 44px; padding: 11px 16px; }
+  .section-head { margin: 26px 0 14px; }
+  .section-head h2 { font-size: 18.5px; }
+  .post-list { gap: 14px; }
+  .post-card { grid-template-columns: 1fr; padding: 14px; gap: 12px; }
+  .post-cover { aspect-ratio: 21/9; font-size: 34px; }
+  .post-title { font-size: 16.5px; }
+  .side { grid-template-columns: 1fr; gap: 14px; }
+  .panel { padding: 16px; }
+  .author-avatar { width: 64px; height: 64px; font-size: 30px; }
+  .tag-cloud a { padding: 8px 14px; min-height: 34px; display: inline-flex; align-items: center; }
+  .post-nav { grid-template-columns: 1fr; gap: 10px; }
+  .post-nav a { padding: 14px 16px; min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+  .article-wrap { padding: 18px 16px 60px; }
+  .breadcrumb { margin-bottom: 12px; }
+  .article-header h1 { font-size: 24px; }
+  .article-meta { gap: 10px; font-size: 12.5px; margin-top: 12px; }
+  .article-cover { aspect-ratio: 16/9; font-size: 46px; margin-bottom: 22px; }
   .article-body { font-size: 15.5px; }
-  .comment-form .form-row { grid-template-columns: 1fr; }
-  .footer-inner { grid-template-columns: 1fr; gap: 22px; padding: 30px 16px 20px; }
-  .article-actions .stats-inline { margin-left: 0; width: 100%; }
+  .article-body h2 { font-size: 20px; margin: 30px 0 12px; }
+  .article-body h3 { font-size: 17px; }
+  .article-body ul, .article-body ol { margin-left: 20px; }
+  /* 代码块：横向滚动且不撑破布局 */
+  .article-body pre { max-width: 100%; margin: 16px 0; }
+  .article-body pre code { padding: 14px 14px 12px; font-size: 12.8px; -webkit-overflow-scrolling: touch; }
+  .copy-btn { opacity: 1; padding: 6px 12px; min-height: 32px; }
+  /* 表格：包裹滚动 */
+  .article-body table { font-size: 13px; -webkit-overflow-scrolling: touch; }
+  .article-body th, .article-body td { padding: 8px 10px; white-space: nowrap; }
+  .article-body blockquote { padding: 12px 14px; font-size: 14px; }
+  /* 文章底部互动条 */
+  .article-actions { padding: 16px; gap: 10px; margin-top: 30px; }
+  .like-btn { min-height: 44px; padding: 11px 20px; }
+  .article-actions .stats-inline { margin-left: 0; width: 100%; gap: 10px; }
+  /* 评论区 */
+  .comments { margin-top: 30px; }
+  .comments-title { font-size: 17px; margin-bottom: 16px; }
+  .comment-form { padding: 16px; margin-bottom: 20px; }
+  .comment-form .form-row { grid-template-columns: 1fr; gap: 10px; }
+  .comment-form input[type="text"], .comment-form input[type="email"], .comment-form textarea,
+  .reply-box textarea, .search-input-row input { font-size: 16px; /* 防 iOS 聚焦自动放大 */ }
+  .comment-form textarea { min-height: 96px; }
+  .emoji-btn { width: 44px; height: 44px; font-size: 19px; }
+  .submit-btn { min-height: 44px; padding: 11px 22px; }
+  .emoji-panel { padding: 10px; gap: 4px; }
+  .emoji-panel button { width: 44px; height: 44px; font-size: 20px; }
+  .comment-list { gap: 14px; }
+  .comment { gap: 10px; }
+  .comment-avatar { width: 38px; height: 38px; font-size: 14px; }
+  .comment-head .name { font-size: 14px; }
+  .comment-text { font-size: 14px; }
+  .comment-foot { gap: 4px; margin-top: 4px; }
+  .comment-foot button { min-height: 44px; padding: 8px 10px; font-size: 13px; }
+  .replies { margin-top: 10px; padding-left: 12px; }
+  .reply-box textarea { min-height: 76px; font-size: 16px; }
+  .reply-box .rb-foot { gap: 8px; }
+  .rb-submit, .rb-cancel { min-height: 44px; padding: 10px 18px; display: inline-flex; align-items: center; }
+  /* 搜索弹窗 */
+  .search-modal { padding-top: 8vh; }
+  .search-panel { width: min(620px, 94vw); }
+  .search-results { max-height: 60vh; }
+  /* TOC 移动端折叠 */
+  .toc { max-height: none; }
+  .toc-collapse-btn {
+    display: inline-flex; align-items: center; gap: 4px; margin-left: auto; min-height: 34px;
+    font-size: 12.5px; font-weight: 600; color: var(--accent); border: 1px solid var(--border);
+    padding: 4px 12px; border-radius: 999px; background: var(--bg-soft); transition: all 0.25s var(--ease);
+  }
+  .toc-collapse-btn:hover { border-color: var(--accent); }
+  .panel.toc-collapsed .toc { display: none; }
+  /* Toast / 返回顶部 */
+  #toast-wrap { bottom: 76px; width: calc(100% - 32px); }
+  .toast { font-size: 13.5px; padding: 11px 18px; }
+  #back-top { right: 16px; bottom: 16px; width: 44px; height: 44px; font-size: 17px; }
+  .footer-inner { grid-template-columns: 1fr; gap: 20px; padding: 28px 16px 20px; }
+  .footer-col a { padding: 8px 0; min-height: 36px; display: inline-flex; align-items: center; }
+  .timeline { padding-left: 24px; }
+  .tl-year { font-size: 19px; }
+  .tags-page a { padding: 10px 16px; min-height: 42px; }
+  .card-box { padding: 18px; }
+  .empty .big { font-size: 44px; }
+}
+
+/* 小屏手机（≤480px）：进一步压缩 */
+@media (max-width: 480px) {
+  body { font-size: 14.5px; }
+  .logo { font-size: 16.5px; }
+  .logo small { display: none; }
+  .hero { padding: 24px 14px 22px; }
+  .hero h1 { font-size: 23px; }
+  .hero p { font-size: 14px; }
+  .hero-tag { font-size: 12px; margin-bottom: 12px; }
+  .section-head h2 { font-size: 17px; }
+  .article-header h1 { font-size: 21px; }
+  .article-cover { font-size: 38px; margin-bottom: 18px; }
+  .article-body { font-size: 15px; }
+  .article-body h2 { font-size: 18.5px; }
+  .article-body h3 { font-size: 16px; }
+  .article-body pre code { font-size: 12.2px; padding: 12px 12px 10px; }
+  .panel { padding: 14px; }
+  .author-avatar { width: 56px; height: 56px; font-size: 26px; }
+  .author-stats b { font-size: 15.5px; }
+  .comment-form { padding: 14px; }
+  .comments-title { font-size: 16px; }
+  .comment-avatar { width: 34px; height: 34px; font-size: 13px; }
+  .comment-foot button { padding: 8px; }
+  .article-actions { padding: 14px; }
+  .like-btn { width: 100%; justify-content: center; }
+  .search-modal { padding-top: 6vh; }
+  .footer-bottom { font-size: 12px; }
 }
 
 /* ---------- 动画入场 ---------- */
