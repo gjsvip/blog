@@ -9,8 +9,8 @@
 <meta property="og:title" content="渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare · 渡劫小站">
 <meta property="og:description" content="一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://blog.520691.xyz/posts/three-end-sync.html">
-<link rel="canonical" href="https://blog.520691.xyz/posts/three-end-sync">
+<meta property="og:url" content="https://www.520691.xyz/posts/three-end-sync.html">
+<link rel="canonical" href="https://www.520691.xyz/posts/three-end-sync">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/rss+xml" title="渡劫小站 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
@@ -64,10 +64,10 @@
 <h2>整体架构</h2>
 <table>
   <tr><th>端</th><th>地址</th><th>职责</th></tr>
-  <tr><td>Cloudflare Workers</td><td>dujie_cone.520691.xyz</td><td>主站完整版：API + 静态资源，边缘直服，不做跳转</td></tr>
+  <tr><td>Cloudflare Workers</td><td>dujiecone.520691.xyz</td><td>主站完整版：API + 静态资源，边缘直服，不做跳转</td></tr>
   <tr><td>Cloudflare Pages</td><td>dujiecode-9ka.pages.dev</td><td>静态镜像 + 备用入口</td></tr>
   <tr><td>个人官网</td><td>www.520691.xyz</td><td>CF Pages 承载，国内可达</td></tr>
-  <tr><td>博客</td><td>blog.520691.xyz</td><td>CF Pages + Gitee Pages 双镜像</td></tr>
+  <tr><td>博客</td><td>www.520691.xyz</td><td>CF Pages + Gitee Pages 双镜像</td></tr>
   <tr><td>代码仓库</td><td>GitHub + Gitee 双库</td><td>双向可访问，Issue 集中</td></tr>
 </table>
 
@@ -75,8 +75,8 @@
 <p>全部域名收拢在 <code>520691.xyz</code> 之下，三条 CNAME 记录全部走 Cloudflare 代理（小云朵），自动签发 TLS：</p>
 <pre><code class="language-bash">www         CNAME   gjsvip-homepage.pages.dev   ✅ proxied
 blog        CNAME   gjsvip-blog.pages.dev      ✅ proxied
-dujie_cone  CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
-<blockquote><p>注意：主机名带下划线（<code>dujie_cone</code>）在部分 DNS 服务商处不被接受，Cloudflare 正常解析且自动签证书，实测 HTTPS 200。</p></blockquote>
+dujiecone   CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
+<blockquote><p>注意：早期主机名 <code>dujie_cone</code> 带下划线，严格 TLS 客户端（Python/Go）会因通配证书不匹配下划线而握手失败。已更名为无下划线的 <code>dujiecone.520691.xyz</code>，彻底规避该问题。</p></blockquote>
 
 <h2>工作流拆分</h2>
 <p><code>deploy.yml</code> 负责部署，<code>mirror-to-gitee.yml</code> 负责镜像，互不阻塞：</p>
@@ -118,7 +118,7 @@ dujie_cone  CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
 
 <h2>国内外可达性</h2>
 <ul>
-  <li><strong>dujie_cone.520691.xyz</strong> 由 Workers 承载，边缘直服，不做地域跳转</li>
+  <li><strong>dujiecone.520691.xyz</strong> 由 Workers 承载，边缘直服，不做地域跳转</li>
   <li>Gitee Pages 作为国内加速镜像（需在 Gitee 网页端开启 Pages 服务，选 gh-pages 分支）</li>
   <li>全站 9 个 URL 实测 200，Cloudflare 自动 TLS，无需手动签证书</li>
 </ul>
@@ -173,7 +173,7 @@ dujie_cone  CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
       <div class="panel-title"><span class="ico">🔗</span>相关</div>
       <div class="tag-cloud">
         <a href="../index.html">🏠 首页</a>
-        <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
         <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
       </div>
     </div>
@@ -196,7 +196,7 @@ dujie_cone  CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
     <div class="footer-col">
       <h4>项目</h4>
       <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
-      <a href="https://dujie_cone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
       <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
       <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
     </div>

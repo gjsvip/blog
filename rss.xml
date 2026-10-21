@@ -2,38 +2,38 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>渡劫小站</title>
-  <link>https://blog.520691.xyz/</link>
-  <atom:link href="https://blog.520691.xyz/rss.xml" rel="self" type="application/rss+xml"/>
+  <link>https://www.520691.xyz/</link>
+  <atom:link href="https://www.520691.xyz/rss.xml" rel="self" type="application/rss+xml"/>
   <description>独立开发者 gjsvip（渡劫）的技术博客：云端 IDE、Cloudflare 全栈部署、自动化工作流与踩坑实录。</description>
   <language>zh-CN</language>
   <item>
     <title>给静态博客装上全球同步的评论系统：D1 + Worker 实战</title>
-    <link>https://blog.520691.xyz/posts/blog-comment-system.html</link>
-    <guid isPermaLink="true">https://blog.520691.xyz/posts/blog-comment-system.html</guid>
+    <link>https://www.520691.xyz/posts/blog-comment-system.html</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/blog-comment-system.html</guid>
     <pubDate>Thu, 22 Oct 2026 08:00:00 +0800</pubDate>
     <category>实战</category>
     <description>不引入任何第三方评论服务，用 Cloudflare D1 + Worker 自建评论 API，三端静态站共用一套数据，国内发的评论国际站也能看到。</description>
   </item>
   <item>
     <title>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</title>
-    <link>https://blog.520691.xyz/posts/three-end-sync.html</link>
-    <guid isPermaLink="true">https://blog.520691.xyz/posts/three-end-sync.html</guid>
+    <link>https://www.520691.xyz/posts/three-end-sync.html</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/three-end-sync.html</guid>
     <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
     <category>架构</category>
     <description>一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。</description>
   </item>
   <item>
     <title>渡劫code 发布记：打开网页就能写代码的云端 IDE</title>
-    <link>https://blog.520691.xyz/posts/dujiecode-release.html</link>
-    <guid isPermaLink="true">https://blog.520691.xyz/posts/dujiecode-release.html</guid>
+    <link>https://www.520691.xyz/posts/dujiecode-release.html</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/dujiecode-release.html</guid>
     <pubDate>Tue, 20 Oct 2026 08:00:00 +0800</pubDate>
     <category>项目发布</category>
     <description>对话式编程 + Monaco 编辑器 + 虚拟 Shell + 远程执行后端融为一体。零安装，打开网页即用——渡劫code 第一个公开版本发布。</description>
   </item>
   <item>
     <title>Hello World</title>
-    <link>https://blog.520691.xyz/posts/hello-world.html</link>
-    <guid isPermaLink="true">https://blog.520691.xyz/posts/hello-world.html</guid>
+    <link>https://www.520691.xyz/posts/hello-world.html</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/hello-world.html</guid>
     <pubDate>Thu, 26 Dec 2024 08:00:00 +0800</pubDate>
     <category>随笔</category>
     <description>一切从这里开始。原 Hexo 博客迁移保留的第一篇文章——欢迎来到渡劫小站。</description>

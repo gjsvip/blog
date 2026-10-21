@@ -2,13 +2,13 @@
    渡劫小站 · 核心脚本
    主题切换 / 进度条 / 搜索 / TOC / 代码高亮+复制 /
    点赞 / 浏览 / 评论树 / 说说 / 入场动画
-   三端统一评论 API：https://dujie_cone.520691.xyz
+   三端统一评论 API：https://dujiecone.520691.xyz
    ============================================================ */
 (function () {
   'use strict';
 
   /* ---------- 常量 ---------- */
-  var API_BASE = 'https://dujie_cone.520691.xyz';
+  var API_BASE = 'https://dujiecone.520691.xyz';
   var POSTS_JSON = 'posts.json';
   var THEME_KEY = 'dujie-blog-theme';
   var EMOJIS = ['😀','😂','🥰','😎','🤔','😴','😭','😡','👍','👎','🙏','👏','🔥','💯','✨','🎉','❤️','💔','⭐','🌈','☀️','🌙','⚡','🍺','☕','🐟','🐱','🐶','🚀','💻','📚','✍️','🧧','🛠️','⚠️'];

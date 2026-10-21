@@ -6,11 +6,11 @@
 
 | 端 | 地址 | 触发方式 |
 |---|---|---|
-| Cloudflare Pages | https://blog.520691.xyz | push main → wrangler pages deploy |
+| Cloudflare Pages | https://www.520691.xyz | push main → wrangler pages deploy |
 | GitHub Pages | https://gjsvip.github.io/blog/ | push main → gh-pages 分支（Gitee 镜像源） |
 | Gitee Pages | https://dujie_nb_admin.gitee.io/blog/ | mirror-to-gitee.yml 自动同步 |
 
-**评论全球同步**：三端前端共用同一 API `https://dujie_cone.520691.xyz/api/blog/*`，
+**评论全球同步**：三端前端共用同一 API `https://dujiecone.520691.xyz/api/blog/*`，
 国内 Gitee 入口发布的评论，海外 GitHub / CF 入口实时可见（同一套 D1 数据）。
 
 ## 功能
