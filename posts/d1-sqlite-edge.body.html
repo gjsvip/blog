@@ -1,4 +1,4 @@
-<p>渡劫博客的<a href="blog-comment-system.html">评论系统</a>跑在 Cloudflare D1 上，几个月运行下来攒了一肚子经验：事务怎么开、批量怎么写不炸、索引怎么建、冷启动到底有多冷。这篇全部讲清楚——D1 是 SQLite，但<strong>不是你能本地随便造的 SQLite</strong>，边缘环境的约束会改变你写 SQL 的习惯。</p>
+<p>渡劫博客的<a href="blog-comment-system.html">评论系统</a>跑在 Cloudflare D1 上，从上线到现在这段时间运行下来攒了一肚子经验：事务怎么开、批量怎么写不炸、索引怎么建、冷启动到底有多冷。这篇全部讲清楚——D1 是 SQLite，但<strong>不是你能本地随便造的 SQLite</strong>，边缘环境的约束会改变你写 SQL 的习惯。</p>
 
 <h2>D1 是什么，不是什么</h2>
 <p>D1 是托管在 Cloudflare 边缘的 SQLite，支持标准 SQL 子集与 SQLite 方言，通过 <code>wrangler d1</code> 管理迁移。它<strong>不是</strong>：</p>

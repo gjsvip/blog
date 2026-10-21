@@ -33,7 +33,7 @@ Sitemap: https://gjsvip.github.io/blog/sitemap-github.xml</code></pre>
 
 <h2>RSS：把 pubDate 当契约</h2>
 <p>RSS 2.0 要求 <code>pubDate</code> 是 RFC-822 格式，写错的后果是聚合器直接丢弃整条 item。我们的生成规则：文章 date 加 <code>08:00:00 +0800</code>，星期几由程序计算，不手写：</p>
-<pre><code class="language-bash">&lt;pubDate&gt;Thu, 22 Oct 2026 08:00:00 +0800&lt;/pubDate&gt;</code></pre>
+<pre><code class="language-bash">&lt;pubDate&gt;Wed, 21 Oct 2026 08:00:00 +0800&lt;/pubDate&gt;</code></pre>
 <p>channel 里保留 <code>atom:link rel="self"</code> 指向 RSS 自身，防止订阅源被镜像站抓走改成它们的地址。</p>
 
 <h2>结构化数据与 OG</h2>
@@ -42,7 +42,7 @@ Sitemap: https://gjsvip.github.io/blog/sitemap-github.xml</code></pre>
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "静态博客 SEO 全流程",
-  "datePublished": "2026-10-24",
+  "datePublished": "2026-10-21",
   "author": { "@type": "Person", "name": "gjsvip" },
   "mainEntityOfPage": "https://www.520691.xyz/posts/static-blog-seo"
 }</code></pre>

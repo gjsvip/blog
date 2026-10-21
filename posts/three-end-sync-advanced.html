@@ -134,7 +134,7 @@ curl -sI https://gjsvip.github.io/blog/ | head -1 # 200（可能 404：Pages 部
 <p>Gitee Pages 没有预览机制，也不需要有：它只镜像已验证过的 gh-pages。三端各用适合自己的灰度手段，但<strong>放行标准只有一条：main 上的版本</strong>。每次部署结束，Actions 把本次 commit、三端地址与耗时写进 Step Summary——看不见的部署等于没部署。</p>
 
 <h2>把回滚当成功能测试</h2>
-<p>没演练过的回滚等于没有回滚。我们每季度做一次「故障演习」：故意往 main 合入一个明显错误的提交，然后走一遍三条回滚路径——CF Pages Dashboard 回滚、<code>wrangler rollback</code>、<code>git revert</code>——记录每条的耗时与副作用。演习暴露的才是真问题：某次 rollback 之后 D1 迁移没有同步退，新旧代码短暂不兼容，于是定下「<strong>迁移只加不退、新代码兼容旧表</strong>」的规矩。回滚的信心是排练出来的，不是文档写出来的。</p>
+<p>没演练过的回滚等于没有回滚。我们定期做一次「故障演习」：故意往 main 合入一个明显错误的提交，然后走一遍三条回滚路径——CF Pages Dashboard 回滚、<code>wrangler rollback</code>、<code>git revert</code>——记录每条的耗时与副作用。早前一次 rollback 之后 D1 迁移没有同步退，新旧代码短暂不兼容，于是定下「<strong>迁移只加不退、新代码兼容旧表</strong>」的规矩。回滚的信心是排练出来的，不是文档写出来的。</p>
 
 <h2>小结</h2>
 <p>三端同步的成熟度不看搭建速度，看两件事：<strong>冲突时有没有唯一事实源，出事时每端有没有独立回滚路径</strong>。做到这两点，剩下交给 Actions——它们从不需要睡觉。</p>

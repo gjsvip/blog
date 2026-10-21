@@ -10,7 +10,7 @@
   <tr><td>KV</td><td>Key-Value</td><td>最终一致（约 60s 全球生效）</td><td>限流计数、特性开关、IndexNow key</td></tr>
   <tr><td>D1</td><td>SQLite 关系库</td><td>强一致（单库单写点）</td><td>评论、点赞、浏览、账号数据</td></tr>
   <tr><td>R2</td><td>对象存储</td><td>强一致</td><td>用户上传的文件与项目快照</td></tr>
-  <tr><td>Durable Objects</td><td>单例有状态对象</td><td>强一致（串行）</td><td>WebSocket 房间、Shell 会话、实时协作</td></tr>
+  <tr><td>Durable Objects</td><td>单例有状态对象</td><td>强一致（串行）</td><td>WebSocket 房间、Shell 会话</td></tr>
 </table>
 
 <h2>wrangler.toml：一次声明所有绑定</h2>
