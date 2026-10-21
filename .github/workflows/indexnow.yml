@@ -1,0 +1,59 @@
+name: IndexNow Submit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 提交模式（new=仅新增 / all=全量）
+        type: choice
+        options: [new, all]
+        default: new
+
+permissions:
+  contents: write
+
+jobs:
+  indexnow:
+    name: IndexNow URL 自动提交
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # push 到 main 固定跑 --new；手动 dispatch 时按所选模式执行（默认 new）
+      - name: 提交 URL 到 IndexNow
+        run: |
+          MODE="${{ github.event.inputs.mode || 'new' }}"
+          echo "提交模式: --$MODE"
+          python3 scripts/indexnow.py --$MODE
+
+      # 把更新后的已提交记录回写到仓库，保证下次 --new 只提交真正的新 URL
+      - name: 回写提交记录
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git add .indexnow-submitted.json
+          if git diff --cached --quiet; then
+            echo "记录文件无变化，跳过回写"
+          else
+            git commit -m "chore(indexnow): 更新已提交记录 [skip ci]"
+            git pull --rebase origin main || true
+            git push origin HEAD:main || echo "::warning::记录回写失败，不影响本次提交结果"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### IndexNow 提交完成 :inbox_tray:"
+            echo ""
+            echo "- 提交模式：\`${{ github.event.inputs.mode || 'new' }}\`"
+            echo "- 接口：https://api.indexnow.org/indexnow"
+          } >> $GITHUB_STEP_SUMMARY
