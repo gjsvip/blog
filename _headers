@@ -1,0 +1,11 @@
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=600
+
+/posts.json
+  Cache-Control: public, max-age=600
+
+/rss.xml
+  Cache-Control: public, max-age=600
