@@ -1,0 +1,110 @@
+<p>渡劫博客的<a href="blog-comment-system.html">评论系统</a>跑在 Cloudflare D1 上，几个月运行下来攒了一肚子经验：事务怎么开、批量怎么写不炸、索引怎么建、冷启动到底有多冷。这篇全部讲清楚——D1 是 SQLite，但<strong>不是你能本地随便造的 SQLite</strong>，边缘环境的约束会改变你写 SQL 的习惯。</p>
+
+<h2>D1 是什么，不是什么</h2>
+<p>D1 是托管在 Cloudflare 边缘的 SQLite，支持标准 SQL 子集与 SQLite 方言，通过 <code>wrangler d1</code> 管理迁移。它<strong>不是</strong>：</p>
+<ul>
+  <li>不是本地 SQLite——没有 <code>PRAGMA</code> 自由，没有文件系统访问</li>
+  <li>不是高并发写库——单库单写点，写吞吐有硬上限，热点行更新会排队</li>
+  <li>不是关系齐全的 PG——窗口函数支持有限，外键默认不强制（可开）</li>
+</ul>
+<p>所以正确的姿势是：<strong>读走索引、写走 batch、Schema 一次想清楚</strong>。</p>
+
+<h2>Schema：先把约束建对</h2>
+<p>评论系统的四张表，注意每处 UNIQUE 都在替代一段应用层逻辑：</p>
+<pre><code class="language-sql">CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL,
+  parent_id INTEGER DEFAULT NULL,
+  nickname TEXT NOT NULL,
+  email TEXT DEFAULT NULL,
+  content TEXT NOT NULL,
+  visitor TEXT NOT NULL,
+  status INTEGER NOT NULL DEFAULT 1,   -- 0 待审核 / 1 通过
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_comments_slug ON comments(slug, status, created_at);
+
+CREATE TABLE IF NOT EXISTS likes (
+  visitor TEXT NOT NULL,
+  comment_id INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (visitor, comment_id)      -- 一人一赞，重复提交由 DB 拦截
+);
+
+CREATE TABLE IF NOT EXISTS views (
+  slug TEXT NOT NULL,
+  visitor TEXT NOT NULL,
+  n INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (slug, visitor)            -- UV 级去重
+);</code></pre>
+<p>所有迁移语句一律带 <code>IF NOT EXISTS</code>，保证 CI 里幂等重放不炸——我们的部署流程会重复执行 <code>wrangler d1 migrations apply</code>，见<a href="three-end-sync.html">三端同步架构记</a>。</p>
+
+<h2>事务：batch() 就是你的 transaction</h2>
+<p>D1 没有交互式事务（BEGIN…COMMIT 跨往返）。多语句原子性靠 <code>db.batch([...])</code>：要么全部成功，要么全部回滚。发一条评论同时要把文章评论数 +1，这两步必须同生共死：</p>
+<pre><code class="language-typescript">const [comment] = await db.batch([
+  db.prepare(
+    'INSERT INTO comments (slug, nickname, email, content, visitor) VALUES (?, ?, ?, ?, ?)'
+  ).bind(slug, nickname, email, content, visitor),
+  db.prepare(
+    `INSERT INTO stats (slug, comments) VALUES (?, 1)
+     ON CONFLICT(slug) DO UPDATE SET comments = comments + 1`
+  ).bind(slug),
+]);
+return comment.results[0].last_row_id;</code></pre>
+<blockquote><p>batch 的代价：所有语句共享一次往返，但<strong>总大小与语句数有上限</strong>（超限返回 400）。经验值：单批控制在几十条、几百 KB 以内，超长内容先截断再入库。</p></blockquote>
+
+<h2>批量读写：消灭 N+1 往返</h2>
+<p>最常见的性能事故是循环里 await 单条语句——每条都是一次边缘往返，十条评论就是十次。正确做法是预编译后一次 batch：</p>
+<pre><code class="language-typescript">// 错误：N 次往返
+for (const s of slugs) { await db.prepare('SELECT * FROM views WHERE slug = ?').bind(s).first(); }
+
+// 正确：1 次往返
+const rows = await db.batch(slugs.map((s) =>
+  db.prepare('SELECT * FROM views WHERE slug = ?').bind(s)
+)).then((r) =&gt; r.map((x) =&gt; x.results).flat());</code></pre>
+
+<h2>索引与查询：从深分页到 keyset</h2>
+<p>评论列表用 <code>ORDER BY created_at DESC LIMIT 20 OFFSET 4000</code> 会把页面拖死——OFFSET 本质是「扫过并丢弃前 4000 行」。改成 keyset 分页，索引直接定位：</p>
+<pre><code class="language-sql">-- 深分页：越翻越慢
+SELECT * FROM comments WHERE slug = ? AND status = 1
+ORDER BY created_at DESC LIMIT 20 OFFSET 4000;
+
+-- keyset：恒速，配合 (slug, status, created_at) 索引
+SELECT * FROM comments WHERE slug = ? AND status = 1 AND created_at &lt; ?
+ORDER BY created_at DESC LIMIT 20;</code></pre>
+<p>时间统一存 ISO-8601 文本（<code>datetime('now')</code> 输出 UTC），字符串比较即时间比较，跨语言零转换。楼中楼查询同理：先取顶层 20 条，再按 <code>parent_id IN (...)</code> 一次取回，避免递归往返。</p>
+
+<h2>冷启动到底有多冷</h2>
+<p>实测：一个新库在新 PoP 的首次查询约 <strong>20–80ms</strong>（SQLite 文件打开 + 索引预热），同 PoP 后续查询降到个位数 ms；跨国场景受就近 PoP 与库副本同步影响。优化手段按收益排序：</p>
+<ul>
+  <li><strong>减少往返次数</strong>——batch 一次搞定，比任何微优化都管用</li>
+  <li><strong>保持 Schema 精简</strong>——列越少、行越小，打开越快</li>
+  <li><strong>读路径全走索引</strong>——<code>EXPLAIN QUERY PLAN</code> 验证没有全表扫描</li>
+  <li><strong>合并轮询</strong>——前端用 <code>/stats?slugs=a,b,c</code> 批量拉，别一页发十个请求</li>
+</ul>
+
+<h2>迁移与本地开发</h2>
+<pre><code class="language-bash"># 本地：wrangler 会起一个本地 SQLite，数据不落远端
+npx wrangler d1 migrations apply blog --local
+npm run dev
+
+# 生产：幂等，可重复执行
+npx wrangler d1 migrations apply blog --remote
+
+# 临时查询（不写文件）
+npx wrangler d1 execute blog --remote --command "SELECT count(*) FROM comments"</code></pre>
+<p>迁移文件按时间戳命名、只追加不删除——这是 D1 世界的「schema 版本控制」：回滚代码时不回滚表结构，新旧代码必须能在同一张表上共存，可退可进。</p>
+
+<h2>计数与聚合：能下推就不上层</h2>
+<p>「每篇文章多少评论、多少赞」这类仪表盘数字，不要查出来在内存里加。用 SQL 聚合一次算完，索引覆盖下即使十万行也是毫秒级：</p>
+<pre><code class="language-sql">SELECT slug, COUNT(*) AS c FROM comments WHERE status = 1 GROUP BY slug;</code></pre>
+<p>更稳的做法是物化：写评论时顺手 UPSERT 更新 stats 表的计数字段，读路径零计算。空间换时间，在读多写少的边缘场景永远划算。我们的批量接口 <code>/api/blog/stats?slugs=a,b,c</code> 就是这么设计的——一次请求拿回首页全部文章的互动数据。如果某个 key 的写入成为全站热点（比如全局计数器），正确的下一步不是硬扛，而是把它挪进 Durable Objects：用 DO 的串行内存在累加，定时落库——D1 的写瓶颈就这样被绕开，选型逻辑见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a>。</p>
+
+<h2>备份、导出与监控</h2>
+<p>D1 支持快照导出，定时把数据落进 R2，个人项目就拥有了「真的备份」：</p>
+<pre><code class="language-bash">npx wrangler d1 export blog --remote --output=backup-$(date +%F).sql
+# 生产方案：Workers Cron Trigger 每天触发一次导出，写入 R2 桶</code></pre>
+<p>监控方面，Cloudflare 后台能看到 D1 的读写次数与延迟曲线；我们还在 Worker 里加了一层耗时打点，超过 200ms 的查询记警告日志，<code>wrangler tail</code> 实时可见。数据量级心里有数，流量来时第一个夜晚才睡得着。</p>
+
+<h2>小结</h2>
+<p>D1 的哲学是「<strong>用 SQLite 的简单换边缘的延迟</strong>」。约束本身给了你明确的写法：batch 代替交互事务、UNIQUE 代替应用层校验、keyset 代替深分页、聚合下推代替内存计算。把这些当成肌肉记忆，边缘数据库就不会成为瓶颈——渡劫博客的评论、点赞、浏览全部由它承载，至今没有一次因为数据库半夜报警。</p>

@@ -1,0 +1,44 @@
+<p>渡劫code 的第一个公开版本，今天上线。它把<strong>对话式编程</strong>、<strong>Monaco 编辑器</strong>、<strong>虚拟 Shell</strong> 与<strong>远程执行后端</strong>融为一体——打开网页即用，无需安装任何环境。</p>
+
+<h2>它是什么</h2>
+<p>一个跑在 Cloudflare 边缘网络上的云端开发环境：</p>
+<ul>
+  <li><strong>AI 对话式编程</strong>：自然语言描述需求，流式生成代码，SSE 实时推送</li>
+  <li><strong>Monaco 编辑器</strong>：VS Code 同款内核，语法高亮、多标签、虚拟文件系统</li>
+  <li><strong>虚拟 Shell</strong>：浏览器内模拟 <code>ls/cat/echo/cd</code> 等命令，即时反馈</li>
+  <li><strong>远程执行后端</strong>：注册后端节点，通过 WebSocket 分发任务到任意机器执行</li>
+  <li><strong>多用户隔离</strong>：账号体系 + 令牌鉴权，数据按账号隔离</li>
+</ul>
+
+<h2>技术栈</h2>
+<table>
+  <tr><th>层</th><th>选型</th></tr>
+  <tr><td>前端</td><td>Vite + React + MUI + Tailwind CSS</td></tr>
+  <tr><td>边缘运行时</td><td>Cloudflare Workers（Hono 路由）</td></tr>
+  <tr><td>存储</td><td>D1（SQLite）+ KV + R2</td></tr>
+  <tr><td>实时通道</td><td>Durable Objects WebSocket</td></tr>
+  <tr><td>CI/CD</td><td>GitHub Actions + Wrangler + Pages</td></tr>
+</table>
+
+<h2>立即体验</h2>
+<p>主域直达，国内外均可访问：</p>
+<pre><code class="language-bash">https://dujiecone.520691.xyz/</code></pre>
+<p>本地一行命令启动开发：</p>
+<pre><code class="language-bash">git clone https://github.com/gjsvip/dujiecode.git
+cd dujiecode
+npm install
+npm run dev</code></pre>
+
+<h2>域名体系</h2>
+<p>项目现已迁入统一的 <code>520691.xyz</code> 域名体系：</p>
+<table>
+  <tr><th>地址</th><th>用途</th></tr>
+  <tr><td>dujiecone.520691.xyz</td><td>渡劫code 主站（Workers 边缘直服）</td></tr>
+  <tr><td>www.520691.xyz</td><td>个人官网（CF Pages）</td></tr>
+  <tr><td>www.520691.xyz</td><td>本博客（CF Pages + Gitee 镜像）</td></tr>
+</table>
+
+<h2>关于名字</h2>
+<p>「渡劫」——修炼度过天劫，方能更上一层。每一次开发，都像一次渡劫般顺畅，这是这个名字的由来。</p>
+
+<blockquote><p>项目完全开源：<a href="https://github.com/gjsvip/dujiecode">github.com/gjsvip/dujiecode</a>，欢迎 Star 与 Issue。</p></blockquote>

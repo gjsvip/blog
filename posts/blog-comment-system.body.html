@@ -1,0 +1,76 @@
+<p>静态博客最大的短板是<strong>没有动态能力</strong>——评论、点赞、浏览量，全都要服务端。第三方评论服务（Disqus、Giscus 之流）要么国内访问困难，要么强依赖 GitHub 账号。这次干脆自己造：<strong>Cloudflare D1 做存储，Worker 做 API，三个静态站共用一套后端</strong>。</p>
+
+<h2>需求拆解</h2>
+<ul>
+  <li><strong>全球数据同步</strong>：国内用户从 Gitee Pages 发评论，海外用户从 GitHub Pages / www.520691.xyz 看到的必须是同一条</li>
+  <li><strong>零依赖静态站</strong>：博客本身还是纯 HTML，不引入构建工具</li>
+  <li><strong>树形评论</strong>：支持楼中楼回复</li>
+  <li><strong>互动统计</strong>：点赞（toggle）、浏览量（UV 级）、评论数</li>
+  <li><strong>防滥用</strong>：访客指纹限流，无需登录</li>
+</ul>
+
+<h2>架构总览</h2>
+<pre><code class="language-bash">┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+│  www.520691.xyz │   │ gjsvip.github.io│   │ gitee 镜像      │
+│  (CF Pages)      │   │ /blog/          │   │ (Gitee Pages)   │
+└────────┬────────┘   └────────┬────────┘   └────────┬────────┘
+         │                     │                     │
+         └─────────────────────┼─────────────────────┘
+                               ▼
+              https://dujiecone.520691.xyz/api/blog/*
+                    （Cloudflare Worker）
+                               │
+                    ┌──────────┴──────────┐
+                    │  BLOG_DB (D1)       │
+                    │  comments / likes   │
+                    │  views / says       │
+                    └─────────────────────┘</code></pre>
+<p>关键决策：三个静态站的前端<strong>调用同一个 API 根地址</strong>（<code>API_BASE = 'https://dujiecone.520691.xyz'</code>），数据天然同步。Worker 已按 zone 路由绑定到主域，无需额外域名。</p>
+
+<h2>数据模型</h2>
+<table>
+  <tr><th>表</th><th>字段要点</th></tr>
+  <tr><td>comments</td><td>slug + parent_id 树形结构、status 审核位、visitor 指纹</td></tr>
+  <tr><td>likes</td><td>UNIQUE(visitor, comment_id) 保证一人一赞，重复提交即取消</td></tr>
+  <tr><td>views</td><td>UNIQUE(slug, visitor) UPSERT 累加，UV 级浏览统计</td></tr>
+  <tr><td>says</td><td>说说流，独立于文章的轻内容</td></tr>
+</table>
+
+<h2>API 契约</h2>
+<p>统一信封 <code>{code: 0, data}</code>：</p>
+<pre><code class="language-bash">GET  /api/blog/comments?slug=xxx     # 树形列表 + total
+POST /api/blog/comments              # {slug, nickname, email?, content, parent_id?}
+POST /api/blog/like                  # {slug?} 或 {comment_id} — toggle 语义
+POST /api/blog/view                  # {slug, visitor}
+GET  /api/blog/stats?slugs=a,b,c     # 批量 views/likes/comments
+GET  /api/blog/says                  # 说说流</code></pre>
+
+<h2>几个实现细节</h2>
+
+<h3>1. 访客指纹与限流</h3>
+<p>不登录就要防刷。用 <code>sha256(IP + User-Agent + salt)</code> 生成匿名指纹，评论限流 2 条/分钟（KV 桶），UV 去重（D1 UNIQUE 约束），前端再持久化一个 <code>visitorId</code> 到 localStorage 保持点赞状态。</p>
+
+<h3>2. Gravatar 头像</h3>
+<p>邮箱（选填）走 MD5 取 Gravatar 哈希，未填则显示昵称首字。MD5 用公有领域实现，零依赖。</p>
+
+<h3>3. 回复的层级校验</h3>
+<p>楼中楼只允许两层：回复必须挂在同一 slug 下已审核的评论上，防止跨文章串楼。</p>
+
+<h3>4. 亮暗双主题 + 移动端适配</h3>
+<p>设计系统用 CSS 变量驱动，<code>[data-theme]</code> 切换即全站换肤，选择记忆在 localStorage。640px 以下导航折叠为抽屉菜单。</p>
+
+<h2>前端功能清单</h2>
+<ul>
+  <li>Ctrl+K 搜索弹窗（标题/标签/摘要模糊匹配，键盘上下选择）</li>
+  <li>阅读进度条 + 返回顶部 + 滚动入场动画</li>
+  <li>文章页 TOC 目录（IntersectionObserver 滚动高亮）</li>
+  <li>代码块一键复制 + 轻量语法高亮</li>
+  <li>点赞 / 浏览 / 评论数实时展示</li>
+  <li>emoji 选择器、昵称记忆、回复楼中楼</li>
+  <li>归档时间线、标签云、友链、说说页</li>
+</ul>
+
+<h2>效果</h2>
+<p>三端任意入口发布的评论、点赞、浏览，在其余入口实时可见——因为它们本来就读写同一套 D1。静态站的纯粹性与动态互动的丰富度，这次都要了。</p>
+
+<blockquote><p>API 已开源在 <a href="https://github.com/gjsvip/dujiecode">gjsvip/dujiecode</a> 的 <code>worker/routes/blog.ts</code>，欢迎围观。</p></blockquote>

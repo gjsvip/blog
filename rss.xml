@@ -6,6 +6,71 @@
   <atom:link href="https://www.520691.xyz/rss.xml" rel="self" type="application/rss+xml"/>
   <description>独立开发者 gjsvip（渡劫）的技术博客：云端 IDE、Cloudflare 全栈部署、自动化工作流与踩坑实录。</description>
   <language>zh-CN</language>
+  <lastBuildDate>Thu, 29 Oct 2026 08:00:00 +0800</lastBuildDate>
+  <item>
+    <title>独立开发者一年：技术选型复盘与踩坑总结</title>
+    <link>https://www.520691.xyz/posts/indie-dev-journey</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/indie-dev-journey</guid>
+    <pubDate>Thu, 29 Oct 2026 08:00:00 +0800</pubDate>
+    <category>复盘</category>
+    <description>从 Hexo 到全边缘架构，独立开发一整年的选型复盘：Cloudflare 而不是 VPS、D1 而不是自建 Postgres、自建评论而不是 Giscus，以及那节最贵的手写 HTML 学费。</description>
+  </item>
+  <item>
+    <title>边缘安全实践：JWT 会话、限流、XSS 转义与 CORS 白名单</title>
+    <link>https://www.520691.xyz/posts/edge-security</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/edge-security</guid>
+    <pubDate>Wed, 28 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>Web Crypto 验签、KV 限流桶、五字符转义、Origin 白名单 + Vary 头——渡劫code 线上在跑的边缘安全四件套，全部代码级拆解。</description>
+  </item>
+  <item>
+    <title>Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批</title>
+    <link>https://www.520691.xyz/posts/ai-coding-agent</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/ai-coding-agent</guid>
+    <pubDate>Tue, 27 Oct 2026 08:00:00 +0800</pubDate>
+    <category>架构</category>
+    <description>计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。</description>
+  </item>
+  <item>
+    <title>静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放</title>
+    <link>https://www.520691.xyz/posts/mobile-responsive-blog</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/mobile-responsive-blog</guid>
+    <pubDate>Mon, 26 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>两个断点管全站、44px 触控下限、16px 防 iOS 自动缩放、代码块内部横向滚动、safe-area 与 100dvh——静态站移动端适配的完整验收清单。</description>
+  </item>
+  <item>
+    <title>三端同步再进阶：CF Pages + GitHub Pages + Gitee 的冲突与回滚</title>
+    <link>https://www.520691.xyz/posts/three-end-sync-advanced</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/three-end-sync-advanced</guid>
+    <pubDate>Sun, 25 Oct 2026 08:00:00 +0800</pubDate>
+    <category>架构</category>
+    <description>gh-pages 孤儿分支竞态、Gitee 隐式 refspec 拒绝、每端独立的回滚路径、git ls-remote 强制验证——把三端同步从「能跑」打磨到「敢睡」。</description>
+  </item>
+  <item>
+    <title>静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交</title>
+    <link>https://www.520691.xyz/posts/static-blog-seo</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/static-blog-seo</guid>
+    <pubDate>Sat, 24 Oct 2026 08:00:00 +0800</pubDate>
+    <category>教程</category>
+    <description>软 404 治理、sitemap 三条纪律（只收主域/lastmod 真实/形态与 canonical 一致）、RFC-822 pubDate、JSON-LD 与 IndexNow 提交——个人站点能做的最大技术 SEO。</description>
+  </item>
+  <item>
+    <title>D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动</title>
+    <link>https://www.520691.xyz/posts/d1-sqlite-edge</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/d1-sqlite-edge</guid>
+    <pubDate>Fri, 23 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>batch 即事务、UNIQUE 替代应用层校验、keyset 分页代替深分页、冷启动 20–80ms 的优化排序——边缘 SQLite 的正确写法全部来自线上评论系统。</description>
+  </item>
+  <item>
+    <title>Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职</title>
+    <link>https://www.520691.xyz/posts/cf-workers-fullstack</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/cf-workers-fullstack</guid>
+    <pubDate>Thu, 22 Oct 2026 08:00:00 +0800</pubDate>
+    <category>架构</category>
+    <description>无状态走 Worker、配置限流走 KV、关系数据走 D1、大文件走 R2、单点协调走 DO——渡劫code 五种边缘原语的分工、绑定方式与决策速查表。</description>
+  </item>
   <item>
     <title>给静态博客装上全球同步的评论系统：D1 + Worker 实战</title>
     <link>https://www.520691.xyz/posts/blog-comment-system.html</link>

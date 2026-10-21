@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>独立开发者一年：技术选型复盘与踩坑总结 · 渡劫博客</title>
+<meta name="description" content="从 Hexo 到全边缘架构，独立开发一整年的选型复盘：Cloudflare 而不是 VPS、D1 而不是自建 Postgres、自建评论而不是 Giscus，以及那节最贵的手写 HTML 学费。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="独立开发者一年：技术选型复盘与踩坑总结 · 渡劫博客">
+<meta property="og:description" content="从 Hexo 到全边缘架构，独立开发一整年的选型复盘：Cloudflare 而不是 VPS、D1 而不是自建 Postgres、自建评论而不是 Giscus，以及那节最贵的手写 HTML 学费。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/indie-dev-journey">
+<link rel="canonical" href="https://www.520691.xyz/posts/indie-dev-journey">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "独立开发者一年：技术选型复盘与踩坑总结", "datePublished": "2026-10-29", "dateModified": "2026-10-29", "author": {"@type": "Person", "name": "gjsvip"}, "publisher": {"@type": "Organization", "name": "渡劫博客"}, "mainEntityOfPage": "https://www.520691.xyz/posts/indie-dev-journey", "description": "从 Hexo 到全边缘架构，独立开发一整年的选型复盘：Cloudflare 而不是 VPS、D1 而不是自建 Postgres、自建评论而不是 Giscus，以及那节最贵的手写 HTML 学费。"}
+</script>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout" style="grid-template-columns: 1fr 260px;">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>独立开发者一年：技术选型复盘与踩坑总结</div>
+
+    <article>
+      <div class="article-header">
+        <h1>独立开发者一年：技术选型复盘与踩坑总结</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-29</span>
+          <span>📂 复盘</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">🌱</div>
+
+      <div class="article-body">
+<p>从 <a href="hello-world.html">Hello World</a> 到现在，一年了。这篇不聊技术细节，聊聊一个独立开发者的<strong>选型复盘</strong>：哪些决定今天看是对的，哪些是学费，以及如果重来一次我会怎么选。</p>
+
+<h2>时间线：这一年起居注</h2>
+<table>
+  <tr><th>阶段</th><th>关键词</th></tr>
+  <tr><td>第 1 个月</td><td>Hexo 博客、买域名、熟悉 Git Pages</td></tr>
+  <tr><td>第 2–3 个月</td><td>迁静态博客、接入 Cloudflare、域名体系收拢到 520691.xyz</td></tr>
+  <tr><td>第 4–6 个月</td><td>渡劫code 立项：Vite + React + Monaco，Workers 后端</td></tr>
+  <tr><td>第 7–9 个月</td><td>D1/KV/R2/DO 五件套、评论系统、三端同步</td></tr>
+  <tr><td>第 10–12 个月</td><td>SEO 治理、移动端深化、文章工程化（gen_posts.py）</td></tr>
+</table>
+
+<h2>选型复盘：四个关键决定</h2>
+
+<h3>1. Cloudflare 而不是 VPS——对的</h3>
+<p>单人项目养一台 VPS，隐性成本是半夜的报警、过期的证书、忘续的域名。Workers + Pages + D1 + KV + R2 + DO 把运维压缩成一份 <code>wrangler.toml</code>（绑定方式见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a>）。免费额度内月成本 0，国内可达性靠 <a href="three-end-sync.html">三端同步</a>的 Gitee 镜像兜底。重来一次还这么选。</p>
+
+<h3>2. D1 而不是自建 Postgres——对的，但有边界</h3>
+<p>评论、点赞、浏览这类「读多写少、单库足够」的场景，D1 是甜蜜点：SQLite 的简单换边缘的延迟，事务用 batch、去重用 UNIQUE（见 <a href="d1-sqlite-edge.html">D1 实战</a>）。但如果一开始就要多写点、多表 join、复杂报表，我会犹豫——单库单写点是硬天花板。选型前先问自己：<strong>数据量会不会涨到单库装不下？</strong>不会，就放心用。</p>
+
+<h3>3. 自建评论而不是 Giscus/Disqus——对的</h3>
+<p>Giscus 强绑 GitHub 账号，国内读者直接劝退；Disqus 国内加载慢且广告侵入。自建 D1 + Worker 方案（见 <a href="blog-comment-system.html">评论系统实战</a>）的代价是两天工作量，收益是三端数据完全同步 + 数据自己拿着。对独立博客，数据自主权值这个价。</p>
+
+<h3>4. 文章手写 HTML——错的，已纠正</h3>
+<p>博客前 4 篇文章是手写 HTML 的，每篇都要复制面包屑、评论区、侧栏、SEO meta——漏一次 canonical，SEO 努力就打折。现在的方案是 <code>posts.json</code> 存元数据、<code>posts/*.body.html</code> 存正文、<code>gen_posts.py</code> 统一产出（流程见 <a href="static-blog-seo.html">SEO 全流程</a>）：</p>
+<pre><code class="language-bash"># 现在的产出链路：元数据 + 正文 → 生成器 → 文章页
+python3 gen_posts.py            # 生成全部文章（幂等，可重复执行）
+python3 gen_posts.py --check    # CI 校验产物与元数据保持同步</code></pre><strong>重复三次的事，就必须自动化</strong>——这是今年最贵的一课，学费是若干个不一致的深夜。</p>
+
+<h2>踩坑博物馆</h2>
+<ul>
+  <li><strong>域名下划线</strong>：<code>dujie_cone</code> 主机名撞上严格 TLS 客户端的通配证书匹配，握手直接失败——改名 <code>dujiecone</code> 解决。教训：主机名永远不用下划线<pre><code class="language-bash">dujie_cone.520691.xyz   # ✗ 通配证书不匹配下划线，Python/Go 握手失败
+dujiecone.520691.xyz    # ✓ 已更名为无下划线主机名</code></pre></li>
+  <li><strong>wrangler 缓存旧账号</strong>：Pages 部署 AuthenticationError，真凶是 node_modules 里的账号缓存。教训：CI 里 fresh checkout，本地复现先删缓存</li>
+  <li><strong>gh-pages 竞态</strong>：首次推送镜像 job 抢在 gh-pages 生成前开跑。教训：部署链路里所有「等待」都要有超时和跳过分支</li>
+  <li><strong>软 404</strong>：站点缺 404.html，错路径返回 200 的首页，搜索引擎按低质量站处理。教训：上线第一天就建 404.html</li>
+  <li><strong>git push | tail</strong>：管道吞掉退出码，「推送失败」显示成「成功」。教训：退出码必须裸奔，验证用 <code>git ls-remote</code></li>
+</ul>
+
+<h2>如果重来一次</h2>
+<p>技术栈不变，顺序会变：<strong>先建 SEO 与工程化地基（404、sitemap、生成器），再写内容</strong>。今年的顺序反了——先吭哧吭哧写文章，后补地基，补地基时发现前 4 篇全是手写 HTML，返工翻倍。独立开发没有队友兜底，<strong>前期多花的两小时自动化，后期会连本带利还回来</strong>。</p>
+
+<h2>用数据给一年结账</h2>
+<table>
+  <tr><th>指标</th><th>数值</th></tr>
+  <tr><td>累计文章</td><td>12 篇，全部由生成器统一产出</td></tr>
+  <tr><td>三端部署</td><td>CF Pages / GitHub Pages / Gitee Pages 全部 200</td></tr>
+  <tr><td>评论系统</td><td>D1 承载，三端数据实时同步</td></tr>
+  <tr><td>SEO 基建</td><td>sitemap 双端分离、404 页、JSON-LD、IndexNow</td></tr>
+  <tr><td>月度账单</td><td>0 元（Cloudflare 免费额度内）</td></tr>
+</table>
+<p>数字不大，但每一个都跑在「醒了就能继续」的基础设施上。对一个独立开发者来说，这就是复利。</p>
+
+<h2>一些不好归类但重要的</h2>
+<p>关于健康：独立开发最容易卖掉的是睡眠，而睡眠债的利息比任何云账单都高。今年最值的习惯是晚上十一点后不碰部署——夜里的每一个「小改动」都值得等到明天。关于社区：给别人的项目提 Issue、写文档、回评论，这些「不产出代码」的时间，最后都以外链、反馈和合作的形式回来了。关于完美主义：先上线，再完美。渡劫code 的第一个版本连设置页都没有，但它今天养活了整个博客区的技术内容。关于命名：「渡劫」两个字比任何 description 都更容易被记住——名字是产品的第一句广告语，值得想三个月，不值得上线后改三年。第二年计划已经写好：工作台的审批流做得更细、博客提上日程、评论系统加邮件回复通知——清单不长，但每条都比一年前敢想得多。</p>
+
+<h2>写在第二年门口</h2>
+<p>独立开发一年最大的收获不是上线了什么，而是建立了一套「坏了能回滚、错了能重生成、睡了不报警」的系统。渡劫还长，劫还不少——但手里的剑，比一年前快多了。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js" defer></script>
+</body>
+</html>

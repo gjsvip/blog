@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职 · 渡劫博客</title>
+<meta name="description" content="无状态走 Worker、配置限流走 KV、关系数据走 D1、大文件走 R2、单点协调走 DO——渡劫code 五种边缘原语的分工、绑定方式与决策速查表。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职 · 渡劫博客">
+<meta property="og:description" content="无状态走 Worker、配置限流走 KV、关系数据走 D1、大文件走 R2、单点协调走 DO——渡劫code 五种边缘原语的分工、绑定方式与决策速查表。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/cf-workers-fullstack">
+<link rel="canonical" href="https://www.520691.xyz/posts/cf-workers-fullstack">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "author": {"@type": "Person", "name": "gjsvip"}, "publisher": {"@type": "Organization", "name": "渡劫博客"}, "mainEntityOfPage": "https://www.520691.xyz/posts/cf-workers-fullstack", "description": "无状态走 Worker、配置限流走 KV、关系数据走 D1、大文件走 R2、单点协调走 DO——渡劫code 五种边缘原语的分工、绑定方式与决策速查表。"}
+</script>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout" style="grid-template-columns: 1fr 260px;">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-22</span>
+          <span>📂 架构</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">🧱</div>
+
+      <div class="article-body">
+<p>渡劫code 的整个后端跑在 Cloudflare 边缘网络上，没有一台传统服务器。这篇文章把 <strong>Workers / KV / D1 / R2 / Durable Objects</strong> 五种原语的分工讲清楚：它们各自解决什么问题、彼此如何协作，以及我们在真实项目里的绑定方式。选型结论先行——<strong>无状态走 Worker，配置与限流走 KV，关系数据走 D1，大文件走 R2，需要单点协调的有状态逻辑走 DO</strong>。</p>
+
+<h2>为什么是全边缘架构</h2>
+<p>个人项目最贵的成本不是机器，是运维时间。传统 VPS 方案要操心系统更新、备份、证书续期、数据库主从，还要防着国内访问绕路。Cloudflare 的方案把这一切换成了「绑定即用」：请求在离用户最近的 PoP 被执行，存储与计算同厂原生打通，免费额度足够单人项目跑到上市。国内可达性则由 <a href="three-end-sync.html">三端同步架构</a> 兜底——静态镜像走 Gitee Pages，边缘 API 由 Workers 直服，不做地域跳转。</p>
+
+<h2>五种原语各司其职</h2>
+<table>
+  <tr><th>原语</th><th>数据模型</th><th>一致性</th><th>渡劫code 中的用途</th></tr>
+  <tr><td>Workers</td><td>无状态函数</td><td>—</td><td>全部 API 入口（Hono 路由）、鉴权中间件</td></tr>
+  <tr><td>KV</td><td>Key-Value</td><td>最终一致（约 60s 全球生效）</td><td>限流计数、特性开关、IndexNow key</td></tr>
+  <tr><td>D1</td><td>SQLite 关系库</td><td>强一致（单库单写点）</td><td>评论、点赞、浏览、账号数据</td></tr>
+  <tr><td>R2</td><td>对象存储</td><td>强一致</td><td>用户上传的文件与项目快照</td></tr>
+  <tr><td>Durable Objects</td><td>单例有状态对象</td><td>强一致（串行）</td><td>WebSocket 房间、Shell 会话、实时协作</td></tr>
+</table>
+
+<h2>wrangler.toml：一次声明所有绑定</h2>
+<p>所有原语通过 <code>wrangler.toml</code> 声明式绑定，Worker 代码里通过 <code>env</code> 访问，不需要任何 SDK 客户端初始化：</p>
+<pre><code class="language-bash">name = "dujiecone"
+main = "worker/index.ts"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "&lt;kv_namespace_id&gt;"
+
+[[d1_databases]]
+binding = "BLOG_DB"
+database_name = "blog"
+database_id = "&lt;d1_database_id&gt;"
+
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "dujiecode-assets"
+
+[[durable_objects.bindings]]
+name = "SHELL_ROOM"
+class_name = "ShellRoom"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ShellRoom"]</code></pre>
+<blockquote><p>DO 的 class 必须出现在 <code>[[migrations]]</code> 里才会被实例化，这是最容易踩的一步——漏配的表现为运行时 <code>No such class</code>。</p></blockquote>
+
+<h2>Workers：无状态入口层</h2>
+<p>Worker 本身不存任何数据，只做路由、鉴权、编排。我们用 Hono 组织路由，统一信封 <code>{code: 0, data}</code> 返回（契约细节见<a href="blog-comment-system.html">评论系统实战</a>）：</p>
+<pre><code class="language-typescript">import { Hono } from 'hono';
+
+const app = new Hono&lt;{ Bindings: Env }&gt;();
+
+app.get('/api/blog/stats', async (c) =&gt; {
+  const slugs = (c.req.query('slugs') || '').split(',').filter(Boolean);
+  const db = c.env.BLOG_DB;
+  // D1 prepared statement + batch，单次往返
+  const stmts = slugs.map((s) =&gt;
+    db.prepare('SELECT slug, views, likes FROM stats WHERE slug = ?').bind(s));
+  const rows = await db.batch(stmts);
+  return c.json({ code: 0, data: rows.map((r) =&gt; r.results).flat() });
+});</code></pre>
+
+<h2>KV：最终一致的配置与限流桶</h2>
+<p>KV 的定位是<strong>读多写少、可容忍秒级延迟</strong>的数据。限流计数器是典型场景：评论接口按访客指纹计数，<code>expirationTtl</code> 到点自动清零，不用自己写过期逻辑：</p>
+<pre><code class="language-typescript">async function rateLimit(env: Env, key: string, limit = 2, windowSec = 60) {
+  const k = `rl:${key}`;
+  const used = Number((await env.CACHE.get(k)) || '0');
+  if (used &gt;= limit) return false;
+  await env.CACHE.put(k, String(used + 1), { expirationTtl: windowSec });
+  return true;
+}</code></pre>
+<p>注意 KV 的最终一致性：写入后最长约 60 秒才全球生效，且<strong>同一 key 的并发写可能互相覆盖</strong>。所以精确计数（浏览量、点赞数）必须放 D1，KV 只做「粗略限流」这类丢几次也无所谓的场景。</p>
+
+<h2>D1：关系型数据的家</h2>
+<p>凡是需要事务、唯一约束、复杂查询的数据都进 D1。评论系统就是活样本：<code>UNIQUE(slug, visitor)</code> 保证 UV 级浏览统计不重复，<code>UNIQUE(visitor, comment_id)</code> 保证一人一赞，楼中楼靠 <code>parent_id</code> 自关联。写入走 <code>batch()</code> 把多条语句合成一次往返，且任一条失败整体回滚——相当于隐式事务。更完整的 Schema 与坑位见 <a href="d1-sqlite-edge.html">D1 边缘 SQLite 实战</a>。</p>
+
+<h2>R2：S3 兼容的对象存储</h2>
+<p>R2 对个人项目最大的吸引力是<strong>零出站流量费</strong>，且 API 与 S3 兼容，老代码改个 endpoint 就能迁。在 Worker 里直接走绑定，连签名都不用：</p>
+<pre><code class="language-typescript">// 上传：POST /api/files  body: multipart/form-data
+app.post('/api/files', async (c) =&gt; {
+  const key = `uploads/${crypto.randomUUID()}`;
+  await c.env.ASSETS.put(key, c.req.body(), {
+    httpMetadata: { contentType: c.req.header('content-type') || 'application/octet-stream' },
+  });
+  return c.json({ code: 0, data: { key } }, 201);
+});</code></pre>
+
+<h2>Durable Objects：有状态协调者</h2>
+<p>DO 是 Cloudflare 最被低估的原语：每个对象是全局唯一的单例，拥有自己的存储，请求被<strong>串行化</strong>执行，天然就是分布式锁。渡劫code 的实时通道——WebSocket 房间与 Shell 会话——全部由 DO 承载，每个房间一个对象实例：</p>
+<pre><code class="language-typescript">export class ShellRoom {
+  private sessions: Map&lt;WebSocket, string&gt; = new Map();
+
+  async fetch(req: Request) {
+    const [client, server] = Object.values(new WebSocketPair());
+    this.sessions.set(server, crypto.randomUUID());
+    server.accept();
+    return new Response(null, { status: 101, webSocket: client });
+  }
+}</code></pre>
+<p>配合 hibernation API，空闲房间不烧 CPU 时间；连接恢复时从 <code>storage</code> 重建状态。这套设计的完整取舍见 <a href="ai-coding-agent.html">AI 编程工作台架构</a>。</p>
+
+<h2>部署与调试：wrangler 日常</h2>
+<p>本地开发用 <code>wrangler dev</code>，它会在本地模拟全部绑定：KV 落到本地存储、D1 起本地 SQLite、DO 起本地实例，断网也能写代码。怀疑绑定在边缘上的行为不一致时，加 <code>--remote</code> 直连真实环境复现；线上排错靠 <code>wrangler tail</code> 实时看日志，用 <code>--status error</code> 只保留错误：</p>
+<pre><code class="language-bash">npx wrangler dev                    # 本地全绑定模拟
+npx wrangler dev --remote           # 本地代码 + 真实边缘绑定
+npx wrangler tail --status error    # 实时错误日志
+npx wrangler deploy                 # 发布（生产由 Actions 执行）</code></pre>
+<p>发布一律走 GitHub Actions 而非本地 <code>wrangler deploy</code>，保证每次上线都有 commit、日志与回滚点可回溯——部署纪律见<a href="three-end-sync-advanced.html">三端同步进阶</a>。另外 <code>compatibility_date</code> 不要频繁改动：它决定运行时行为版本，升级前先在预览部署里跑一遍测试。</p>
+
+<h2>决策速查表</h2>
+<table>
+  <tr><th>问题</th><th>答案</th></tr>
+  <tr><td>用户会话放哪？</td><td>短周期 JWT + DO/KV 存储，不放 D1</td></tr>
+  <tr><td>浏览量精确统计？</td><td>D1 UPSERT，KV 会丢写</td></tr>
+  <tr><td>接口限流？</td><td>KV 计数器 + expirationTtl</td></tr>
+  <tr><td>大文件上传？</td><td>R2，Worker 只做预签名/中转</td></tr>
+  <tr><td>多人实时协作？</td><td>DO WebSocket，单房间单实例</td></tr>
+</table>
+
+<h2>小结</h2>
+<p>全边缘架构的本质是<strong>把「状态」按一致性和延迟要求分层</strong>：越强一致、越靠近数据库的层越贵也越该少用。Workers 负责编排，KV/D1/R2 各管一段，DO 收拾所有「必须只有一个」的场景。五件套用对了，个人项目也能拥有生产级的全球架构——而且月账单是 0。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js" defer></script>
+</body>
+</html>
