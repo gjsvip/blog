@@ -35,6 +35,7 @@
   <tr><td>views</td><td>UNIQUE(slug, visitor) UPSERT 累加，UV 级浏览统计</td></tr>
   <tr><td>says</td><td>说说流，独立于文章的轻内容</td></tr>
 </table>
+<p>D1 的建表约束、批量写入与索引取舍，详见 <a href="d1-sqlite-edge.html">《D1 边缘 SQLite 的坑与优化》</a>。</p>
 
 <h2>API 契约</h2>
 <p>统一信封 <code>{code: 0, data}</code>：</p>
@@ -73,4 +74,4 @@ GET  /api/blog/says                  # 说说流</code></pre>
 <h2>效果</h2>
 <p>三端任意入口发布的评论、点赞、浏览，在其余入口实时可见——因为它们本来就读写同一套 D1。静态站的纯粹性与动态互动的丰富度，这次都要了。</p>
 
-<blockquote><p>API 已开源在 <a href="https://github.com/gjsvip/dujiecode">gjsvip/dujiecode</a> 的 <code>worker/routes/blog.ts</code>，欢迎围观。</p></blockquote>
+<blockquote><p>API 已开源在 <a href="https://github.com/gjsvip/dujiecode">gjsvip/dujiecode</a> 的 <code>worker/routes/blog.ts</code>，欢迎围观——Workers 侧的架构选型另见 <a href="cf-workers-fullstack.html">《Cloudflare Workers 全栈实践》</a>。</p></blockquote>

@@ -25,7 +25,7 @@
 <p>博客前 4 篇文章是手写 HTML 的，每篇都要复制面包屑、评论区、侧栏、SEO meta——漏一次 canonical，SEO 努力就打折。现在的方案是 <code>posts.json</code> 存元数据、<code>posts/*.body.html</code> 存正文、<code>gen_posts.py</code> 统一产出（流程见 <a href="static-blog-seo.html">SEO 全流程</a>）：</p>
 <pre><code class="language-bash"># 现在的产出链路：元数据 + 正文 → 生成器 → 文章页
 python3 gen_posts.py            # 生成全部文章（幂等，可重复执行）
-python3 gen_posts.py --check    # CI 校验产物与元数据保持同步</code></pre><strong>重复三次的事，就必须自动化</strong>——这是今年最贵的一课，学费是若干个不一致的深夜。</p>
+python3 gen_posts.py --check    # CI 校验产物与元数据保持同步</code></pre><p><strong>重复三次的事，就必须自动化</strong>——这是今年最贵的一课，学费是若干个不一致的深夜。</p>
 
 <h2>踩坑博物馆</h2>
 <ul>

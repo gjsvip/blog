@@ -66,8 +66,8 @@ dujiecone   CNAME   dujiecode.dujie.workers.dev ✅ proxied</code></pre>
 <ul>
   <li><code>robots.txt</code> + <code>sitemap.xml</code> 覆盖全部域名与文章</li>
   <li>通过 <strong>IndexNow</strong> 协议主动推送（key 文件托管于各站根路径，7/7 主机验证通过）</li>
-  <li>结构化数据（JSON-LD Blog / SoftwareApplication）已内嵌页面</li>
+  <li>结构化数据（JSON-LD Blog / SoftwareApplication）已内嵌页面，完整方案见 <a href="static-blog-seo.html">《静态博客 SEO 全流程》</a></li>
 </ul>
 
 <h2>小结</h2>
-<p>三端同步的核心是「职责分离」：GitHub Actions 管部署，Gitee 只做代码与 Pages 镜像，Cloudflare 管边缘运行时。一次推送，全链路生效——剩下的，交给自动化。</p>
+<p>三端同步的核心是「职责分离」：GitHub Actions 管部署，Gitee 只做代码与 Pages 镜像，Cloudflare 管边缘运行时。一次推送，全链路生效——Workers 侧的完整选型逻辑另见 <a href="cf-workers-fullstack.html">《Cloudflare Workers 全栈实践》</a>，剩下的，交给自动化。</p>
