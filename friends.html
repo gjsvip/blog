@@ -53,8 +53,30 @@
   <div>
     <div class="section-head">
       <h2>🔗 友情链接</h2>
+      <span class="more" id="friends-count">共 13 条 · friends.json 驱动</span>
     </div>
-<div class="friends-grid">
+    <!-- 数据源：friends.json（blog.js 拉取渲染）；以下静态卡片为降级内容，与 JSON 保持同步 -->
+    <div class="friends-grid" id="friends-grid">
+      <a class="friend-card" href="https://www.520691.xyz" target="_blank" rel="noopener"><span class="friend-avatar"><img src="https://www.520691.xyz/assets/avatar.svg" alt="渡劫博客" width="44" height="44" loading="lazy" onerror="this.parentNode.textContent='渡';this.remove()"></span><span class="friend-info"><b>渡劫博客<i class="status-dot ok" title="在线"></i></b><span>Web 版 AI 编程工作台 + Cloudflare 全栈技术博客</span></span></a>
+      <a class="friend-card" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener"><span class="friend-avatar">开</span><span class="friend-info"><b>开往 Travellings<i class="status-dot ok" title="在线"></i></b><span>开往·友链接力——让网络阅读更有温度的博客联盟</span></span></a>
+      <a class="friend-card" href="https://www.foreverblog.cn/" target="_blank" rel="noopener"><span class="friend-avatar">十</span><span class="friend-info"><b>十年之约<i class="status-dot ok" title="在线"></i></b><span>ForeverBlog · 博客十年不注销约定</span></span></a>
+      <a class="friend-card" href="https://blog.anheyu.com/" target="_blank" rel="noopener"><span class="friend-avatar">安</span><span class="friend-info"><b>安知鱼<em class="friend-status pending">待互换</em></b><span>前端与生活，安之鱼主题作者的站，Next.js 全栈产品化样本</span></span></a>
+      <a class="friend-card" href="https://blog.zhheo.com/" target="_blank" rel="noopener"><span class="friend-avatar">张</span><span class="friend-info"><b>张洪Heo<em class="friend-status pending">待互换</em></b><span>分享设计与科技，圈子第一流量，被 8 个站点收录</span></span></a>
+      <a class="friend-card" href="https://akilar.top/" target="_blank" rel="noopener"><span class="friend-avatar">A</span><span class="friend-info"><b>Akilarの糖果屋<em class="friend-status pending">待互换</em></b><span>Hexo Butterfly 生态元老，友链卡片产品化的标杆</span></span></a>
+      <a class="friend-card" href="https://www.antmoe.com/" target="_blank" rel="noopener"><span class="friend-avatar">小</span><span class="friend-info"><b>小康博客 DreamyTZK<em class="friend-status pending">待互换</em></b><span>收藏回忆 + 技术，长期高频更新才是护城河</span></span></a>
+      <a class="friend-card" href="https://www.yunyoujun.cn" target="_blank" rel="noopener"><span class="friend-avatar">云</span><span class="friend-info"><b>云游君<em class="friend-status pending">待互换</em></b><span>有趣的人 · Valaxy 作者，友链表每次刷新随机排序</span></span></a>
+      <a class="friend-card" href="https://dusays.com" target="_blank" rel="noopener"><span class="friend-avatar">杜</span><span class="friend-info"><b>杜老师说<em class="friend-status pending">待互换</em></b><span>师者传道解惑，JSON-LD + 说说 + RSS 的极简内容站</span></span></a>
+      <a class="friend-card" href="https://noionion.top/" target="_blank" rel="noopener"><span class="friend-avatar">贰</span><span class="friend-info"><b>贰猹的小窝<em class="friend-status pending">待互换</em></b><span>心得 + 学习记录，友链门槛宽松、支持邮件申请</span></span></a>
+      <a class="friend-card" href="https://kmar.top/" target="_blank" rel="noopener"><span class="friend-avatar">山</span><span class="friend-info"><b>山岳库博<em class="friend-status pending">待互换</em></b><span>二刺螈开发学习，暗黑 + PWA + RSS 的轻量组合</span></span></a>
+      <a class="friend-card" href="https://zfe.space/" target="_blank" rel="noopener"><span class="friend-avatar">小</span><span class="friend-info"><b>小冰博客<em class="friend-status pending">待互换</em></b><span>做个有梦想的人，153 篇文章，友链朋友圈标杆</span></span></a>
+      <a class="friend-card" href="https://blog.liushen.fun/" target="_blank" rel="noopener"><span class="friend-avatar">清</span><span class="friend-info"><b>清羽飞扬<em class="friend-status pending">待互换</em></b><span>建站教程 + 项目分享，子域工具矩阵最全的站长</span></span></a>
+    </div>
+    <p style="color:var(--text-3);font-size:13px;margin-top:12px;">♻️ 名单由 <code>friends.json</code> 统一维护（申请进度 / 状态一目了然）；「待互换」为已列入申请计划的大佬站点，逐家「先加后申」。</p>
+
+    <div class="section-head">
+      <h2>🚀 站长项目</h2>
+    </div>
+    <div class="friends-grid">
       <a class="friend-card" href="https://www.520691.xyz/" target="_blank" rel="noopener"><span class="friend-avatar">🏠</span><span class="friend-info"><b>个人官网</b><span>渡劫的数字客厅</span></span></a>
       <a class="friend-card" href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener"><span class="friend-avatar">💻</span><span class="friend-info"><b>渡劫code</b><span>打开网页就能写代码的云端 IDE</span></span></a>
       <a class="friend-card" href="https://github.com/gjsvip" target="_blank" rel="noopener"><span class="friend-avatar">🐙</span><span class="friend-info"><b>GitHub</b><span>开源项目聚集地</span></span></a>
@@ -73,10 +95,10 @@
       <table style="margin-top:16px;">
         <tr><th style="width:88px;">项目</th><th>内容</th></tr>
         <tr><td>名称</td><td>渡劫博客</td></tr>
-        <tr><td>地址</td><td><a href="https://www.520691.xyz/" target="_blank" rel="noopener">https://www.520691.xyz</a></td>
+        <tr><td>地址</td><td><a href="https://www.520691.xyz/" target="_blank" rel="noopener">https://www.520691.xyz</a></td></tr>
         <tr><td>简介</td><td>Web 版 AI 编程工作台 + Cloudflare 全栈技术博客</td></tr>
-        <tr><td>RSS</td><td><a href="https://www.520691.xyz/rss.xml" target="_blank" rel="noopener">https://www.520691.xyz/rss.xml</a></tr>
-        <tr><td>头像</td><td><a href="https://www.520691.xyz/assets/avatar.svg" target="_blank" rel="noopener">https://www.520691.xyz/assets/avatar.svg</a></tr>
+        <tr><td>RSS</td><td><a href="https://www.520691.xyz/rss.xml" target="_blank" rel="noopener">https://www.520691.xyz/rss.xml</a></td></tr>
+        <tr><td>头像</td><td><a href="https://www.520691.xyz/assets/avatar.svg" target="_blank" rel="noopener">https://www.520691.xyz/assets/avatar.svg</a></td></tr>
       </table>
     </div>
 
@@ -95,10 +117,18 @@
       <h2>🌐 博客联盟</h2>
     </div>
     <div class="friends-grid">
+      <a class="friend-card" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener"><span class="friend-avatar">🚌</span><span class="friend-info"><b>开往 Travellings</b><span>go.html · 让网络阅读更有温度</span></span></a>
       <a class="friend-card" href="https://www.foreverblog.cn/" target="_blank" rel="noopener"><span class="friend-avatar">♾️</span><span class="friend-info"><b>十年之约</b><span>ForeverBlog · 博客十年不注销约定</span></span></a>
-      <a class="friend-card" href="https://www.travellings.cn/" target="_blank" rel="noopener"><span class="friend-avatar">🚌</span><span class="friend-info"><b>开往 Travellings</b><span>让网络阅读更有温度</span></span></a>
     </div>
-    <p style="color:var(--text-3);font-size:13px;margin-top:12px;">联盟成员页与博客秀名单持续补充中——先占位，再上车。</p>
+    <p style="color:var(--text-3);font-size:13px;margin-top:12px;">本站侧栏常驻两家联盟徽标（满足「开往」站内可见外链的硬性要求），联盟成员页与博客秀名单持续补充中——先占位，再上车。</p>
+
+    <div class="panel alliance-panel" aria-label="博客联盟" style="margin-top:22px;">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
   </div>
 </main>
 

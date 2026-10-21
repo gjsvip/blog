@@ -517,6 +517,28 @@ input, textarea { font-family: inherit; }
 .friend-info { min-width: 0; }
 .friend-info b { font-size: 14.5px; display: block; }
 .friend-info span { font-size: 12.5px; color: var(--text-3); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+/* 友链状态：在线绿点 / 待互换黄标 */
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 7px; vertical-align: 1px; }
+.status-dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18); }
+.friend-status { font-size: 10.5px; font-weight: 700; padding: 1.5px 8px; border-radius: 999px; margin-left: 7px; font-style: normal; vertical-align: 1px; }
+.friend-status.pending { color: var(--warn); background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); }
+
+/* ---------- 博客联盟徽标（开往 / 十年之约，申请前置条件） ---------- */
+.alliance-panel { padding: 18px; }
+.alliance-badges { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.alliance-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border-radius: 12px; border: 1px solid var(--border); background: var(--bg-soft);
+  font-size: 13px; font-weight: 600; color: var(--text-2);
+  transition: all 0.25s var(--ease); min-height: 40px;
+}
+.alliance-badge:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.alliance-badge .tv-logo { width: 108px; height: 27px; }
+/* 开往官方 SVG 为白色 logo：暗色主题（默认）直接可见；亮色主题反色为黑保证对比度 */
+[data-theme="light"] .alliance-badge .tv-logo { filter: invert(1); }
+.alliance-badge .fb-logo { width: 20px; height: 20px; border-radius: 5px; }
+/* 404 页紧凑徽标行 */
+.nf-alliance { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 
 /* ---------- 说说 ---------- */
 .says-list { display: grid; gap: 16px; }

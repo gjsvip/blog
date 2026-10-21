@@ -631,6 +631,35 @@
     }).catch(function () { box.innerHTML = '<div class="empty"><div class="big">⚠️</div>说说加载失败</div>'; });
   }
 
+  /* ---------- 友链（friends.json 数据驱动，失败降级静态内容） ---------- */
+  function friendCard(f) {
+    var name = String(f.name || '友链');
+    var status = f.status === 'pending'
+      ? '<em class="friend-status pending">待互换</em>'
+      : '<i class="status-dot ok" title="在线"></i>';
+    var fallback = esc(name.charAt(0));
+    var avatar = f.avatar
+      ? '<img src="' + esc(f.avatar) + '" alt="' + esc(name) + '" width="44" height="44" loading="lazy" onerror="this.parentNode.textContent=\'' + fallback + '\';this.remove()">'
+      : fallback;
+    return '<a class="friend-card" href="' + esc(f.url || '#') + '" target="_blank" rel="noopener">' +
+      '<span class="friend-avatar">' + avatar + '</span>' +
+      '<span class="friend-info"><b>' + esc(name) + status + '</b><span>' + esc(f.desc || '') + '</span></span></a>';
+  }
+  function initFriends() {
+    var box = $('#friends-grid');
+    if (!box) return;
+    fetch('friends.json').then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) {
+      var list = (j && j.friends) || [];
+      if (!list.length) return; // 数据为空时保留静态降级内容
+      box.innerHTML = list.map(friendCard).join('');
+      var count = $('#friends-count');
+      if (count) count.textContent = '共 ' + list.length + ' 条 · friends.json 驱动';
+    }).catch(function () { /* 网络或解析失败：保留页面内静态内容 */ });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     initChrome();
@@ -641,5 +670,6 @@
     initArchive();
     initTags();
     initSays();
+    initFriends();
   });
 })();
