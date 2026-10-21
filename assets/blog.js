@@ -547,7 +547,7 @@
             var mobile = isMobile();
             tocPanel.classList.toggle('toc-collapsed', mobile);
             if (!mobile) tocPanel.classList.remove('toc-open');
-            collapseBtn.textContent = tocPanel.classList.contains('toc-open') ? '收起 ▴' : '目录 ▾';
+            collapseBtn.textContent = tocPanel.classList.contains('toc-open') ? '收起 ▴' : '📑 目录 ▾';
             collapseBtn.setAttribute('aria-expanded', tocPanel.classList.contains('toc-open') ? 'true' : 'false');
           }
           collapseBtn.addEventListener('click', function () {
