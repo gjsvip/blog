@@ -1,4 +1,4 @@
-# 渡劫小站（dujie blog）
+# 渡劫博客（dujie blog）
 
 独立开发者 gjsvip（渡劫）的技术博客。**纯静态 HTML**，零构建、零依赖，评论与互动由 Cloudflare D1 + Worker 驱动。
 

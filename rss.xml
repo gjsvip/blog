@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>渡劫小站</title>
+  <title>渡劫博客</title>
   <link>https://www.520691.xyz/</link>
   <atom:link href="https://www.520691.xyz/rss.xml" rel="self" type="application/rss+xml"/>
   <description>独立开发者 gjsvip（渡劫）的技术博客：云端 IDE、Cloudflare 全栈部署、自动化工作流与踩坑实录。</description>
@@ -36,7 +36,7 @@
     <guid isPermaLink="true">https://www.520691.xyz/posts/hello-world.html</guid>
     <pubDate>Thu, 26 Dec 2024 08:00:00 +0800</pubDate>
     <category>随笔</category>
-    <description>一切从这里开始。原 Hexo 博客迁移保留的第一篇文章——欢迎来到渡劫小站。</description>
+    <description>一切从这里开始。原 Hexo 博客迁移保留的第一篇文章——欢迎来到渡劫博客。</description>
   </item>
 </channel>
 </rss>

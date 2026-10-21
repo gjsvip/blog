@@ -1,4 +1,4 @@
-# 渡劫小站提交后自动镜像到 Gitee（数据互通：GitHub 为主仓库，Gitee 自动同步）
+# 渡劫博客提交后自动镜像到 Gitee（数据互通：GitHub 为主仓库，Gitee 自动同步）
 #
 # 配置方法（仓库 Settings > Secrets and variables > Actions）：
 #   GITEE_USER   = Gitee 用户名（dujie_nb_admin）
