@@ -75,6 +75,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
 </head>
 <body>
 <div id="progress-bar"></div>
