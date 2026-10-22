@@ -775,3 +775,14 @@ input, textarea { font-family: inherit; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* EdgeLink 友链健康检测（friends 页） */
+.lh-status { margin-top: 12px; color: var(--text-2); font-size: 13px; }
+.lh-table-wrap { margin-top: 12px; overflow-x: auto; }
+.lh-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.lh-table th, .lh-table td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.lh-table th { color: var(--text-3); font-weight: 600; }
+.lh-table td.lh-url { white-space: normal; word-break: break-all; }
+.lh-ok { color: #16a34a; font-weight: 700; }
+.lh-fail { color: #dc2626; font-weight: 700; }
+.lh-slow { color: #d97706; font-weight: 700; }

@@ -71,7 +71,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:description" content="__EXCERPT__">
 <meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
-<link rel="stylesheet" href="../assets/style.css?v=20261021c">
+<link rel="stylesheet" href="../assets/style.css?v=20261021d">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
@@ -218,7 +218,7 @@ __BODY__
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261021b" defer></script>
+<script src="../assets/blog.js?v=20261021c" defer></script>
 </body>
 </html>
 """

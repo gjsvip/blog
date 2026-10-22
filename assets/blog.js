@@ -748,6 +748,46 @@
     }).catch(function () { /* 网络或解析失败：保留页面内静态内容 */ });
   }
 
+  /* ---------- EdgeLink 友链健康检测（friends 页） ---------- */
+  function initLinkHealth() {
+    var btn = $('#link-health-btn');
+    if (!btn) return;
+    var status = $('#lh-status'), wrap = $('#lh-table-wrap');
+    btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = '检测中…';
+      status.textContent = '正在向 EdgeLink 边缘节点请求巡检数据…';
+      fetch('https://link.520691.xyz/api/check')
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (rows) {
+          if (!Array.isArray(rows) || !rows.length) {
+            status.textContent = '暂无巡检数据，稍后再试。';
+            return;
+          }
+          rows.sort(function (a, b) {
+            if (a.ok !== b.ok) return a.ok ? 1 : -1;
+            return (b.latency_ms || 0) - (a.latency_ms || 0);
+          });
+          var okN = rows.filter(function (r) { return r.ok; }).length;
+          status.textContent = '共检测 ' + rows.length + ' 个友链目标：' + okN + ' 在线 · ' + (rows.length - okN) + ' 异常（数据更新时间见下表）';
+          wrap.innerHTML = '<table class="lh-table"><thead><tr><th>站点</th><th>状态</th><th>延迟</th><th>检测时间</th></tr></thead><tbody>' +
+            rows.map(function (r) {
+              var st = r.ok
+                ? '<span class="lh-ok">● 在线</span>'
+                : '<span class="lh-fail">● 失联</span>';
+              var lat = r.ok
+                ? (r.latency_ms >= 2000 ? '<span class="lh-slow">' + r.latency_ms + ' ms</span>' : r.latency_ms + ' ms')
+                : '—';
+              var host = String(r.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+              return '<tr><td class="lh-url">' + esc(host) + '</td><td>' + st + '</td><td>' + lat + '</td><td>' + esc(String(r.checked_at || '').replace('T', ' ').slice(0, 16)) + '</td></tr>';
+            }).join('') + '</tbody></table>';
+        })
+        .catch(function (e) {
+          status.textContent = '检测失败：' + e.message + '（EdgeLink 服务波动，可稍后重试）';
+        })
+        .finally(function () { btn.disabled = false; btn.textContent = '🩺 重新检测'; });
+    });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     initChrome();
@@ -759,5 +799,6 @@
     initTags();
     initSays();
     initFriends();
+    initLinkHealth();
   });
 })();
