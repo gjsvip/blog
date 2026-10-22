@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>独立开发者运营开源副项目：从 README 到第一批真实用户 · 渡劫博客</title>
+<meta name="description" content="开源副项目三个月 1.2k star 的运营复盘：README 四版改版把部署转化率从 15% 提到 40%，第一批真实用户来自定向回复而非流量运气，外加 PR 三问与范围控制的血泪教训。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="独立开发者运营开源副项目：从 README 到第一批真实用户 · 渡劫博客">
+<meta property="og:description" content="开源副项目三个月 1.2k star 的运营复盘：README 四版改版把部署转化率从 15% 提到 40%，第一批真实用户来自定向回复而非流量运气，外加 PR 三问与范围控制的血泪教训。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/open-source-side-project">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="独立开发者运营开源副项目：从 README 到第一批真实用户 · 渡劫博客">
+<meta name="twitter:description" content="开源副项目三个月 1.2k star 的运营复盘：README 四版改版把部署转化率从 15% 提到 40%，第一批真实用户来自定向回复而非流量运气，外加 PR 三问与范围控制的血泪教训。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/open-source-side-project">
+<link rel="stylesheet" href="../assets/style.css?v=20261021c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "独立开发者运营开源副项目：从 README 到第一批真实用户", "description": "开源副项目三个月 1.2k star 的运营复盘：README 四版改版把部署转化率从 15% 提到 40%，第一批真实用户来自定向回复而非流量运气，外加 PR 三问与范围控制的血泪教训。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/open-source-side-project", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "独立开发, 开源, 运营", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/open-source-side-project"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "独立开发者运营开源副项目：从 README 到第一批真实用户", "item": "https://www.520691.xyz/posts/open-source-side-project"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>独立开发者运营开源副项目：从 README 到第一批真实用户</div>
+
+    <article>
+      <div class="article-header">
+        <h1>独立开发者运营开源副项目：从 README 到第一批真实用户</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-22</span>
+          <span>📂 随笔</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">🌱</div>
+
+      <div class="article-body">
+<p>副项目开源三个月，GitHub 上 1.2k star，被 40 多个项目引用，issue 区保持着"三天内必回"的节奏。这篇文章复盘一个独立开发者运营开源副项目的完整过程——从 README 的第一版，到第一批十个真实用户是怎么来的，以及那些"早知道就好了"的运营真相。</p>
+
+<h2>先想清楚：你开源的是代码，运营的是预期</h2>
+<p>开源副项目最常见的死法不是代码烂，是预期失控：作者以为"先做个简单的"，用户以为"这玩意能上生产"，两边对着一个半成品互相失望。所以动笔写 README 之前，先回答三个问题：</p>
+<ul>
+<li><strong>这个项目替谁解决什么问题</strong>：一句话能说清，说不清就是需求没想好；</li>
+<li><strong>生产可用还是玩具</strong>：在 README 顶部用一行文字明示，不丢人，藏着才丢人；</li>
+<li><strong>你准备投入多少</strong>：业余维护就写清楚响应时效，别让用户以为有 SLA。</li>
+</ul>
+<p>我们的项目是评论系统后端——对，就是博客在用的那套。README 第一行就写："A comment backend built on Cloudflare Workers + D1. Production-ready for personal blogs, self-host friendly."生产可用，但场景限定在个人博客。这个限定后来帮我们挡掉了至少一半"能不能用在电商详情页"类需求。</p>
+
+<h2>README 是项目的第一张脸</h2>
+<p>README 改过四版，转化率变化很明显。最终稳定的结构：</p>
+<ol>
+<li><strong>一句话定位加三个 badge</strong>（license、Cloudflare Workers、version）：五秒内让人知道是什么、什么状态；</li>
+<li><strong>Demo 或截图</strong>：评论区组件的一张 GIF，比五百字描述都管用；</li>
+<li><strong>五分钟上手指南</strong>：clone 到跑起来不超过五条命令，我们的实测是 4 条；</li>
+<li><strong>配置表</strong>：每个环境变量一行，默认值、是否必填；</li>
+<li><strong>架构一段话加目录树</strong>：让人十秒内建立代码地图；</li>
+<li><strong>Roadmap</strong>：明确近期做什么、不做什么，管理预期比隐藏预期体面得多。</li>
+</ol>
+<p>有个反直觉的数据：README 从"技术说明书"风格改成"快速上手"风格后，clone 到首次成功部署的比例从大约 15% 涨到 40% 以上。用户不会读你的架构设计，他们只想尽快看到东西跑起来。</p>
+
+<h2>第一批真实用户：不靠运气，靠定向</h2>
+<p>"把项目发到网上然后等人来"是最低效的路径。我们第一批 40 多个引用项目的来源，复盘下来有四条，按效果排序：</p>
+<table>
+<tr><th>渠道</th><th>动作</th><th>效果</th></tr>
+<tr><td>V2EX 分享节点</td><td>一篇"为什么我自己写了套评论系统"的复盘帖，带真实数据</td><td>当天 300+ star，但留存一般</td></tr>
+<tr><td>GitHub 定向回复</td><td>搜索"评论系统推荐"类 issue 和 discussion，认真对比后提及自己的项目</td><td>转化最高，来的都是精准用户</td></tr>
+<tr><td>技术社群深度文</td><td>把踩坑写成文章（Turnstile 灰度、D1 索引那些）</td><td>长尾，持续带量</td></tr>
+<tr><td>awesome 列表 PR</td><td>向相关 awesome-selfhosted 列表提交条目</td><td>一次提交，长期被动流量</td></tr>
+</table>
+<p>最有效的第二条值得展开：不要到处发链接，而是找到"正在寻找解决方案的人"。他们已经在问"有没有自建评论系统推荐"了，你的项目正好能答——这时候出现，是解题，不是广告。第一批十个真实用户里，有六个来自这种定向回复，他们后来贡献了大部分早期 issue 和两个 PR。</p>
+
+<h2>用户来了之后：issue、PR 与范围控制</h2>
+<p>有了用户，维护就不再是纯技术问题。我们的三条运营纪律：</p>
+<ul>
+<li><strong>issue 分级响应</strong>：崩溃、安全类当天回，功能请求进 Roadmap 讨论，使用问题引导到 Discussions。响应速度比解决速度更影响观感；</li>
+<li><strong>PR 三问</strong>：这个改动服务的是核心场景吗？作者会长期维护吗？能写测试吗？三个都 yes 才合，否则礼貌拒绝——合一个没人维护的 PR，等于给自己埋雷；</li>
+<li><strong>范围写进 Roadmap</strong>：被请求最多的三个功能，如果不在路线图上，就明确写"暂不支持"，比含糊其辞省掉 80% 的反复追问。</li>
+</ul>
+<p>踩过最大的坑是"好心合 PR"：一个用户提交了 Markdown 编辑器增强，代码能跑但引入了两个新依赖，两个月后他不再维护，CI 挂了一次，最后是我花了三小时回滚。从那以后 PR 三问一条没松过。</p>
+<p>还有一个早期没重视、后来补上的东西：LICENSE。第一版随手选了 MIT，被评论"你这是鼓励别人闭源收割"——技术社区对许可证的敏感度比想象中高。我们最终维持 MIT，理由写进了 README：个人博客场景下，限制商用对项目传播的伤害大于收益。这个选择不一定对，但"想清楚并写下来"本身比选什么更重要。</p>
+<p>Release 时的 changelog 也是运营的一部分。我们的规矩是每个版本在 GitHub Releases 里写清 Added、Fixed、Breaking 三段，Breaking 置顶加粗。三个月下来，issue 区重复提问明显减少——很多"怎么配"的问题，答案其实就在 changelog 里，只是以前没人知道去看。</p>
+
+<h2>三个月的数据切片</h2>
+<table>
+<tr><th>指标</th><th>数值</th></tr>
+<tr><td>star</td><td>1.2k（约 30% 来自 V2EX 首帖，后续靠长尾）</td></tr>
+<tr><td>被引用项目</td><td>43 个（GitHub dependents 口径）</td></tr>
+<tr><td>真实部署</td><td>约 20 个（从 issue 区自报和遥测插件估的）</td></tr>
+<tr><td>issue 关闭率 / 平均响应</td><td>91% / 1.8 天</td></tr>
+<tr><td>外部 PR 合并</td><td>5 个，全部通过三问</td></tr>
+</table>
+<p>注意 star 与真实部署的比例：1.2k star 对应约 20 个部署，转化率不到 2%。这是开源项目的常态——star 是关注度不是使用量，别用 star 数自我感动，issue 区才藏着真实需求。</p>
+
+<h2>结论</h2>
+<p>独立开发者运营开源副项目，技术只占一半，另一半是预期管理：README 管理能力预期，Roadmap 管理路线预期，issue 响应管理维护预期。第一批用户不来自流量运气，来自定向地出现在"正在找答案的人"面前。而最后也是最重要的一条：<strong>开源是放大器，不是起点</strong>——项目本身先在自用场景里活下来，再谈开源。顺序反了，大概率是开一个没人用的仓库，给自己上一课。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261021b" defer></script>
+</body>
+</html>

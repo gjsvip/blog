@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零成本监控体系：CF Analytics、自建状态页与告警机器人 · 渡劫博客</title>
+<meta name="description" content="没有 SRE 的独立开发者怎么守夜：CF Analytics 看趋势、Cron Worker 每 5 分钟探测 8 端点写 KV 渲染状态页、Telegram Bot 心跳式告警。月成本 0 元，附 KV 额度核算与自监控悖论解法。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="零成本监控体系：CF Analytics、自建状态页与告警机器人 · 渡劫博客">
+<meta property="og:description" content="没有 SRE 的独立开发者怎么守夜：CF Analytics 看趋势、Cron Worker 每 5 分钟探测 8 端点写 KV 渲染状态页、Telegram Bot 心跳式告警。月成本 0 元，附 KV 额度核算与自监控悖论解法。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/zero-cost-monitoring">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="零成本监控体系：CF Analytics、自建状态页与告警机器人 · 渡劫博客">
+<meta name="twitter:description" content="没有 SRE 的独立开发者怎么守夜：CF Analytics 看趋势、Cron Worker 每 5 分钟探测 8 端点写 KV 渲染状态页、Telegram Bot 心跳式告警。月成本 0 元，附 KV 额度核算与自监控悖论解法。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/zero-cost-monitoring">
+<link rel="stylesheet" href="../assets/style.css?v=20261021c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "零成本监控体系：CF Analytics、自建状态页与告警机器人", "description": "没有 SRE 的独立开发者怎么守夜：CF Analytics 看趋势、Cron Worker 每 5 分钟探测 8 端点写 KV 渲染状态页、Telegram Bot 心跳式告警。月成本 0 元，附 KV 额度核算与自监控悖论解法。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/zero-cost-monitoring", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "监控, Cloudflare, 状态页, 告警", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/zero-cost-monitoring"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "零成本监控体系：CF Analytics、自建状态页与告警机器人", "item": "https://www.520691.xyz/posts/zero-cost-monitoring"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>零成本监控体系：CF Analytics、自建状态页与告警机器人</div>
+
+    <article>
+      <div class="article-header">
+        <h1>零成本监控体系：CF Analytics、自建状态页与告警机器人</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-22</span>
+          <span>📂 运维</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">📡</div>
+
+      <div class="article-body">
+<p>独立开发者没有 SRE 团队，但线上东西挂了一晚上不知道，是很伤的事——读者流失、评论丢一条是一条、渡劫code 用户会话全断。我的目标很明确：<strong>零预算搭一套「知道它挂了、知道它慢了、知道谁在搞事」的监控体系</strong>。整套跑了一年，月成本 0 元，全在 Cloudflare 免费额度和 Telegram 免费 Bot 里。这篇把每一层拆开讲，包括那个让告警自己「活着」的心跳设计。</p>
+
+<h2>一、第一层：Cloudflare 自带 Analytics</h2>
+
+<p>Cloudflare 后台白送的能力，很多人压根没看过：</p>
+
+<ul>
+<li><strong>Workers Analytics</strong>：Dashboard 里每个 Worker 的请求数、错误数、CPU 时间分布（P50/P99）、按 Colo（PoP）拆分。还能通过 GraphQL Analytics API 编程拉取，写进自己的周报。</li>
+<li><strong>Web Analytics（RUM）</strong>：博客前端注入一段 beacon 脚本，白拿 PV/UV/来源/设备/国家分布。不跨站跟踪、隐私友好，读者不用弹 Cookie 同意。</li>
+<li><strong>免费额度内的保留</strong>：Workers Analytics 保留期有限（够看趋势，不够考古），长期数据定期用 API 导出到 R2 存证。</li>
+</ul>
+
+<p>我们的日常数字：博客日均 PV <strong>2400</strong>、UV <strong>900</strong>；Workers 全家桶日均请求 <strong>3.1 万</strong>；P99 CPU <strong>4.2ms</strong>（免费上限 10ms，还有余量但值得盯）；错误率长期 &lt;0.1%，超过 0.5% 就人工介入。Analytics 的定位是<strong>看趋势和容量</strong>，它不是告警源——数据有几分钟延迟，拿它报警等于马后炮。</p>
+
+<h2>二、第二层：Cron 状态页</h2>
+
+<p>架构一句话：<strong>一个 Cron Worker 每 5 分钟探测所有端点，结果写 KV，静态状态页读 KV 渲染</strong>。</p>
+
+<p>探测清单（8 个端点）：</p>
+
+<ol>
+<li>博客主站首页（CF Pages 端）</li>
+<li>GitHub Pages 端、Gitee Pages 端（三端都要活，见 <a href="three-end-sync.html">三端同步架构记</a>）</li>
+<li>评论 API <code>/health</code></li>
+<li>渡劫code 主站</li>
+<li>DO 房间 ping（带 token 的探针请求，同时测 DO 冷启动耗时）</li>
+<li>D1 备份结果检查（前一天备份文件是否出现在 R2，见 <a href="workers-queue-cron-tricks.html">Queues + Cron 实战</a>）</li>
+</ol>
+
+<p>结果写两个 KV key：<code>status:latest</code> 存当前各端点状态 JSON；<code>status:history</code> 存环形数组，5 分钟一个点、保留 30 天共 8640 条，序列化后约 600KB——KV 单 value 上限 25MiB，毫无压力。状态页是纯静态 HTML，JS fetch <code>/status-data.json</code>（一个 Pages Function 读 KV 返回，带 60 秒 Cache-Control），渲染 90 天 Uptime 热力图，长得像 statuspage.io 但不要钱。</p>
+
+<p>三个坑：</p>
+
+<ul>
+<li><strong>KV 最终一致性</strong>：刚写入立刻读，跨 PoP 可能读到旧值。状态页允许 60 秒缓存无所谓，但告警判断绝不能依赖「读 KV」——直接在 Worker 内存里判断本次探测结果，KV 只是给页面看的。</li>
+<li><strong>自监控悖论</strong>：探测 Worker 和状态页自己挂了怎么办？我们的解法是 Telegram 告警走<strong>心跳模式</strong>：每 6 小时发一条「还活着」静默消息，超过 6 小时没收到心跳，说明监控链本身出问题了。Cloudflare 全球故障的那天，你收到的不是一堆误报，而是「没有消息」——这恰是设计意图。</li>
+<li><strong>探测超时要分级</strong>：普通端点 5 秒超时，DO ping 放宽到 10 秒（冷启动 + 跨区）。第一版全部 5 秒，DO 探针天天误报「超时」，其实是正常冷启动。</li>
+</ul>
+
+<p>成本核算：8 端点 × 每天 288 次 = <strong>2304 次请求/天</strong>，全走 Workers 免费额度（10 万/天），占比 2.3%。KV 写每天 288 次，免费额度 1000 次/天，占 29%——这是唯一需要留意的指标，端点清单别再涨了。</p>
+
+<h2>三、第三层：告警机器人</h2>
+
+<p>Telegram Bot，@BotFather 两分钟建好，代码二十行：</p>
+
+<pre><code class="language-typescript">async function alert(env: Env, text: string) {
+  await fetch(`https://api.telegram.org/bot${env.TG_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: env.TG_CHAT_ID,
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    }),
+  });
+}</code></pre>
+
+<p>告警策略比代码重要，四条军规：</p>
+
+<ol>
+<li><strong>连续 2 次失败（10 分钟）才发</strong>——单次网络抖动不打扰，半夜的告警必须值钱</li>
+<li><strong>恢复也要通知</strong>：带上「持续了 X 分钟」，否则你不知道故障是真恢复还是探测挂了</li>
+<li><strong>聚合发送</strong>：同一轮探测多个端点失败，合成一条消息。CF 大面积故障时 8 个端点同时挂，8 条告警是噪音，1 条「CF 全局故障，8/8 端点不可达」才是信息</li>
+<li><strong>每晚 23 点汇总</strong>：当天异常条数，无异常也发。连续「一切正常」的汇总建立信任，真告警时你才不会当成垃圾推送忽略</li>
+</ol>
+
+<p>限额完全不是问题：Telegram 30 条/秒，个人监控一天最多几十条。国内网络环境访问 api.telegram.org 不稳的读者，平替是企业微信机器人 webhook（一条 URL 搞定）或 Server酱（推微信），接口形态一模一样，改个 fetch 地址而已。</p>
+
+<p>真实案例：上个月 03:17，Telegram 弹出「api.520691.xyz 连续 2 次 502，耗时 1.8s」——一次 D1 主库短暂写锁导致评论接口 502。从告警到定位 10 分钟，早高峰前恢复。这条告警值回全部票价。</p>
+
+<h2>四、日志层：tail 的艺术</h2>
+
+<ul>
+<li><strong><code>wrangler tail</code></strong>：实时日志流，调试神器，但有采样和限流，不适合 7×24 常开。我们的用法：告警触发后开 10 分钟看现场，看完就关。</li>
+<li><strong>结构化日志</strong>：全部 <code>console.log(JSON.stringify({ level, msg, requestId, ms }))</code>，tail 里直接 jq 过滤。纯文本日志在边缘环境等于没日志。</li>
+<li><strong>慢查询打点</strong>：D1 查询超 200ms 记 warn 级日志，细节在 <a href="d1-sqlite-edge.html">D1 优化那篇</a>——监控的另一半是「慢」，而不只是「挂」。</li>
+<li><strong>Logpush</strong>：全量日志外推到 R2/S3 是付费能力，免费版 tail + Analytics 对个人项目够用，别为不需要的持久化花钱。</li>
+</ul>
+
+<h2>五、业务指标：比 HTTP 状态码更重要的事</h2>
+
+<p>「站点 200」不等于「业务健康」。我们额外盯四个业务信号：</p>
+
+<ol>
+<li><strong>Queues DLQ 深度</strong>：非零即告警（通知在静默死亡）</li>
+<li><strong>DO 在线房间数</strong>：突然掉零说明 WebSocket 通道出问题，比用户反馈快得多</li>
+<li><strong>D1 备份成功标记</strong>：备份失败是最高优先级——数据是独立开发者的最后底线</li>
+<li><strong>R2 用量水位</strong>：超过免费额度 80% 时预警，留时间清理而不是等账单</li>
+</ol>
+
+<h2>小结</h2>
+
+<p>监控的性价比公式：<strong>覆盖关键路径 × 及时触达 ÷ 维护成本</strong>。三层各司其职——Analytics 看趋势、Cron 状态页看当下、Bot 负责叫你。全套 0 元，维护成本就是那 300 行 Worker 代码，写它的那个周末之后，我再没为「挂了不知道」失眠过。独立开发者最划算的投资，就是让机器替你守夜。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261021b" defer></script>
+</body>
+</html>

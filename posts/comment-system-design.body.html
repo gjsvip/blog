@@ -1,0 +1,82 @@
+<p>这套评论系统的数据模型改过三版。第一版是自用优先的一张裸表，第二版为了反垃圾长出状态字段，第三版为了开源做了租户隔离和索引重构。这篇文章完整复盘三次演化的动因、每一步的取舍，以及最终稳定下来的三级状态机——approved、pending、hidden 的流转逻辑，全部跑在 Cloudflare D1（SQLite）上。</p>
+
+<h2>v1：自用优先，一张裸表</h2>
+<p>第一版的目标非常朴素：博客能收评论，完事。表结构就五列：</p>
+<pre><code class="language-sql">CREATE TABLE comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_slug TEXT NOT NULL,
+  nickname TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);</code></pre>
+<p>提交即入库，查询即全量返回，没有任何审核概念——反正博客没人看，垃圾评论的成本约等于零。这个版本活了大约两周，直到某个周三早上，我在新评论通知邮件里连续收到六条俄文博彩链接。自用优先的裸表，问题暴露得比预期快得多。</p>
+<p>现在回看，这个裸表最大的问题不是没有 status，而是把"评论内容"和"展示逻辑"耦在了一起：查询侧全量返回，意味着任何未来的审核、过滤、分页需求，都要改同一处 SQL。v2 之后我们把"哪些状态对前台可见"收敛成了查询层的一个常量条件，才算把这个耦合拆开。</p>
+
+<h2>v2：反垃圾逼出来的状态字段</h2>
+<p>v1 的教训很直接：没有审核态的评论系统，等于把内容主权拱手让人。v2 加了三样东西：</p>
+<ul>
+<li><strong>status 字段</strong>：最初只有两档——pending 与 approved，新评论一律 pending，我在 admin 后台点通过；</li>
+<li><strong>admin 后台</strong>：一个挂在 Worker 后面的简单页面，Basic Auth 保护，列表加通过、驳回按钮；</li>
+<li><strong>Turnstile 校验</strong>：后端验证通过且风险低的评论直接 approved，失败的进 pending 人工兜底。</li>
+</ul>
+<p>这里出现了第一个设计争议：为什么不是"先发后审"，把 pending 的也展示出来？答案是博客场景下先发后审的成本是"垃圾内容公开展示过"，而先审后发的成本只是"正常评论晚几小时可见"。对一个日评论量个位数的站点，后者代价小得多，毫不犹豫选先审后发。</p>
+
+<h2>v3：开源的代价——从单表到多租户</h2>
+<p>决定开源这套系统时，v2 的模型立刻不够用了：别的站点接入，评论数据混在一张表里，查询带 WHERE post_slug 还能凑合，但"站点 A 的后台看到站点 B 的评论"只是时间问题。v3 的核心改造是租户隔离：</p>
+<pre><code class="language-sql">CREATE TABLE sites (
+  id TEXT PRIMARY KEY,
+  origin TEXT NOT NULL UNIQUE,
+  api_key_hash TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+
+CREATE TABLE comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id TEXT NOT NULL REFERENCES sites(id),
+  post_slug TEXT NOT NULL,
+  nickname TEXT NOT NULL,
+  content TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','approved','hidden')),
+  ip_hash TEXT,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  reviewed_at INTEGER
+);</code></pre>
+<p>两个关键决策：<strong>api_key 只存 hash</strong>（泄露数据库不等于泄露调用凭证）和 <strong>status 用 CHECK 约束</strong>（把状态机约束下沉到数据库层，应用层的 bug 写不进非法状态）。后者在多环境部署的开源项目里尤其重要——你控制不了别人怎么写应用代码，但数据库 schema 是共享的底线。</p>
+<p>迁移本身按三步走：先建 sites 表并插入本站记录，再给 comments 加 site_id 列（默认填本站 id），最后建索引。三步全部包进一个事务，D1 的 batch 接口正好支持——整个迁移在生产数据上执行完只花了不到两秒，评论功能无感知。这也是选 D1 的隐性好处：单库事务在边缘场景下是能指望的。</p>
+
+<h2>三级状态机：流转规则与边界</h2>
+<p>最终稳定下来的状态机有三个状态、四条边：</p>
+<table>
+<tr><th>当前状态</th><th>动作</th><th>目标状态</th><th>触发方</th></tr>
+<tr><td>pending</td><td>approve</td><td>approved</td><td>admin 后台</td></tr>
+<tr><td>pending</td><td>reject</td><td>hidden</td><td>admin 后台</td></tr>
+<tr><td>hidden</td><td>restore</td><td>pending</td><td>admin 后台</td></tr>
+<tr><td>approved</td><td>hide</td><td>hidden</td><td>admin 后台</td></tr>
+</table>
+<p>四条边覆盖了全部合法流转，其余组合一律拒绝。为什么没有 approved 到 pending 这条边？因为"已公开的内容退回待审"在语义上是把公开内容变没了、再让人重新等，不如走 hide（先下架）再 restore（重新送审）——路径长一格，但每一步的语义都干净。状态机的经验法则：<strong>边越少，不变式越好维护</strong>；每加一条边，先问"这条边服务的真实场景是什么"，答不上来就不加。</p>
+<p>查询侧同样被状态机塑造：</p>
+<pre><code class="language-sql">-- 前台只认 approved
+SELECT id, nickname, content, created_at FROM comments
+WHERE site_id = ? AND post_slug = ? AND status = 'approved'
+ORDER BY created_at DESC LIMIT ? OFFSET ?;
+
+-- 后台按状态过滤，pending 优先处理
+SELECT * FROM comments
+WHERE site_id = ? AND status = ? ORDER BY created_at DESC;</code></pre>
+<p>索引跟着查询走，一条复合索引搞定两个场景：</p>
+<pre><code class="language-sql">CREATE INDEX idx_comments_lookup
+  ON comments(site_id, post_slug, status, created_at DESC);</code></pre>
+<p>列顺序有讲究：等值查询的列（site_id、post_slug、status）在前，排序的列（created_at）在后，且与 ORDER BY 方向一致。D1 可以用 EXPLAIN QUERY PLAN 验证，我们第一次建索引时把 created_at 放在了 status 前面，排序走了文件排序，数据量上千后延迟肉眼可见地涨。</p>
+
+<h2>踩坑记录</h2>
+<ul>
+<li><strong>软删除的诱惑</strong>：曾考虑加 deleted_at 做软删除，很快发现 hidden 状态已经覆盖了"下架"语义，再加一列纯属状态重叠。删掉代码比重构状态机便宜；</li>
+<li><strong>pending 洪水</strong>：Turnstile 故障 fail-open 期间，pending 队列半小时涌入 200 多条，admin 列表翻页直接卡死。解法是后台查询强制走索引加分页上限 50 条每页；</li>
+<li><strong>unixepoch() 的兼容</strong>：D1 的 SQLite 版本支持 DEFAULT (unixepoch())，但本地老版本 sqlite3 命令行不认，开发脚本报错。解法是开发环境统一用 Wrangler 本地模式，别用系统 sqlite；</li>
+<li><strong>ip_hash 的边界</strong>：为风控存了 IP 哈希，但灰度期间发现部分出口网段哈希撞库，误伤了同一网络出口的多人评论。后来风控降级为辅助信号，不再单独作为拦截依据；</li>
+<li><strong>迁移脚本要幂等</strong>：v2 到 v3 的迁移最初没写 IF NOT EXISTS，二次部署直接炸。所有迁移脚本现在按"可重复执行"标准写。</li>
+</ul>
+
+<h2>结论</h2>
+<p>三版演化下来，评论系统的数据模型收敛成一个原则：<strong>约束下沉，语义上浮</strong>——数据库用 CHECK 和外键守住底线，应用层只描述业务语义（谁在什么场景下看到什么状态）。三级状态机看起来比"一个 deleted 标记"复杂，但它让"公开、待审、下架"三个业务概念各自有了名分，admin 后台的每个按钮也都能对上一个明确动作。这套模型现在的完整落地细节，在<a href="blog-comment-system.html">评论系统从零到一</a>和<a href="turnstile-spam-defense.html">Turnstile 反垃圾实战</a>两篇里有更完整的上下文。</p>

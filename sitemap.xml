@@ -6,6 +6,18 @@
   <url><loc>https://www.520691.xyz/says</loc><lastmod>2026-10-21</lastmod><changefreq>daily</changefreq><priority>0.4</priority></url>
   <url><loc>https://www.520691.xyz/friends</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://www.520691.xyz/about</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://www.520691.xyz/posts/workers-queue-cron-tricks</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/pages-functions-vs-workers</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/r2-presigned-upload</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/durable-objects-realtime</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/zero-cost-monitoring</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/blog-domain-migration</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/indexnow-bing-google</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/turnstile-spam-defense</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/ai-agent-workflow</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/static-site-perf</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/open-source-side-project</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.520691.xyz/posts/comment-system-design</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.520691.xyz/posts/static-blog-seo-advanced</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.520691.xyz/posts/cloudflare-free-tier</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.520691.xyz/posts/hono-workers-engineering</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>

@@ -1,0 +1,98 @@
+<p>渡劫博客今年换了主域名：从早期的 <code>dujiecone.com</code> 切到 <code>520691.xyz</code>，旧域名保留 301 跳转。域名迁移表面上是改个 DNS 记录，实际是<strong>一次涉及证书、SEO、外链、三端部署的系统工程</strong>——处理不好，收录掉一半、排名归零、读者书签 404。这篇完整复盘全过程，包括那个因为一个下划线挂了两小时的证书故障，和迁移后 30 天的真实流量数据。</p>
+
+<h2>一、迁移前的资产盘点</h2>
+
+<p>动手前先把「指向旧域的所有东西」列成清单，漏一项就是一个暗雷：</p>
+
+<ul>
+<li><strong>DNS</strong>：A/AAAA/CNAME/TXT 记录，包括 GSC 站点验证的 TXT</li>
+<li><strong>证书</strong>：Cloudflare 通用 SSL（自定义域自动签）、旧域证书要保留到跳转期结束</li>
+<li><strong>SEO 资产</strong>：Google Search Console 资源、Bing Webmaster、IndexNow 密钥文件（放在旧域根目录，见下文）、sitemap.xml、robots.txt</li>
+<li><strong>绝对链接</strong>：RSS enclosure、OG 图 URL、JSON-LD 结构化数据、RSS feed 自身地址</li>
+<li><strong>三端部署</strong>：CF Pages 自定义域、GitHub Pages 的 CNAME 文件、Gitee Pages 自定义域</li>
+<li><strong>数据层</strong>：评论按文章 slug 归属（不存域名）——当初这个设计救了命，D1 里没有一条记录依赖域名</li>
+<li><strong>外部回调</strong>：渡劫code 的 GitHub 登录回调地址在 api 子域，这次不动，但清单里要标记</li>
+</ul>
+
+<p>盘点结论：真正耦合域名的只有「部署配置」和「SEO 资产」两层，业务数据零耦合。这让迁移从「拆房子」变成「换门牌」，心里先有底了。</p>
+
+<h2>二、双路由并行：新旧域同时服务</h2>
+
+<p>迁移最稳的姿势不是「一刀切」，而是<strong>双域并行期</strong>：新旧域同时能访问，旧域全量 301 到新域，观察两周再收缩。CF Pages 自定义域名里同时加 <code>www.520691.xyz</code> 和 <code>dujiecone.com</code>，301 规则用 Pages Functions 高级模式按 Host 判断：</p>
+
+<pre><code class="language-typescript">// _worker.js：旧域一切请求 301 到新域，保留路径和查询参数
+export default {
+  fetch(request: Request, env: Env) {
+    const url = new URL(request.url);
+    if (url.hostname === 'dujiecone.com') {
+      url.hostname = 'www.520691.xyz';
+      url.protocol = 'https:';
+      return Response.redirect(url.toString(), 301);
+    }
+    return env.ASSETS.fetch(request);
+  },
+};</code></pre>
+
+<p>并行期最大的 SEO 风险是重复内容——同篇文章两个 URL 都能打开。对策是 canonical 按请求 Host 动态输出主域，OG URL、JSON-LD 的 url 字段同理；sitemap.xml 由构建脚本生成，链接从配置文件读，<strong>不吃请求 Host</strong>，永远只输出主域。三个「绝对 URL 出口」全部收口到同一个配置项，这是并行期不翻车的关键。</p>
+
+<h2>三、那个下划线的坑</h2>
+
+<p>压测新链路时我先把博客测试域配成了 <code>dujie_cone.520691.xyz</code>——手滑打了个下划线（从旧笔记里抄的，原笔记就是错的）。DNS 层 CNAME 添加成功，Cloudflare 通用 SSL 证书签发却一直 pending，两天没好转，站点 TLS 报错。</p>
+
+<p>查了两小时才定位：<strong>下划线不是合法 hostname 字符</strong>。RFC 1035 规定主机名标签只允许字母、数字和连字符，ACME/CA 校验见到 <code>_</code> 直接拒签。删掉重建为 <code>dujiecone.520691.xyz</code>，5 分钟证书签好。教训记下来：<strong>看到证书 pending，先检查记录名是不是「脏」的</strong>——下划线、空格、中文，DNS 层的静默失败比代码 bug 更耗时。说起来丢人，渡劫博客这个项目早期确实在 dujie_cone 这个带下划线的名字上绊过一跤，这次迁移算是把旧账一次性清了。</p>
+
+<h2>四、三端无损切换</h2>
+
+<p>博客三端部署（CF Pages 主 + GitHub Pages + Gitee Pages 镜像），切换按「主端先行、镜像跟进、每步验证」的顺序：</p>
+
+<ol>
+<li><strong>CF Pages</strong>：自定义域加新域、旧域留跳转——双路由生效，读者侧无感知</li>
+<li><strong>GitHub Pages</strong>：CNAME 文件内容从旧域改成 <code>www.520691.xyz</code>，push 后 Let's Encrypt 自动签（实际等了 40 分钟，比 CF 慢但省心）</li>
+<li><strong>Gitee Pages</strong>：后台自定义域换新域，Gitee 要求域名所有权验证（TXT 记录或验证文件），证书由平台自动签</li>
+<li><strong>同步 CI</strong>：三端同步 workflow 里的站点 URL、sitemap 域名全部参数化，一处改动三端生效（见 <a href="three-end-sync-advanced.html">三端同步再进阶</a>）</li>
+</ol>
+
+<p>每一步的验收标准：HTTPS 正常、301 正确、页面无混合内容报错，三项全过才动下一步。全程读者侧唯一的变化是「旧域名打开会自动跳到新域名」——这就是无损。回滚预案也先想好：新域出问题就删 Pages 自定义域、DNS 切回旧域，10 分钟内恢复。<strong>旧域名续费留到 2027 年</strong>，迁移完成后至少一年内别注销，它是最后的救生艇。</p>
+
+<h2>五、SEO 承接：流量不能掉</h2>
+
+<p>技术切换只完成了迁移的一半，另一半是让搜索引擎跟着搬家：</p>
+
+<ol>
+<li><strong>301 全量且永久</strong>：不是 302 临时跳转。搜索引擎随爬取逐步把旧域权重转移到新域，这个过程以「周」计。</li>
+<li><strong>GSC 变更地址</strong>：旧资源执行「变更地址」指向新资源，新资源添加并验证。<strong>两个资源都保留</strong>——旧资源的「网页」报表还能继续看外链分布，删了就瞎了。</li>
+<li><strong>IndexNow 密钥文件留在旧域根目录至少 6 个月</strong>：key 文件的验证和提交资格绑在域名上，旧域一删，已验证的提交资格直接丢失，新域要重新养。这是最容易被忽视的暗雷。</li>
+<li><strong>sitemap/robots 更新</strong>：robots.txt 的 Sitemap 指向新域绝对地址，随双路由一起上线。</li>
+<li><strong>外链平滑</strong>：外站反链全是旧域，301 会把权重带过来，但「带过来」需要时间，期间排名波动是正常的，别慌。</li>
+</ol>
+
+<p>迁移后 30 天真实数据（Google Analytics + GSC 合并口径）：</p>
+
+<table>
+<thead><tr><th>时间</th><th>日均 UV</th><th>Google 日均点击</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td>迁移前 30 天（旧域）</td><td>1100</td><td>380</td><td>基线</td></tr>
+<tr><td>切换后第 1 周</td><td>700</td><td>240</td><td>301 传导中，GSC 数据未迁移，最低谷</td></tr>
+<tr><td>第 2 周</td><td>950</td><td>330</td><td>开始恢复</td></tr>
+<tr><td>第 4 周</td><td>1150</td><td>410</td><td>反超基线</td></tr>
+</tbody>
+</table>
+
+<p>Bing 恢复更快（约两周），毕竟 IndexNow 是微软主推的协议。「渡劫」相关关键词排名稳在第 3 页没动。结论：<strong>301 + GSC 变更 + IndexNow 密钥保留三件套做到位，流量谷底大约一周，一个月反超</strong>。中间还踩了个小坑：3 篇文章 frontmatter 里硬编码了旧域 OG 图地址，迁移后微信分享缩略图裂了——批量 sed 替换加模板参数化根治。全站 grep 一遍旧域名，这个动作值得放进任何域名迁移的 checklist。</p>
+
+<h2>六、迁移 Checklist</h2>
+
+<ol>
+<li>资产盘点：DNS/证书/GSC/IndexNow/绝对链接/三端配置</li>
+<li>双路由并行：旧域 301 到新域，canonical/sitemap 输出主域</li>
+<li>证书验证：主机名无下划线等非法字符（ACME pending 先查这个）</li>
+<li>三端按序切换，每步验收 HTTPS/301/混合内容</li>
+<li>GSC 变更地址 + 双资源保留 + IndexNow 密钥留旧域 6 个月</li>
+<li>全站 grep 旧域名，绝对 URL 参数化</li>
+<li>旧域名续费至少一年，回滚预案演练一次</li>
+<li>盯 30 天流量曲线，谷底一周、一个月反超才算渡劫成功</li>
+</ol>
+
+<h2>小结</h2>
+
+<p>域名迁移的本质是<strong>「让所有指向旧资产的引用平滑改道」</strong>。技术上没有难事，难在清单完备：301 传权重、双域并行保体验、IndexNow 密钥和 GSC 旧资源留足 180 天、域名本身别急着注销。30 天后 UV 反超旧域、点击创新高——这次渡劫，圆满。</p>

@@ -1,0 +1,86 @@
+<p>新文章发出去，最尴尬的不是没人看，而是根本没人知道它存在。搜索引擎收录就是这条链路上的第一道闸门：Bing 不收录，站长工具里的一片空白能让你怀疑人生；Google 不收录，你连诊断数据的边都摸不到。这篇文章复盘渡劫博客接入 IndexNow 的完整过程——从 key 部署、CI 自动推送，到 Bing 站长平台 26 秒通过 CNAME 验证的实录，以及一个必须接受的事实：Google 那边，你还是得等。</p>
+
+<h2>IndexNow 是什么，解决什么问题</h2>
+<p>传统模式下，搜索引擎靠爬虫主动发现新 URL：发文章、等蜘蛛再次来访、收录，链路以"天"为单位。IndexNow 是 Bing、Yandex、Seznam、Naver 等引擎联合推动的协议，思路很直白：网站有了新 URL，主动"打电话"通知引擎，你来爬。</p>
+<p>协议本身简单到没什么可讲的：</p>
+<ol>
+<li>站点根目录放一个 key 文件（纯文本，8-127 位，字符范围 <code>[a-zA-Z0-9-]</code>），文件名与 key 一致；</li>
+<li>POST 一个 JSON 到 <code>https://api.indexnow.org/IndexNow</code>，带上 host、key、keyLocation、urlList 四个字段；</li>
+<li>接口返回 200 或 202，表示"提交已接收"。</li>
+</ol>
+<p>注意最后一条：返回 200 只代表引擎收到了你的通知，不代表收录。把提交成功当收录的人，会在站长工具前反复失眠。</p>
+
+<h2>key 文件部署：一个容易被路由吃掉的文件</h2>
+<p>我们的博客是静态站，构建产物直接部署。key 文件 <code>a1b2c3d4e5f6g7h8.txt</code> 放在构建输出根目录，与 <code>index.html</code> 同级。第一个坑来了：本地开发时一切正常，部署线上后 Bing 提示无法验证 key 文件，curl 上去发现返回 200 但内容是 SPA 的 index.html——CDN 的 fallback 规则把所有未知路径都重写到了入口页。</p>
+<pre><code class="language-nginx"># 错误示范：catch-all 把所有请求塞给 SPA
+location / {
+  try_files $uri $uri/ /index.html;
+}</code></pre>
+<p>解法是给 .txt 开一个精确匹配，优先于 fallback：</p>
+<pre><code class="language-nginx">location ~ \.txt$ {
+  add_header Content-Type text/plain;
+  try_files $uri =404;
+}</code></pre>
+<p>如果你的站跑在 Cloudflare Pages 上，还有一个更隐蔽的坑：<code>_redirects</code> 里写了一条 SPA fallback 却没排除 <code>/*.txt</code>，症状一模一样。验证方法就一条：部署后先 curl key 文件，确认返回体是 key 本身，再去提交。</p>
+
+<h2>CI 自动推送：让每次发布都自带提交</h2>
+<p>手动 curl 推送撑不过三篇文章。我们在构建流程末尾加了一步：对比本次构建与上次构建的产物清单，拿到新增和修改的 HTML URL 列表，直接调 IndexNow。</p>
+<pre><code class="language-bash"># publish.sh 片段：收集新增 URL 并推送
+NEW_URLS=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD | grep '\.html$' \
+  | sed 's|index\.html$||' | sed "s|^|https://www.520691.xyz/|" | head -100)
+if [ -n "$NEW_URLS" ]; then
+  curl -sS -X POST "https://api.indexnow.org/IndexNow" \
+    -H "Content-Type: application/json" \
+    -d "{\"host\":\"www.520691.xyz\",\"key\":\"$INDEXNOW_KEY\",\"keyLocation\":\"https://www.520691.xyz/$INDEXNOW_KEY.txt\",\"urlList\":[$(echo "$NEW_URLS" | sed 's/.*/"&amp;"/' | paste -sd,)]}"
+fi</code></pre>
+<p>单次 urlList 上限 10000 条，对个人博客是永远碰不到的数字。真正要留意的是 CI 环境变量里的 key 别打进了构建日志——我们第一版把整个 JSON 打了出来，GitHub Actions 日志里直接裸奔，后来改成只输出 URL 数量。</p>
+
+<h2>Bing 站长工具：CNAME 验证 26 秒实录</h2>
+<p>key 文件搞定只是获得"提交资格"，想在站长工具里看到收录数据，还得验证站点所有权。Bing 支持多种方式，我们选 CNAME，理由是 DNS 已经托管在 Cloudflare，加一条解析的事。</p>
+<p>流程：Bing 站长工具、添加站点、选 CNAME 验证、拿到类似 <code>7f3a9c2b1d.verify.bing.com</code> 的目标域名、在 DNS 加一条 CNAME 记录指向它、点验证。</p>
+<p>实测从点击"验证"到显示通过，用时 26 秒。这个速度有点出乎意料——此前在另一个站上，Google 的验证记录刷新是按分钟计的。通过后第一件事是提交 sitemap：Bing 同样吃 sitemap.xml，IndexNow 与 sitemap 是互补关系，不是二选一。</p>
+
+<h2>SubmitUrlBatch：24 条 URL 全部 200</h2>
+<p>IndexNow 协议之外，Bing 站长工具还提供 URL Submission API，适合"精选提交"——把最重要的页面单独再推一遍。我们用 Node 脚本试了一次：</p>
+<pre><code class="language-javascript">const res = await fetch(
+  "https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlBatch?apikey=" + API_KEY,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      siteUrl: "https://www.520691.xyz/",
+      urlList: urls, // 本次 24 条：18 篇文章 + 归档、标签、关于页
+    }),
+  }
+);
+console.log(res.status, await res.text());</code></pre>
+<p>24 条全部返回 200，响应体是 <code>{"d":null}</code>——对的，Bing 这套 API 连个成功计数都不回，状态码即全部信息，别在响应体里找安慰。API Key 在站长工具后台生成，有每日配额（后台可见），个人站点完全够用。提交时机上，我们的经验是：文章发布后先 IndexNow 全量推，隔天再把仍未被收录的 URL 用 SubmitUrlBatch 补推，相当于一个温和的重试机制。</p>
+
+<h2>Google 的等待：没有 IndexNow 的世界</h2>
+<p>必须把这句话写在显眼位置：截至本文写作时，Google 不支持 IndexNow，别再在 CI 里给 Google 的 endpoint 发请求了，那边没有这个接口。Google 的收录链路依旧是老三样：</p>
+<ul>
+<li><strong>sitemap.xml</strong>：在 Search Console 提交，每次大版本发布后可在 GSC 里手动"重新提交 sitemap"；</li>
+<li><strong>URL 检查工具</strong>：顶部输入框粘贴新 URL，点"请求编入索引"，适合重点文章人工催一次；</li>
+<li><strong>内链</strong>：新文章从首页、归档页三跳内可达，是 Googlebot 发现它的自然路径。</li>
+</ul>
+<p>收录耗时上，两个引擎的差距非常直观。同一批文章，Bing 通常在推送后 10-40 分钟内出现收录记录；Google 侧，新域名冷启动期普遍 3-7 天，首页和关于页优先，长尾文章更慢。数据整理成表：</p>
+<table>
+<tr><th>指标</th><th>Bing</th><th>Google</th></tr>
+<tr><td>提交方式</td><td>IndexNow / SubmitUrlBatch</td><td>sitemap + GSC 手动</td></tr>
+<tr><td>新文章收录耗时（中位数）</td><td>约 25 分钟</td><td>约 4.5 天</td></tr>
+<tr><td>数据反馈渠道</td><td>站长工具 URL 检查</td><td>Search Console 网页收录</td></tr>
+<tr><td>主动推送接口</td><td>有</td><td>无（需手动）</td></tr>
+</table>
+<p>有一个反直觉的经验：Google 对新站的"观察期"与域名历史强相关，不是推送技术能压缩的。与其每天刷 GSC，不如把内链和 sitemap 做扎实，等域名信任度攒够，收录速度会自己上来。内链结构的部分我们在 <a href="static-blog-seo.html">静态博客 SEO 实战</a>里写过，这里不重复。</p>
+
+<h2>踩坑清单</h2>
+<ul>
+<li>key 文件被 SPA fallback、CDN 重写规则吞掉，表现为"能访问但内容不对"——部署后第一件事永远是 curl 验证 key 文件；</li>
+<li>key 含非法字符或长度不在 8-127 之间，IndexNow 直接返回 400，错误信息却含糊其辞；</li>
+<li>以为 200 等于收录，其实 200 只等于收到，中间还隔着爬取、质检、索引三道工序；</li>
+<li>给 Google 发 IndexNow 请求纯属自我感动，Google 的收录入口只有 GSC 一个；</li>
+<li>CI 日志泄漏 API Key 与 IndexNow key，密钥只进环境变量，日志里只打 URL 条数。</li>
+</ul>
+
+<h2>结论</h2>
+<p>IndexNow 是目前性价比最高的收录提交方案：半小时接入、零成本，Bing 侧收录从"等天"变成"等分钟"。但要把预期放对——它解决的是"通知"，不是"排名"；Google 不支持 IndexNow 的现实短期不会变，那边能做的只有 sitemap、内链和耐心。如果你也在运营静态站，接入顺序建议：先 sitemap，再 IndexNow，最后才考虑 SubmitUrlBatch 这种精修手段。</p>

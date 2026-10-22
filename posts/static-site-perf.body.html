@@ -1,0 +1,64 @@
+<p>一个静态博客，首屏 LCP 从 2.8 秒压到 1.2 秒，TTFB 稳定在 60ms 以内——这篇文章不是性能理论的复述，是一份按毫秒抠出来的清单。缓存怎么分层、版本参数怎么加、字体和图片怎么处理，每一条都附带优化前后的真实数字和对应的坑。</p>
+
+<h2>先立靶子：优化前的成绩单</h2>
+<p>所有优化开始前，用 Lighthouse（4G 模拟 + 4 倍 CPU 节流）跑三轮取中位数，基线如下：</p>
+<table>
+<tr><th>指标</th><th>优化前</th><th>优化后</th></tr>
+<tr><td>LCP</td><td>2.8s</td><td>1.2s</td></tr>
+<tr><td>FCP</td><td>1.6s</td><td>0.7s</td></tr>
+<tr><td>TBT</td><td>340ms</td><td>40ms</td></tr>
+<tr><td>TTFB</td><td>120ms</td><td>55ms</td></tr>
+<tr><td>Lighthouse 性能分</td><td>72</td><td>98</td></tr>
+</table>
+<p>1.6 秒的差距不是某一个银弹打下来的，是十几个小决策叠出来的。下面按链路顺序逐个过。</p>
+
+<h2>测量方法论：Lab 数据与字段数据</h2>
+<p>先泼一盆冷水：Lighthouse 跑分是 Lab（实验室）数据，它模拟的是"一台干净的机器、一个空缓存、一条稳定的 4G"。真实用户的字段（Field）数据受设备、网络、缓存状态影响，方差能到两三倍。我们的做法是两者都看：Lighthouse 做优化前后的对比（变量可控），Cloudflare Web Analytics 看真实分布。有一个月 Lab 分数从 72 涨到 98，字段数据里 P75 的 LCP 只从 3.4s 降到 2.1s——差距来自真实用户里大量的中低端安卓机和首次访问。接受这个差距，别用 Lab 分数自嗨。</p>
+<p>另一个测量纪律：每轮优化只改一个变量，改完复测。同时改五个东西然后分数涨了，你永远不知道是哪个起的作用，下次也没法复现。</p>
+
+<h2>缓存分层：浏览器、CDN、源站各司其职</h2>
+<p>静态站的缓存逻辑可以分三层看，每一层的策略完全不同，混用就会出事：</p>
+<ul>
+<li><strong>源站/构建产物</strong>：构建工具自带的内容哈希，文件名带 hash，内容变文件名才变——这是"永久缓存"的前提；</li>
+<li><strong>CDN 层</strong>：Cloudflare 边缘节点缓存 HTML 与静态资源，命中则源站压力为零，TTFB 由用户到边缘的距离决定；</li>
+<li><strong>浏览器层</strong>：Cache-Control 指令控制，是用户二次访问时"秒开"的直接原因。</li>
+</ul>
+<p>核心原则一句话：<strong>HTML 短缓存，静态资源永久缓存</strong>。HTML 是入口，必须保证用户拿到最新的壳；壳里的 JS、CSS 带内容哈希，内容没变文件名就不变，可以放心让浏览器缓存一年。我们的响应头配置：</p>
+<pre><code class="language-text"># HTML：协商缓存，永远确认有没有新版
+Cache-Control: public, max-age=0, must-revalidate
+
+# /assets/*：带内容哈希，永久缓存
+Cache-Control: public, max-age=31536000, immutable</code></pre>
+<p>坑在这里：如果你手动改过构建产物里的文件（热修一个 CSS），文件名没变、CDN 缓存没刷新，线上就是"改了没生效"。解法是永远走构建流程，以及万不得已时 Purge Everything——但后者会把热数据一起清掉，属于核武器，慎用。</p>
+
+<h2>版本参数：?v=hash 的取舍</h2>
+<p>不是所有静态站构建工具都会给引用加 hash。没有 hash 的文件怎么破缓存？常见做法是查询参数：<code>app.css?v=a1b2c3</code>。它的优点是简单，构建时注入一个 buildId 即可；缺点有两个：</p>
+<ol>
+<li>部分 CDN 与代理对带参 URL 的缓存策略不统一，可能漏缓存；</li>
+<li><code>immutable</code> 指令对带参 URL 不一定生效，浏览器仍可能发协商请求。</li>
+</ol>
+<p>我们的选择是分层处理：构建产物里能被工具哈希的全部用文件名 hash；模板里少量手写引用（比如内联的一个小脚本）用 <code>?v=</code> 加 buildId。buildId 在构建时生成，随 HTML 一起变：</p>
+<pre><code class="language-bash"># 构建末段：生成 buildId 并注入模板
+BUILD_ID=$(date +%s | tail -c 6)$(git rev-parse --short HEAD)
+sed -i "s|__BUILD_ID__|$BUILD_ID|g" dist/index.html
+echo "build id: $BUILD_ID"</code></pre>
+<p>一个反直觉的经验：版本参数解决的是"强制刷新"，不是"缓存效率"。把它当主力缓存手段，等于把每次发布都变成一次全站资源重新下载；它只该是 hash 方案的补充。</p>
+
+<h2>LCP 优化：把最大绘制元素伺候好</h2>
+<p>LCP 盯的是"视口内最大元素的绘制时刻"。博客首页的 LCP 元素通常是首屏文章标题或头图，按影响排序，我们做了这些：</p>
+<ul>
+<li><strong>字体</strong>：中文字体动辄数 MB，全量加载直接杀死 LCP。方案是子集化——只打包首页实际用到的字，配合 <code>font-display: swap</code> 与 preload 预加载，字体从阻塞项变成并行项；</li>
+<li><strong>图片</strong>：头图全部指定宽高（防 CLS），首屏图 <code>loading="eager"</code> 加 <code>fetchpriority="high"</code>，非首屏一律 lazy；</li>
+<li><strong>关键 CSS</strong>：首屏样式内联进 head，非关键 CSS 异步加载，渲染不再等整份样式表；</li>
+<li><strong>JS 瘦身</strong>：评论组件、分析脚本全部 defer，主线程空闲前不执行，TBT 从 340ms 掉到 40ms 主要靠这个。</li>
+</ul>
+<pre><code class="language-html">&lt;link rel="preload" href="/assets/fonts/subset.woff2" as="font" type="font/woff2" crossorigin&gt;
+&lt;link rel="preload" href="/assets/critical.css" as="style"&gt;</code></pre>
+<p>字体子集化有个坑值得单独说：子集是按"当前页面文本"生成的，文章页标题一变，缺字就会 fallback 到系统字体，表现为"标题字体忽大忽小"。解法是子集按全站标题词频生成，宁可多包两百个字，也不要缺字。</p>
+<p>关键 CSS 的提取没有用重型框架，构建脚本按首屏选择器集合做了一次粗筛：把 above-the-fold 元素涉及的规则内联，其余进异步文件。粗筛漏规则时的症状是"首屏瞬间闪一下未样式化内容"，兜底手段是人眼在真机上过一遍首页、文章页、归档页三张页面。</p>
+
+<h2>移动端与边缘：最后 200 毫秒</h2>
+<p>桌面端跑分好看之后，真机 4G 下还有差距。补了两件事：一是调整 HTML 的 CDN 缓存策略，从"缓存整份文档"改成配合 <code>max-age=0, must-revalidate</code> 的回源校验模式，TTFB 从 120ms 降到 55ms；二是移动端单独跑 Lighthouse，发现窄屏下 LCP 元素从头图变成了标题区，把 <code>fetchpriority="high"</code> 应用到正确的元素上，又抠回来约 180ms。更多移动端细节可以参考<a href="mobile-responsive-blog.html">移动端适配复盘</a>。</p>
+
+<h2>结论</h2>
+<p>静态站的性能优化没有黑魔法，只有分层：缓存分层让"重复访问"趋近零成本，版本参数让"发布刷新"可控，LCP 优化让"首次访问"尽快看到内容。三条线各自为政又互相兜底——任何一条失效，另外两条还能撑住基本盘。最终 1.2 秒的 LCP 里，没有一个数字是天才创意，全是可以抄作业的工程决策。抄之前记得先立靶子：没有优化前的基线，所有"优化"都是玄学。</p>

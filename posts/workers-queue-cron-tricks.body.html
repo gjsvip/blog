@@ -1,0 +1,153 @@
+<p>渡劫博客和渡劫code跑在 Cloudflare 上快一年了，架构上一直坚持一条原则：<strong>请求-响应链路里只做「必须同步」的事</strong>。评论写完要发通知、D1 要每天备份、AI 任务跑完要回写状态——这些统统不该让用户干等。这篇把我们在生产环境用了大半年的 Cloudflare Queues + Cron Triggers 方案完整摊开：包括日均几万次投递的真实用量、三次半夜告警的复盘，以及那些文档里一笔带过、实战里教你做人的坑。</p>
+
+<h2>一、为什么需要队列：Worker 的请求模型很「短」</h2>
+
+<p>Workers 的执行模型是请求进来、响应回去，过程越短越好。免费额度下每个请求只有 <strong>10ms CPU 时间</strong>，虽然挂起等待外部 I/O 不严格计入 CPU，但把耗时操作塞进响应链路有三个现实问题：用户体感差、失败无法重试（响应已经返回了）、外部服务抖动会直接拖垮接口本身。</p>
+
+<p>我们的场景很典型：</p>
+
+<ul>
+<li>新评论入库后，给博主发 Telegram 通知（调外部 API，可能超时）</li>
+<li>渡劫code 的 AI 任务状态变更，要广播给房间内所有 WebSocket 连接（这部分走了 DO，见 <a href="durable-objects-realtime.html">Durable Objects 实时协作</a>）</li>
+<li>每天 UTC 16:00 把 D1 导出成 SQL 落进 R2</li>
+<li>各类脏活：统计聚合、文件元数据补全、缓存预热</li>
+</ul>
+
+<p>结论先行：<strong>凡是「最终一致」的事，全部丢进队列；凡是「定时」的事，全部走 Cron</strong>。Worker 本体只做读库、写库、返回，把慢动作和重复劳动外包出去。</p>
+
+<h2>二、第一个队列：评论通知异步化</h2>
+
+<p>Producer 端简单到只有几行。在评论 Worker 里，入库成功后投递消息：</p>
+
+<pre><code class="language-typescript">// 评论 Worker：入库成功即投递，消息体只带摘要，别把整条评论塞进去
+await env.NOTIFY_QUEUE.send({
+  type: 'comment',
+  slug,
+  nickname,
+  preview: content.slice(0, 100),
+  ts: Date.now(),
+});</code></pre>
+
+<p>Consumer 是一个独立的 Worker，绑定同一个队列：</p>
+
+<pre><code class="language-typescript">export default {
+  async queue(batch: MessageBatch, env: Env) {
+    for (const msg of batch.messages) {
+      try {
+        await handle(msg.body, env);
+        msg.ack();
+      } catch (err) {
+        console.error('notify failed', msg.body, err);
+        msg.retry(); // 单条重试，不拖累同批其他消息
+      }
+    }
+  },
+};</code></pre>
+
+<p>几个实战细节：</p>
+
+<ul>
+<li><strong>批量投递</strong>：<code>sendBatch</code> 一次最多 100 条、总计 256KB，循环单发在高峰期纯属浪费。渡劫code 的 AI 任务收尾时用 <code>sendBatch</code> 一次性推全部状态变更。</li>
+<li><strong>批量消费的 ack 策略</strong>：<code>batch.ackAll()</code> 最省事，但同批里一条失败会拖累整批重试，放大重复副作用。我们按消息类型分组处理，异常走单条 <code>retry()</code>。</li>
+<li><strong>消息体上限 128KB</strong>：渡劫code 早期把整个文件 diff 塞进消息，超限后 <code>send()</code> 直接抛错，报错信息还不直白，排查了半天。现在的规矩：消息体只传 ID 和摘要，数据落 D1/R2，消费端按需取回。</li>
+<li><strong>消费端 wall time 上限 15 分钟</strong>：一条消费调用里循环处理整批消息，遇到外部 API 集体超时会撞上限。我们的兜底是单条处理超时 10 秒，超了就 retry 下轮再来。</li>
+</ul>
+
+<h2>三、Cron Triggers：定时任务的正确姿势</h2>
+
+<p>Cron 配置在 wrangler.toml，注意<strong>只认 UTC 时间</strong>：</p>
+
+<pre><code class="language-toml">name = "blog-cron"
+main = "src/index.ts"
+
+[triggers]
+crons = ["0 16 * * *"]   # 每天 UTC 16:00 = 北京时间 00:00</code></pre>
+
+<pre><code class="language-typescript">export default {
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    // 关键：ctx.waitUntil 包住异步任务，否则 Worker 可能被提前挂起
+    ctx.waitUntil(backupD1(env));
+  },
+};</code></pre>
+
+<p>第一个坑就是 <code>ctx.waitUntil</code>。第一版备份脚本没包，定时任务触发时 Worker 本体已经没事干了，运行时判定空闲直接回收，备份执行到一半被掐断——现象是 R2 里每天的文件都在，但大小只有 3KB（只有表头没有数据）。包上 <code>waitUntil</code> 之后才稳定。</p>
+
+<p>第二个坑是时区。「每天凌晨备份」在北京时间要写 <code>0 16 * * *</code>。我在文档里写「16 点」被自己绕晕过一次，后来干脆在 wrangler.toml 里加注释注明对应北京时间，配置即文档。</p>
+
+<p>第三个认知：<strong>Cron 触发是分钟级尽力而为，不是精确闹钟</strong>。高峰期可能延迟几十秒到几分钟，别用它做「整点秒杀」这类强实时调度。我们的备份场景晚几分钟毫无感知，但如果你拿 Cron 做准点抢购，建议再加一层兜底校验。</p>
+
+<h2>四、实战：D1 定时备份落 R2</h2>
+
+<p>备份链路：Cron 触发 → 全表导出拼 SQL → PUT 进 R2 → 记一条元数据到 D1 的 <code>backups</code> 表。</p>
+
+<pre><code class="language-typescript">async function backupD1(env: Env) {
+  const tables = ['comments', 'likes', 'views', 'stats'];
+  const chunks: string[] = [];
+  for (const t of tables) {
+    const { results } = await env.DB.prepare(`SELECT * FROM ${t}`).all();
+    chunks.push(`-- ${t}: ${results.length} rows`);
+    for (const row of results) {
+      const vals = Object.values(row)
+        .map((v) =&gt; (v === null ? 'NULL' : `'${String(v).replaceAll("'", "''")}'`))
+        .join(',');
+      chunks.push(`INSERT INTO ${t} VALUES (${vals});`);
+    }
+  }
+  const sql = chunks.join('\n');
+  const key = `backups/blog-${new Date().toISOString().slice(0, 10)}.sql`;
+  await env.BUCKET.put(key, sql, { customMetadata: { bytes: String(sql.length) } });
+  await env.DB.prepare(
+    'INSERT INTO backups (key, bytes, created_at) VALUES (?, ?, datetime(\'now\'))'
+  ).bind(key, sql.length).run();
+}</code></pre>
+
+<p>几个数字：博客 D1 主库当前约 <strong>12MB</strong>（评论 3.2 万条、点赞 8 千条），导出 SQL 约 <strong>18MB</strong>，整个备份耗时 <strong>2–4 秒</strong>，全部落在免费额度内。R2 侧每天新增 18MB，配生命周期规则 90 天后自动删除，峰值占用约 <strong>1.6GB</strong>，离 10GB 免费额度远得很。备份文件带日期 key，恢复就是 <code>wrangler d1 execute blog --file=backup.sql</code>。我们每季度做一次恢复演练——<strong>没演练过的备份等于没有备份</strong>，这话都说滥了，但真出事时你会感谢自己。</p>
+
+<h2>五、失败重试与死信队列</h2>
+
+<p>Queues 的投递语义是 <strong>at-least-once</strong>：消息至少投一次，失败自动重试，重试也失败进死信队列（DLQ）。配置：</p>
+
+<pre><code class="language-toml">[[queues.consumers]]
+queue = "notify-queue"
+max_batch_size = 25
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "notify-dlq"</code></pre>
+
+<p>实战经验三条：</p>
+
+<ol>
+<li><strong>消费端必须幂等</strong>。at-least-once 意味着同一条通知可能发两遍。我们的解法是消费端用 KV 做去重键 <code>notify:sent:{messageId}</code>，TTL 24 小时，已存在直接 ack。KV 免费额度每天 1000 次写，去重场景刚好够用。</li>
+<li><strong>DLQ 要有人看</strong>。配了死信队列不看等于白配。我们的 Cron 每天检查 DLQ 深度，非零就发 Telegram 告警——上个月靠这个抓到一个 Bot token 被吊销导致的静默失败，通知「发成功」其实全是进 DLQ。</li>
+<li><strong>重试间隔是内置的指数退避</strong>（约 1s、5s、25s、125s、625s 递推），不可自定义。对外部 API 的临时 5xx 很友好，对「永远失败」的消息就是白等——所以 DLQ 深度才是该盯的指标，重试次数只是纵深。</li>
+</ol>
+
+<p>最疼的一次事故：渡劫code 的任务回写消费端有个 bug，异常抛在 <code>ctx.waitUntil</code> 外面，导致整个 Worker 崩溃重启，同批 25 条消息全部重试，放大了 5 倍副作用。修复不只是补 try/catch，而是把<strong>消费逻辑按消息粒度隔离</strong>——一条坏消息不应该毒死整批，这是队列消费的第一纪律。</p>
+
+<h2>六、成本与限额（2026 年 10 月实测）</h2>
+
+<table>
+<thead><tr><th>项目</th><th>免费额度</th><th>我们的月用量</th><th>占比</th></tr></thead>
+<tbody>
+<tr><td>Queues 操作数</td><td>10 万次/月</td><td>约 4.7 万次（评论通知 + 任务状态）</td><td>47%</td></tr>
+<tr><td>Cron Triggers</td><td>按 Worker 请求计</td><td>60 次/月（备份 + DLQ 巡检）</td><td>忽略不计</td></tr>
+<tr><td>备份 R2 存储</td><td>10GB</td><td>约 1.6GB</td><td>16%</td></tr>
+<tr><td>备份 R2 Class A 写</td><td>100 万次/月</td><td>30 次</td><td>≈0%</td></tr>
+</tbody>
+</table>
+
+<p>唯一要注意的是 Queues 免费额度按「操作数」计——生产、消费、删除各算一次，100 条消息走完一遍就是 300 次操作。量涨到接近额度上限时的预案：合并通知（批量聚合后一条消息发多个收件人）、降频（非紧急通知进小时级 Cron 批量处理）。我们评论通知日均 200 条，离上限还远，但这个账要天天心里有数。</p>
+
+<h2>七、本地开发与调试</h2>
+
+<pre><code class="language-bash"># 本地同时起 producer 和 consumer，队列走本地模式
+npx wrangler dev --local
+
+# 实时看消费端日志（生产）
+npx wrangler tail notify-consumer --format=pretty</code></pre>
+
+<p>本地模式队列不落远端，重启即清空，适合开发联调；但有个坑：本地队列的重试行为和线上不完全一致（本地重试更快、DLQ 行为有差异），验证重试与死信逻辑建议用 <code>wrangler dev --remote</code> 打一个专用测试队列，别拿生产队列练手。</p>
+
+<h2>小结</h2>
+
+<p>Queues + Cron 是 Cloudflare 全家桶里存在感最低、但性价比最高的一对组合：它们把 Worker 从「只能同步干活」解放成「可以异步编排」，而且全在免费额度内。核心结论三条：<strong>响应链路只留同步逻辑、消息体克制在几 KB 以内、消费端按消息粒度隔离并做好幂等</strong>。做到这三点，你的 Worker 就可以在凌晨三点安心备份，而你安心睡觉。</p>

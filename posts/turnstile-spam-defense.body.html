@@ -1,0 +1,94 @@
+<p>评论系统上线第一周，我收到了 47 条"评论"。点开之前以为是友好交流，点开之后全是博彩链接、英文药房广告和俄文乱码——唯一一条真人评论还是我自己测试时留的。这篇文章复盘渡劫博客评论系统接入 Cloudflare Turnstile 的完整过程：为什么不用 reCAPTCHA、灰度开关怎么设计、以及最关键的 fail-open 策略——人机校验挂了，评论功能不能跟着陪葬。</p>
+
+<h2>为什么是 Turnstile，不是 reCAPTCHA</h2>
+<p>市面上的方案其实就四类，先过一遍排除法：</p>
+<table>
+<tr><th>方案</th><th>问题</th></tr>
+<tr><td>reCAPTCHA v2</td><td>九宫格图片点到怀疑人生，体验劝退</td></tr>
+<tr><td>reCAPTCHA v3</td><td>无感但依赖 Google 服务，国内访问不稳，隐私叙事也难看</td></tr>
+<tr><td>hCaptcha</td><td>免费档可用，但国内节点同样不稳</td></tr>
+<tr><td>自建（算术题/蜜罐）</td><td>防不住脚本，只防得住最懒的脚本</td></tr>
+</table>
+<p>Turnstile 的优势总结成三条：免费额度对个人站等于无限、国内可稳定访问 challenges.cloudflare.com、隐私叙事干净——用户不需要背着 Google 生态的包袱。它有三种模式：Managed（自动决定是否交互）、Non-interactive（几乎无感，跑一轮浏览器挑战）、Invisible（完全无感）。我们从 Non-interactive 起步，实测大部分真实用户完全感知不到校验的存在。</p>
+
+<h2>接入：三行前端加一次后端验证</h2>
+<p>前端部分就一个 script 加一个容器，Cloudflare 侧创建一个 widget 拿到 sitekey：</p>
+<p>创建 widget 时有两个配置值得说：一是 Mode 的选择——Managed 还是 Non-interactive。我们先用 Managed 灰度观察了几天，后台统计里交互挑战的出现频率不低，果断切到 Non-interactive，误伤率没有可感知的变化；二是 Domains 白名单要精确到具体域名，别图省事填顶级域，否则别人把你的 sitekey 抠走用在别的站，你的风控数据全乱。</p>
+<pre><code class="language-html">&lt;div id="cf-turnstile" data-sitekey="0x4AAAAAAA..." data-theme="auto"&gt;&lt;/div&gt;
+&lt;script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer&gt;&lt;/script&gt;</code></pre>
+<p>提交时从 widget 里取 token，随评论表单一起 POST 给 Worker：</p>
+<pre><code class="language-javascript">const token = turnstile.getResponse(); // 用户停留过久会是空串，见踩坑
+const body = { nickname, email, content, "cf-turnstile-response": token };
+await fetch("/api/comments", { method: "POST", body: JSON.stringify(body) });</code></pre>
+<p>后端在写入 D1 之前调用 siteverify，这是唯一必须的服务端环节：</p>
+<pre><code class="language-javascript">const form = new FormData();
+form.append("secret", env.TURNSTILE_SECRET);
+form.append("response", token);
+if (request.ip) form.append("remoteip", request.ip);
+
+const ac = new AbortController();
+setTimeout(() = ac.abort(), 3000); // 3 秒超时，见 fail-open
+const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+  method: "POST", body: form, signal: ac.signal,
+}).then(r => r.json());
+
+if (!verify.success) return rejected(verify["error-codes"]);</code></pre>
+<p>secret key 只存在于 Worker 环境变量，这一点没有任何商量余地——把 secret 打进前端 bundle 的事故，每年都有人在犯。</p>
+
+<h2>灰度开关：先让 10% 流量试水</h2>
+<p>评论是站的命脉功能之一，最怕的就是校验本身把真人挡在门外。我们设计了一个三级灰度开关，由 Workers 环境变量控制，改配置不需要重新部署：</p>
+<pre><code class="language-typescript">// wrangler.toml
+// [vars] TURNSTILE_ROLLOUT = "10"   → 只对 10% 请求启用
+//         TURNSTILE_ROLLOUT = "100" → 全量
+//         TURNSTILE_ROLLOUT = "0"   → 紧急关闭（fail-open 态）
+const rollout = Number(env.TURNSTILE_ROLLOUT ?? "0");
+const enabled = rollout >= 100 || (rollout &gt; 0 &amp;&amp; hash(request.ip) % 100 &lt; rollout);</code></pre>
+<p>分流用请求 IP 哈希取模，好处是同一用户多次访问结果一致，不会这次让填下次不让。灰度节奏是三天一批：</p>
+<ul>
+<li>第 1-3 天：10%——灰度组 0 垃圾，对照组照旧每天中招，说明 widget 本身在工作；</li>
+<li>第 4-6 天：50%——盯失败率日志，确认没有误伤真实提交；</li>
+<li>第 7 天起：100% 全量，对照组消失，全站受益。</li>
+</ul>
+<p>这里有个细节：灰度期内对照组的存在非常重要。没有对照组，你无法区分"垃圾变少是因为 Turnstile"还是"垃圾本来这周就少"。数据不会撒谎，但没设计过的数据会。</p>
+
+<h2>fail-open：校验挂了，评论不能陪葬</h2>
+<p>这是整个方案里最容易被忽略、宕机时最救命的设计。Turnstile 的 siteverify 是外部依赖，它超时、502、区域性故障，都不该让评论功能整体不可用。我们的策略分三层：</p>
+<ol>
+<li><strong>验证接口 3 秒超时</strong>：用 AbortController 硬切，超时即视为"未知"；</li>
+<li><strong>超时或故障时 fail-open</strong>：评论照常写入 D1，但 status 强制为 <code>pending</code>，进人工审核队列，不直接外显；</li>
+<li><strong>故障必须留痕</strong>：fail-open 事件写日志并计数，超过阈值触发告警——否则一次持续几小时的静默故障，能给你攒出几百条待审。</li>
+</ol>
+<pre><code class="language-typescript">try {
+  const verify = await siteverify(token, ip);
+  if (!verify.success) return reject(verify["error-codes"]);
+  status = "approved";
+} catch (err) {
+  // Turnstile 不可用：放行但进审核，绝不让用户看到 500
+  status = "pending";
+  metrics.incr("turnstile_fail_open");
+  console.warn("turnstile unavailable, fail-open:", err.message);
+}</code></pre>
+<p>fail-open 与 fail-closed 的取舍没有标准答案，取决于评论的公开风险。我们的语境是技术博客、评论先审后发，所以放行进审核队列的代价远低于"全员无法评论"。换成金融、政务类场景，结论可能反过来。</p>
+<p>告警走的是邮件：计数器每 5 分钟聚合一次，超过阈值（我们设的是 10 次）发一封邮件，标题带站点名和触发次数。8 周里这封邮件只响了 2 次，都是验证接口短时超时、几分钟后自愈的情况。知道它响过，比它没响更让人安心。</p>
+
+<h2>灰度之后的数据</h2>
+<table>
+<tr><th>指标</th><th>接入前</th><th>全量后</th></tr>
+<tr><td>周垃圾评论（进 D1 的）</td><td>47 条</td><td>0 条</td></tr>
+<tr><td>真人评论周提交失败次数</td><td>—</td><td>1 次（token 过期，见下）</td></tr>
+<tr><td>fail-open 触发次数（8 周）</td><td>—</td><td>2 次，均为验证接口超时</td></tr>
+<tr><td>admin 后台 pending 队列</td><td>—</td><td>日常为空，故障时短暂堆积</td></tr>
+</table>
+<p>8 周零垃圾入库，这个结果连我自己都有一点意外。需要坦白的是：关键词黑名单仍在工作（"博彩""casino"等词直接拒），Turnstile 是主力但不是唯一防线。纵深防御的意思就是，任何单层失效都不至于崩盘。</p>
+
+<h2>踩坑清单</h2>
+<ul>
+<li><strong>token 五分钟过期</strong>：用户打开评论区去吃了顿饭，回来提交报 <code>timeout-or-duplicate</code>。解法是监听 <code>cf-turnstile</code> 的 expired 回调，自动 <code>turnstile.reset()</code> 并提示用户重试一次；</li>
+<li><strong>token 一次性</strong>：提交失败后用户点"重试"，旧 token 直接失效，报 duplicate。所有失败路径必须先 reset 再允许二次提交；</li>
+<li><strong>remoteip 别忘传</strong>：不传也能验证成功，但传了能让 Cloudflare 侧的风控信号更准，属于免费的情报；</li>
+<li><strong>错误码要翻译成人话</strong>：<code>invalid-input-response</code> 对用户展示应该是"校验已过期，请重试"，而不是把原始错误码糊到界面上；</li>
+<li><strong>灰度时对照组别撤太早</strong>：我们原定第 7 天全量，实际拖到第 10 天，就因为对照组数据还不够稳。</li>
+</ul>
+
+<h2>结论</h2>
+<p>Turnstile 接入本身的工程量小得惊人——真正花时间的是周边的设计：灰度分流保证不放任不管也不冒进，fail-open 保证外部故障不演变成功能事故，日志与计数保证故障"发生过"这件事可见。评论系统是静态站上少有的有状态组件，值得用有状态系统的标准去要求它。下一篇会聊聊这套评论系统的<a href="comment-system-design.html">数据模型演化与三级状态机</a>，看看 D1 里的表是怎么从一张裸表长成现在这样的。</p>

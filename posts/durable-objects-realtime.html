@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Durable Objects 实时协作入门：从一个终端房间说起 · 渡劫博客</title>
+<meta name="description" content="几人共享一个浏览器终端，输入实时广播、断线补发历史——核心是让全球连接共享同一份有序状态。200 行最小实现、hibernation 把 DO 时长费从 8 刀降到 1 刀、三次翻车复盘与单实例规模边界实测。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Durable Objects 实时协作入门：从一个终端房间说起 · 渡劫博客">
+<meta property="og:description" content="几人共享一个浏览器终端，输入实时广播、断线补发历史——核心是让全球连接共享同一份有序状态。200 行最小实现、hibernation 把 DO 时长费从 8 刀降到 1 刀、三次翻车复盘与单实例规模边界实测。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/durable-objects-realtime">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Durable Objects 实时协作入门：从一个终端房间说起 · 渡劫博客">
+<meta name="twitter:description" content="几人共享一个浏览器终端，输入实时广播、断线补发历史——核心是让全球连接共享同一份有序状态。200 行最小实现、hibernation 把 DO 时长费从 8 刀降到 1 刀、三次翻车复盘与单实例规模边界实测。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/durable-objects-realtime">
+<link rel="stylesheet" href="../assets/style.css?v=20261021c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Durable Objects 实时协作入门：从一个终端房间说起", "description": "几人共享一个浏览器终端，输入实时广播、断线补发历史——核心是让全球连接共享同一份有序状态。200 行最小实现、hibernation 把 DO 时长费从 8 刀降到 1 刀、三次翻车复盘与单实例规模边界实测。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/durable-objects-realtime", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "Durable Objects, WebSocket, Cloudflare, 实时协作", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/durable-objects-realtime"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "Durable Objects 实时协作入门：从一个终端房间说起", "item": "https://www.520691.xyz/posts/durable-objects-realtime"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Durable Objects 实时协作入门：从一个终端房间说起</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Durable Objects 实时协作入门：从一个终端房间说起</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-22</span>
+          <span>📂 Cloudflare</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">🖥️</div>
+
+      <div class="article-body">
+<p>渡劫code 的终端房间是这个产品里最「魔法」的功能：浏览器里打开一个分享链接，几个人同时连同一个终端会话，A 输入的命令 B 实时看到，输出广播给所有人，断线重连后历史回放。这个功能的核心难点不是 WebSocket 本身——WebSocket 谁都会连——而是<strong>怎么让散落在全球的连接共享同一份有序状态</strong>。我们的答案是 Durable Objects。这篇从最小实现讲起，包含 hibernation 省钱的细节、单 DO 的广播上限，和三次翻车复盘。</p>
+
+<h2>一、为什么实时协作非 DO 不可</h2>
+
+<p>先算账。协作式终端的本质是「一个权威真相源 + N 个订阅者」，候选方案逐个枪毙：</p>
+
+<table>
+<thead><tr><th>方案</th><th>死法</th></tr></thead>
+<tbody>
+<tr><td>前端轮询 D1/KV</td><td>延迟秒级，KV 免费读额度 10 万/天被几百个房间轮轰炸</td></tr>
+<tr><td>无状态 Worker 里广播</td><td>WebSocket 连到哪个实例纯随机，A 和 B 大概率不在同一实例，消息根本传不过去</td></tr>
+<tr><td>自建 WebSocket 服务器</td><td>独立开发者没有 24 小时在线的机器，宕机全断，违背边缘架构初衷</td></tr>
+<tr><td>Durable Objects</td><td>单实例、同地域、持久化存储、WebSocket 原生支持——唯一全都要的</td></tr>
+</tbody>
+</table>
+
+<p>DO 的模型刚好就是房间本身：<strong>一个房间 ID 对应一个 DO 实例，实例是单线程串行执行的</strong>，所有消息按顺序处理，天然不需要应用层加锁。加上每实例自带的持久化存储，历史回放也不用另找地方。唯一的门槛：DO 需要 Workers Paid 订阅（$5/月起），免费计划用不了——这是我们对渡劫code 做付费化的第一个理由。</p>
+
+<h2>二、最小可用房间</h2>
+
+<p>wrangler.toml 里声明绑定和迁移：</p>
+
+<pre><code class="language-toml">[[durable_objects.bindings]]
+name = "TERMINAL_ROOM"
+class_name = "TerminalRoom"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TerminalRoom"]</code></pre>
+
+<p>DO 类本体。注意这里用的是 <strong>WebSocket hibernation API</strong>（<code>state.acceptWebSocket</code> + 类方法处理器），不是 <code>addEventListener</code>——区别是后面「最值钱的优化」：</p>
+
+<pre><code class="language-typescript">export class TerminalRoom {
+  constructor(private state: DurableObjectState, private env: Env) {}
+
+  async fetch(request: Request) {
+    const url = new URL(request.url);
+    const roomId = url.pathname.split('/').pop();
+    if (!roomId) return new Response('missing room', { status: 400 });
+
+    if (request.headers.get('Upgrade') !== 'websocket') {
+      return new Response('expected websocket', { status: 426 });
+    }
+
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+
+    // acceptWebSocket：纳入 hibernation 管理，附上用户标签
+    this.state.acceptWebSocket(server);
+    server.serializeAttachment({ joinedAt: Date.now(), roomId });
+
+    // 新房客先补发历史（storage 里的滚动缓冲区）
+    const history = (await this.state.storage.get&lt;string[]&gt;('history')) ?? [];
+    for (const line of history.slice(-100)) server.send(line);
+
+    this.broadcast({ type: 'presence', count: this.state.getWebSockets().length });
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  // 休眠友好的事件处理器：实例被逐出后由运行时唤醒再回调
+  async webSocketMessage(ws: WebSocket, msg: string) {
+    const event = JSON.parse(msg);
+    // 串行保证：同一房间同时只有一个事件在处理，无需应用层锁
+
+    // 先广播后落盘：实时性优先，容忍最后几条丢失
+    this.broadcast(event);
+
+    const history = (await this.state.storage.get&lt;string[]&gt;('history')) ?? [];
+    history.push(msg);
+    await this.state.storage.put('history', history.slice(-500)); // 环形缓冲
+  }
+
+  async webSocketClose(ws: WebSocket) {
+    this.broadcast({ type: 'presence', count: this.state.getWebSockets().length });
+  }
+
+  private broadcast(msg: unknown) {
+    const data = JSON.stringify(msg);
+    for (const ws of this.state.getWebSockets()) {
+      if (ws.readyState === WebSocket.OPEN) ws.send(data);
+    }
+  }
+}</code></pre>
+
+<p>路由层从普通 Worker 进来，按房间 ID 拿 DO stub：</p>
+
+<pre><code class="language-typescript">const id = env.TERMINAL_ROOM.idFromName(roomId);
+const stub = env.TERMINAL_ROOM.get(id);
+return stub.fetch(request); // 转发 WebSocket 升级请求</code></pre>
+
+<p>前端就是标准 WebSocket，加上断线重连时带 <code>lastSeq</code> 补发即可。整套最小实现两百行不到，但跑得起 2–8 人的真实协作。</p>
+
+<h2>三、最值钱的优化：WebSocket hibernation</h2>
+
+<p>第一版我们没用 hibernation，用 <code>ws.addEventListener('message')</code> 那套。上线一周看账单：DO 的 <strong>Duration GB-s 曲线是 24 小时不间断的阶梯</strong>——房间空闲时 DO 实例也不释放，按活跃时长持续计费，月账 $8 多。开启 hibernation 后：DO 在没有消息时被逐出内存，WebSocket 连接由运行时托管，<strong>空闲时长不计费、只按请求计费</strong>。同样流量，时长费用降到 $1 出头。</p>
+
+<p>hibernation 的代价是编程模型变了，坑都在细节里：</p>
+
+<ul>
+<li><strong>实例被逐出后，构造函数里的内存状态全丢</strong>。我们第一版在 constructor 里初始化 <code>this.users = new Map()</code>，休眠唤醒后变成空 Map，在线人数错乱。正解：连接列表用 <code>state.getWebSockets()</code> 取，用户信息用 <code>ws.serializeAttachment()</code> 挂在连接上，什么都不放实例字段。</li>
+<li><strong>事件必须走类方法处理器</strong>（<code>webSocketMessage</code>/<code>webSocketClose</code>/<code>webSocketError</code>）。休眠中的连接再 <code>addEventListener</code> 会直接抛错——这是运行时的硬约束，不是代码风格问题。</li>
+<li><strong>DO 存储有单条上限</strong>：key 2KB、value 128KB。我们把历史缓冲区切成 <code>log:{seq}</code> 逐条存（key 小、value 小），用 <code>storage.list({ prefix: 'log:', limit: 100, reverse: true })</code> 分页回放，别用一个 value 塞整个历史。</li>
+<li><strong>WebSocket 消息上限 1MiB</strong>。终端输出天然小，但用户粘贴大段文本时前端要先截断，否则发送失败且报错不明确。</li>
+</ul>
+
+<h2>四、三次翻车复盘</h2>
+
+<ol>
+<li><strong>广播放大</strong>：早期每条终端输出都广播，某个跑着 <code>tail -f</code> 的房间一秒 50 条输出 × 6 个连接 = 每秒 300 条消息，DO CPU 和消息配额一起飘红。解法：前端做 100ms 合帧（多条输出合成一帧渲染），服务端按帧广播，输出量降一个数量级。终端的实时感来自合帧后的「跟手」，不是逐字节。</li>
+<li><strong>重连风暴</strong>：一次 DO 迁移（运行时升级）导致同房间 6 个连接同时断，客户端立即重连，6 个请求同时打到迁移中的实例，前几个失败、触发客户端更快重试，差点打成 DDoS。解法：客户端重连加指数退避 + 随机抖动（1s、2s、4s，±500ms 抖动），服务端迁移期间返回 503 让客户端退避而非报错弹出。</li>
+<li><strong>历史回放丢尾巴</strong>：断线重连的补发基于 <code>lastSeq</code>，但「先广播后落盘」的顺序意味着广播成功、落盘前崩溃的几条会丢。用户看到输出中间缺了一行。解法：落盘也带上 seq，补发时从存储读，接受「最多丢最后一条」的语义——终端场景用户能理解，协作文档场景就不能这么将就。</li>
+</ol>
+
+<h2>五、规模边界：一个 DO 能带多少连接</h2>
+
+<p>实测数据（单个终端房间 DO）：</p>
+
+<ul>
+<li>并发 WebSocket：<strong>稳定 100+</strong>，我们线上房间 2–8 人，从没摸到上限</li>
+<li>广播扇出：100 连接 × 每秒 10 帧 = 每秒 1000 次 send，DO CPU 占用约 15%，没有压力</li>
+<li>存储增长：一个活跃房间每天约 2MB 日志，配 7 天保留（alarm 定时清理 <code>log:</code> 前缀旧 key）</li>
+</ul>
+
+<p>再往上扩的正确姿势不是硬扛单实例，而是<strong>按房间 ID 分对象</strong>——DO 的 <code>idFromName</code> 就是天然分片键，一万个房间就是一万个独立实例，各自串行、互不干扰。真正会撞墙的是「一个房间里一万人」的场景（比如直播弹幕），那时候该上的是 fan-out 专型架构，而不是 DO。我们的渡劫code 是协作工具不是直播间，DO 的甜点区刚好全覆盖。</p>
+
+<p>顺带一提，AI Agent 的房间和终端房间共用同一套 DO 底座，只是消息类型不同——Agent 循环的状态机细节在 <a href="ai-coding-agent.html">AI 编程工作台架构</a> 里展开，这篇讲的是实时通道本身。</p>
+
+<h2>小结</h2>
+
+<p>DO 做实时协作的三个共识：<strong>单实例串行就是免费的「应用层锁」，idFromName 就是天然的分片键，hibernation 是必开的省钱开关</strong>。反过来，内存状态不放实例字段、存储 key/value 守住 2KB/128KB 上限、重连必须退避加抖动——这些是拿三次翻车换的。终端房间只是起点，同一套底座可以长成协作画板、共享白板、多人游戏房间——DO 是独立开发者在边缘上玩实时协作的唯一正确答案。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261021b" defer></script>
+</body>
+</html>

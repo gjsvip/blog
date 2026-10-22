@@ -1,0 +1,128 @@
+<p>渡劫code 的工作区要支持用户上传文件：代码片段、图片、打包产物。第一版图省事走 Worker 中转——浏览器 POST 给 Worker，Worker 再 PUT 进 R2。上线两周就撞墙：Cloudflare 账户在 Free/Pro 计划下<strong>请求体上限 100MB</strong>，大文件直接 413；而且中转意味着流量双倍走、免费额度下的 CPU 时间也白白消耗，传几个大文件就见底了。这篇讲我们切到 <strong>R2 S3 API 预签名直传</strong> 的完整方案：Worker 只当「签发机构」，数据一个字节都不经过 Worker。</p>
+
+<h2>一、方案对比：上传的三条路</h2>
+
+<table>
+<thead><tr><th>方案</th><th>优点</th><th>硬伤</th><th>适用</th></tr></thead>
+<tbody>
+<tr><td>Worker 中转</td><td>简单、可校验内容、能直接写元数据</td><td>请求体 100MB 上限；流量与 CPU 双倍计费</td><td>&lt;10MB 的小文件、内部工具</td></tr>
+<tr><td>预签名 PUT 直传</td><td>浏览器直连 R2；Worker 只签个名</td><td>需处理 CORS、签名细节；单次 PUT 上限 5GB</td><td>10MB–5GB，绝大多数场景</td></tr>
+<tr><td>Multipart 分片</td><td>支持超大文件、可断点续传</td><td>三接口编排（initiate/part/complete）复杂度高</td><td>&gt;5GB 或弱网环境</td></tr>
+</tbody>
+</table>
+
+<p>我们的选择：<strong>50MB 以下走预签名 PUT，超过走分片</strong>。这篇先把主战场——预签名 PUT 讲透。</p>
+
+<h2>二、Worker 签发预签名 URL</h2>
+
+<p>R2 兼容 S3 API，用 <code>aws4fetch</code> 库（专为 Workers 设计，基于 Web API，不需要 Node 环境）。密钥用 R2 API Token，权限限定「对象读写 + 指定 bucket」，别用主账号密钥：</p>
+
+<pre><code class="language-typescript">import { AwsClient } from 'aws4fetch';
+
+const r2 = new AwsClient({
+  accessKeyId: env.R2_ACCESS_KEY_ID,
+  secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+  service: 's3',
+  region: 'auto', // R2 固定 auto
+});
+
+// POST /api/upload/presign
+app.post('/api/upload/presign', async (c) =&gt; {
+  const user = await auth(c); // JWT 会话，见边缘安全实践
+  const { filename, size } = await c.req.json();
+
+  if (size &gt; 50 * 1024 * 1024) return c.json({ error: 'too_large' }, 413);
+
+  // key 服务端生成：用户前缀隔离 + UUID 防猜测 + 文件名编码
+  const key = `workspaces/${user.id}/${crypto.randomUUID()}/${encodeURIComponent(filename)}`;
+
+  const url = new URL(
+    `https://${env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.R2_BUCKET}/${key}`
+  );
+  // 过期时间走查询参数，单位秒，SigV4 上限 7 天
+  url.searchParams.set('X-Amz-Expires', '900'); // 15 分钟
+
+  const signed = await r2.sign(new Request(url, { method: 'PUT' }), {
+    aws: { signQuery: true },
+  });
+
+  return c.json({ url: signed.url, key });
+});</code></pre>
+
+<p>注意 <code>X-Amz-Expires</code> 是拼在 URL 上的查询参数再签名，不是 <code>sign()</code> 的选项——aws4fetch 的 README 示例就是这么写的，我第一版找个假 API 参数折腾了半小时。另外 <code>signQuery: true</code> 时<strong>只有 host 头进签名</strong>（返回的 URL 里 <code>X-Amz-SignedHeaders=host</code>），这一点是后面所有坑的根源。</p>
+
+<h2>三、浏览器直传</h2>
+
+<p>前端拿到预签名 URL 后直接 PUT。用 XHR 而不是 fetch，是为了拿上传进度条：</p>
+
+<pre><code class="language-typescript">function uploadFile(file: File, presignUrl: string, onProgress: (p: number) =&gt; void) {
+  return new Promise&lt;void&gt;((resolve, reject) =&gt; {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', presignUrl);
+    // 注意：不要手动设 Content-Type，让浏览器按 file.type 自动加
+    xhr.upload.onprogress = (e) =&gt; e.lengthComputable &amp;&amp; onProgress(e.loaded / e.total);
+    xhr.onload = () =&gt; (xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`)));
+    xhr.onerror = () =&gt; reject(new Error('network'));
+    xhr.send(file);
+  });
+}</code></pre>
+
+<p>上传成功后前端再回调我们自己的 API，把 key、大小、类型写进 D1 的 <code>files</code> 表——<strong>对象存储和元数据必须分两步</strong>，这是后面坑四的伏笔。</p>
+
+<h2>四、踩坑实录</h2>
+
+<h3>坑 1：CORS 没配，一切免谈</h3>
+
+<p>浏览器跨域 PUT 到 R2，bucket 不配 CORS 全部报 <code>No 'Access-Control-Allow-Origin'</code>。R2 的 CORS 策略用 wrangler 下发：</p>
+
+<pre><code class="language-bash">npx wrangler r2 bucket cors put dujiecode-files --file cors.json</code></pre>
+
+<pre><code class="language-json">{
+  "rules": [{
+    "allowedOrigins": ["https://dujiecode.com"],
+    "allowedMethods": ["PUT", "GET"],
+    "allowedHeaders": ["*"],
+    "exposeHeaders": ["ETag"],
+    "maxAgeSeconds": 3600
+  }]
+}</code></pre>
+
+<h3>坑 2：CORS 报错和签名报错，长得一模一样</h3>
+
+<p>最迷惑的现象：签名错了，浏览器报的也是 CORS 错误。因为 403 响应没带 CORS 头，浏览器就把底层错误吞掉显示成跨域失败。我们的排查口诀：<strong>先用 curl 同源直传验证签名，再上浏览器测跨域</strong>。同源 curl 能过、浏览器挂，问题在 CORS；curl 都挂，问题在签名。</p>
+
+<h3>坑 3：Content-Type 陷阱</h3>
+
+<p>因为 <code>signQuery</code> 只签 host，如果你在签名时把 <code>Content-Type</code> 签进去，浏览器 PUT 时又没带（或带了不一样的值），R2 直接 <code>SignatureDoesNotMatch</code>。我们的策略是<strong>不签 Content-Type</strong>，浏览器按文件类型自动加，R2 存下来的 content-type 仍然正确。代价是无法用签名约束类型，类型校验放在我们自己的 API 层做（按文件扩展名 + magic number 双校验）。</p>
+
+<h3>坑 4：中文文件名的编码地狱</h3>
+
+<p>用户上传「测试报告.docx」，前端直接把原始文件名拼进 key 签名——SigV4 对路径编码极其敏感，浏览器自动编码一次、签名算一次，两边不一致就 403。我们的规矩：<strong>key 一律服务端生成</strong>，文件名 <code>encodeURIComponent</code> 后作为 key 一部分，原始文件名另外存进 D1 元数据表。下载时服务端重新签发 GET 预签名 URL，Content-Disposition 里带原始文件名。前端永远碰不到 key 的生成逻辑，这个坑就彻底消失了。</p>
+
+<h3>坑 5：预签名 URL 的泄漏面</h3>
+
+<p>URL 出现在浏览器网络面板、前端日志、甚至用户截图里。缓解三件套：过期 15 分钟（够慢网传完 50MB）、key 带 UUID 随机段（猜不到相邻文件）、访问日志不记录完整 query string。真正敏感的场景（合同、身份证件），正确做法是 bucket 私有 + 下载也走签名 GET，一秒都不公开。</p>
+
+<h3>坑 6：对象和元数据的一致性</h3>
+
+<p>PUT 成功但写 D1 失败的瞬间，系统里就有一个「孤儿对象」；反过来先写元数据后传失败，就是「幽灵记录」。我们的取舍：<strong>先传对象、再写元数据</strong>（用户可感知完成态），配一个每天跑的 Cron 对账任务——扫 R2 里超过 24 小时无对应 D1 记录的对象，删掉。删除走「先删记录、再删对象」，避免记录没了对象还在。</p>
+
+<h2>五、数字：直传到底省了多少</h2>
+
+<p>渡劫code 工作区当前状态：R2 存储 <strong>4.2GB</strong>、对象 <strong>1.1 万个</strong>、日均上传 <strong>120 次</strong>、日均下载 <strong>900 次</strong>。切到预签名直传前后的对比：</p>
+
+<table>
+<thead><tr><th>指标</th><th>Worker 中转（前）</th><th>预签名直传（后）</th></tr></thead>
+<tbody>
+<tr><td>Workers 日均请求</td><td>约 3.1 万（含上传下载）</td><td>约 4000（只剩签发和下载代理）</td></tr>
+<tr><td>免费额度占用</td><td>31%</td><td>4%</td></tr>
+<tr><td>单文件大小上限</td><td>100MB（硬顶）</td><td>5GB（R2 单 PUT 上限）</td></tr>
+<tr><td>上传成功率</td><td>96.2%（413 + 超时）</td><td>99.7%</td></tr>
+</tbody>
+</table>
+
+<p>R2 免费额度是 10GB 存储/月、Class A（写）100 万次/月、Class B（读）1000 万次/月。我们 Class B 月均 27 万次，占 2.7%——<strong>直传模式最大的节省其实是 Workers 请求数</strong>，从 31% 降到 4%，等于给免费额度续了命。上传成功率从 96.2% 到 99.7% 是意外之喜，413 和 Worker 超时这两类错误直接归零。</p>
+
+<h2>小结</h2>
+
+<p>预签名直传的核心思想一句话：<strong>Worker 当签发机构，不当搬运工</strong>。三条铁律记住就能避开九成坑：key 服务端生成并做用户前缀隔离、Content-Type 不签进签名、文件名先编码再进 key。CORS 先配再测、签名用 curl 同源验、元数据与对象分离靠 Cron 对账——做到这些，浏览器直传 R2 就是独立开发者能白嫖到的最香上传方案。</p>
