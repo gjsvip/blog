@@ -58,12 +58,95 @@
   }
   function api(path, opts) {
     return fetch(API_BASE + path, opts).then(function (r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok || (j && j.code !== 0)) {
+          throw Object.assign(new Error((j && j.message) || 'HTTP ' + r.status), { code: j && j.code, status: r.status });
+        }
+        return j;
+      });
     }).then(function (j) {
       if (j && j.code === 0) return j.data;
       throw new Error((j && j.message) || '接口错误');
     });
+  }
+
+  /* ---------- T04：远端配置 + Turnstile 人机校验 ---------- */
+  var CONFIG_CACHE_KEY = 'dujie-blog-config';
+  var CONFIG_TTL_MS = 5 * 60 * 1000;
+  var blogConfig = null; // { turnstile:{enabled,siteKey,failOpen}, moderation:{enabled}, notify:{enabled} }
+  var turnstileToken = '';
+  var turnstileWidgetId = null;
+
+  function loadBlogConfig() {
+    var cached = null;
+    try {
+      var raw = localStorage.getItem(CONFIG_CACHE_KEY);
+      if (raw) {
+        var obj = JSON.parse(raw);
+        if (obj && obj.at && Date.now() - obj.at < CONFIG_TTL_MS) cached = obj.data;
+      }
+    } catch (e) {}
+    if (cached) return Promise.resolve(cached);
+    return fetch(API_BASE + '/api/blog/config')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.code === 0 && j.data) {
+          try { localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify({ at: Date.now(), data: j.data })); } catch (e) {}
+        }
+        return j.data || null;
+      })
+      .catch(function () { return null; }); // 失败按「全关」保守降级
+  }
+
+  function initTurnstile(cfg) {
+    if (!cfg || !cfg.turnstile || !cfg.turnstile.enabled || !cfg.turnstile.siteKey) return Promise.resolve();
+    var slot = document.getElementById('cf-turnstile-slot');
+    if (!slot) return Promise.resolve();
+    var s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
+    return new Promise(function (res) { s.onload = res; s.onerror = res; })
+      .then(function () {
+        if (!window.turnstile) return; // 脚本加载失败：按未开启处理（后端 fail-open 兜底）
+        turnstileWidgetId = window.turnstile.render('#cf-turnstile-slot', {
+          sitekey: cfg.turnstile.siteKey,
+          callback: function (t) { turnstileToken = t; },
+          'expired-callback': function () { turnstileToken = ''; },
+          'error-callback': function () { turnstileToken = ''; }
+        });
+      });
+  }
+
+  function resetTurnstile() {
+    if (turnstileWidgetId !== null && window.turnstile) {
+      try { window.turnstile.reset(turnstileWidgetId); } catch (e) {}
+    }
+    turnstileToken = '';
+  }
+
+  /* 提交后统一反馈：pending 提示 / 校验失败重置 widget */
+  function afterSubmit(d) {
+    if (d && d.status === 'pending') {
+      toast('已提交，待审核后展示', 'ok');
+    } else {
+      toast('评论发布成功', 'ok');
+    }
+    resetTurnstile();
+  }
+  function onSubmitError(err) {
+    if (err && (err.code === 'TURNSTILE_FAILED' || err.code === 'TURNSTILE_TOKEN_MISSING')) {
+      resetTurnstile();
+      toast('请重新完成人机校验', 'err');
+    } else if (err && err.code === 'TURNSTILE_UNAVAILABLE') {
+      toast('校验服务暂不可用，请稍后重试', 'err');
+    } else if (err && err.code === 'BANNED') {
+      toast('评论被拒绝，如有疑问请联系博主', 'err');
+    } else if (err && err.code === 'RATE_LIMITED') {
+      toast('评论太频繁了，休息一分钟再来吧', 'err');
+    } else {
+      toast((err && err.message) || '发布失败', 'err');
+    }
   }
 
   /* ---------- 点赞本地记忆（worker stats 不回传 liked，用 localStorage 兜底） ---------- */
@@ -373,13 +456,13 @@
         api('/api/blog/comments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug: getSlug(), nickname: nick, email: ($('#c-email') || {}).value || '', content: text, parentId: Number(id), visitor: visitorId() })
-        }).then(function () {
-          toast('回复成功', 'ok');
+          body: JSON.stringify({ slug: getSlug(), nickname: nick, email: ($('#c-email') || {}).value || '', content: text, parentId: Number(id), visitor: visitorId(), turnstileToken: turnstileToken })
+        }).then(function (d) {
+          afterSubmit(d);
           $('textarea', box).value = '';
           box.classList.remove('open');
           loadComments();
-        }).catch(function (e) { toast(e.message, 'err'); btn.disabled = false; });
+        }).catch(function (e) { onSubmitError(e); btn.disabled = false; });
       });
     });
   }
@@ -412,6 +495,11 @@
     if (!slug) return;
     commentsSlug = slug;
     loadComments();
+    // T04：拉取灰度配置并初始化 Turnstile（失败按全关降级，不影响旧流程）
+    loadBlogConfig().then(function (cfg) {
+      blogConfig = cfg;
+      return initTurnstile(cfg);
+    }).catch(function () {});
     // emoji 面板
     var panel = $('#emoji-panel'), ta = $('#c-content');
     if (panel && ta) {
@@ -445,12 +533,12 @@
         api('/api/blog/comments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slug: slug, nickname: nick, email: $('#c-email').value.trim(), content: content, visitor: visitorId() })
-        }).then(function () {
-          toast('评论发布成功', 'ok');
+          body: JSON.stringify({ slug: slug, nickname: nick, email: $('#c-email').value.trim(), content: content, visitor: visitorId(), turnstileToken: turnstileToken })
+        }).then(function (d) {
+          afterSubmit(d);
           $('#c-content').value = '';
           loadComments();
-        }).catch(function (err) { toast(err.message, 'err'); })
+        }).catch(function (err) { onSubmitError(err); })
           .finally(function () { btn.disabled = false; btn.textContent = '发布评论'; });
       });
     }

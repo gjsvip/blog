@@ -412,6 +412,15 @@ input, textarea { font-family: inherit; }
 .emoji-panel.open { display: flex; }
 .emoji-panel button { font-size: 21px; width: 38px; height: 38px; border-radius: 9px; transition: all 0.2s; }
 .emoji-panel button:hover { background: var(--grad-soft); transform: scale(1.2); }
+/* T04：Turnstile 挂载点 + 待审核提示 */
+#cf-turnstile-slot { margin-top: 12px; min-height: 0; }
+#cf-turnstile-slot:not(:empty) { margin-bottom: 4px; }
+.comment-pending-hint {
+  display: none; margin-top: 12px; padding: 10px 14px; border-radius: var(--radius-sm);
+  border: 1px dashed var(--accent); background: var(--grad-soft);
+  color: var(--text-soft); font-size: 14px;
+}
+.comment-pending-hint:not([hidden]) { display: block; }
 /* 评论列表 */
 .comment-list { display: grid; gap: 18px; }
 .comment { display: flex; gap: 14px; }

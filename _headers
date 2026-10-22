@@ -9,3 +9,6 @@
 
 /rss.xml
   Cache-Control: public, max-age=600
+
+/admin/*
+  Cache-Control: no-cache

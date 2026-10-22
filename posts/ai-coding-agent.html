@@ -17,7 +17,7 @@
 <meta name="twitter:description" content="计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/ai-coding-agent">
-<link rel="stylesheet" href="../assets/style.css?v=20261021b">
+<link rel="stylesheet" href="../assets/style.css?v=20261021c">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -173,6 +173,8 @@ function safePath(root: string, input: string): string | null {
           <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
         </div>
         <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
       </form>
       <div class="comment-list" id="comment-list"></div>
     </section>
@@ -240,6 +242,6 @@ function safePath(root: string, input: string): string | null {
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261021a" defer></script>
+<script src="../assets/blog.js?v=20261021b" defer></script>
 </body>
 </html>

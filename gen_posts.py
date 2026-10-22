@@ -71,7 +71,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:description" content="__EXCERPT__">
 <meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
-<link rel="stylesheet" href="../assets/style.css?v=20261021b">
+<link rel="stylesheet" href="../assets/style.css?v=20261021c">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
@@ -149,6 +149,8 @@ __BODY__
           <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
         </div>
         <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
       </form>
       <div class="comment-list" id="comment-list"></div>
     </section>
@@ -216,7 +218,7 @@ __BODY__
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261021a" defer></script>
+<script src="../assets/blog.js?v=20261021b" defer></script>
 </body>
 </html>
 """

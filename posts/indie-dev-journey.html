@@ -17,7 +17,7 @@
 <meta name="twitter:description" content="从 Hexo 到全边缘架构，独立开发一整年的选型复盘：Cloudflare 而不是 VPS、D1 而不是自建 Postgres、自建评论而不是 Giscus，以及那节最贵的手写 HTML 学费。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/indie-dev-journey">
-<link rel="stylesheet" href="../assets/style.css?v=20261021b">
+<link rel="stylesheet" href="../assets/style.css?v=20261021c">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -159,6 +159,8 @@ dujiecone.520691.xyz    # ✓ 已更名为无下划线主机名</code></pre></li
           <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
         </div>
         <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
       </form>
       <div class="comment-list" id="comment-list"></div>
     </section>
@@ -226,6 +228,6 @@ dujiecone.520691.xyz    # ✓ 已更名为无下划线主机名</code></pre></li
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261021a" defer></script>
+<script src="../assets/blog.js?v=20261021b" defer></script>
 </body>
 </html>
