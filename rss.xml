@@ -8,6 +8,54 @@
   <language>zh-CN</language>
   <lastBuildDate>Wed, 21 Oct 2026 08:00:00 +0800</lastBuildDate>
   <item>
+    <title>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</title>
+    <link>https://www.520691.xyz/posts/static-blog-seo-advanced</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/static-blog-seo-advanced</guid>
+    <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>承接 SEO 全流程，这篇只讲上线后的真事：IndexNow 18 条 URL 的提交记录、百度为什么不认 IndexNow、lastmod 与修订文章的矛盾、JSON-LD 静默失效——以及 Search Console 里三类信号各自的含义。</description>
+  </item>
+  <item>
+    <title>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</title>
+    <link>https://www.520691.xyz/posts/cloudflare-free-tier</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/cloudflare-free-tier</guid>
+    <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。</description>
+  </item>
+  <item>
+    <title>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</title>
+    <link>https://www.520691.xyz/posts/hono-workers-engineering</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/hono-workers-engineering</guid>
+    <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>渡劫code 一万二千行 Worker 代码的组织方式：入口分流、路由按域挂载、AppEnv 类型安全 Bindings、{code,message} 错误信封、wrangler dev 调试实战——全部用线上真实代码举例。</description>
+  </item>
+  <item>
+    <title>Git 多仓库三端同步方案：镜像、CI 双跑与 Gitee Pages 国内加速</title>
+    <link>https://www.520691.xyz/posts/git-multi-repo-sync</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/git-multi-repo-sync</guid>
+    <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
+    <category>实战</category>
+    <description>架构篇讲完 happy path 与回滚，这篇讲最底层的 Git 组织：孤儿分支为什么必须 force push、显式 refspec 保活、双工作流职责分离、Gitee Pages 国内访问实测与实名认证的坑。</description>
+  </item>
+  <item>
+    <title>2026 独立开发者工具栈：从建站到支付的零成本清单</title>
+    <link>https://www.520691.xyz/posts/indie-dev-tools-2026</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/indie-dev-tools-2026</guid>
+    <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
+    <category>工具</category>
+    <description>一个账单 0 元的独立开发者的完整工具箱：建站部署、前后端数据、支付变现、邮件通知、分析统计、监控运维——每项附真实链接与选型理由，务实向不整活。</description>
+  </item>
+  <item>
+    <title>我是怎么用 AI 编程助手 30 天搭出三个站的</title>
+    <link>https://www.520691.xyz/posts/ai-30-days-three-sites</link>
+    <guid isPermaLink="true">https://www.520691.xyz/posts/ai-30-days-three-sites</guid>
+    <pubDate>Wed, 21 Oct 2026 08:00:00 +0800</pubDate>
+    <category>复盘</category>
+    <description>30 天、三个站、一万二千行代码的复盘：哪些该交给 AI，哪些必须人来扛，以及一套救过我们多次的代码审查纪律。不神化，不甩锅。</description>
+  </item>
+  <item>
     <title>独立开发者一年：技术选型复盘与踩坑总结</title>
     <link>https://www.520691.xyz/posts/indie-dev-journey</link>
     <guid isPermaLink="true">https://www.520691.xyz/posts/indie-dev-journey</guid>

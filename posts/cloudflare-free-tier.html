@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法 · 渡劫博客</title>
+<meta name="description" content="月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法 · 渡劫博客">
+<meta property="og:description" content="月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/cloudflare-free-tier">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法 · 渡劫博客">
+<meta name="twitter:description" content="月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/cloudflare-free-tier">
+<link rel="stylesheet" href="../assets/style.css?v=20261021b">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法", "description": "月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/cloudflare-free-tier", "datePublished": "2026-10-21", "dateModified": "2026-10-21", "inLanguage": "zh-CN", "keywords": "Cloudflare, 免费额度, Workers, 成本", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/cloudflare-free-tier"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法", "item": "https://www.520691.xyz/posts/cloudflare-free-tier"}]}
+</script>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-21</span>
+          <span>📂 实战</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">💰</div>
+
+      <div class="article-body">
+<p>独立开发者一年复盘里我写过「月度账单 0 元」。很多人问怎么做到的——答案不是省，是<strong>掐着免费额度的线做架构设计</strong>。这篇把 Cloudflare 免费档的边界逐项拆开，讲讲我们的用量模型，以及第一个会炸的地方到底在哪。</p>
+
+<h2>免费额度总表</h2>
+<table>
+  <tr><th>产品</th><th>免费档额度（2026-10 核对）</th><th>我们的用途</th></tr>
+  <tr><td>Workers</td><td>10 万请求/天，单次 10ms CPU</td><td>全部 API + 渡劫code 后端</td></tr>
+  <tr><td>Pages</td><td>不限带宽与请求数</td><td>博客三端静态站</td></tr>
+  <tr><td>KV</td><td>10 万读/天、1,000 写/天、1 GiB 存储</td><td>会话、限流桶</td></tr>
+  <tr><td>D1</td><td>5 GiB 存储、500 万行读/天、10 万行写/天</td><td>评论/点赞/浏览/说说</td></tr>
+  <tr><td>R2</td><td>10 GiB 存储/月；Class A 100 万次/月、Class B 1,000 万次/月；出流量永久免费</td><td>工作区文件</td></tr>
+  <tr><td>Durable Objects</td><td>随 Workers 请求池，按请求 + GB-s 时长计费</td><td>TerminalRoom 终端房间</td></tr>
+</table>
+<p>数字以官方文档与 Dashboard 实时显示为准，免费档策略会变，但用法不会变：<strong>读走缓存、写走批处理、大文件走对象存储</strong>。先读额度表再画架构图，顺序反了等于裸奔。</p>
+
+<h2>Workers 请求数：最舒服的一项</h2>
+<p>10 万请求/天对个人项目是天文数字——摊到每小时只有 4,166 次。渡劫code 全部 API、博客评论系统、三端静态站的动态部分都走 Worker，内测期日请求量离上限差两个数量级。</p>
+<p>真正的风险不是总量，是<strong>单次 10ms CPU</strong>：LLM 流式响应的拼装、大 JSON 序列化、没走索引的 join 都可能超。我们的对策是流式响应不缓冲、重活扔给异步上下文——在 Workers 里，CPU 时间才是隐形货币，请求数只是明码标价的那个。</p>
+
+<h2>KV：读写不对称，写才是天花板</h2>
+<p>KV 的免费档极度不对称：读 10 万/天，写只有 1,000/天。我们的 KV 用法有三处：登录写 session、每次 API 请求写限流桶（<code>ratelimit:api:{userId}:{minuteBucket}</code>）、登出删 session。</p>
+<p>问题就在第二处：<strong>限流桶意味着每一次 API 调用都伴随一次 KV 写</strong>。1,000 次写/天，相当于 API 请求持续上限约每 86 秒一次——个人项目随便用，但这是全站第一个会触顶的额度，比 Workers 请求数早得多撞墙。</p>
+<p>预案有两种：限流计数降级为 isolate 本地内存（牺牲跨实例精度换零成本，适合个人站的量级），或在 KV 写失败时直接放行（限流降级为尽力而为）。<strong>限流组件自己成为单点，是架构里最尴尬的死法</strong>——所以这项用量我们列进了重点监控，撞墙之前就该看到曲线抬头。</p>
+
+<h2>D1：为「读多写少」而生</h2>
+<p>评论系统的数据模型完美命中 D1 甜蜜点：5 GiB 存储对文本评论是另一个天文数字；500 万行读/天覆盖任意量级的页面浏览；10 万行写/天——按评论接口 2 条/分钟/指纹的限流算，要把写额度烧满需要连续 69 天不间断被人发评论，真到那天高兴还来不及。</p>
+<p>D1 的优化纪律（batch 即事务、keyset 分页、索引先行）在 <a href="d1-sqlite-edge.html">D1 实战</a>里写过，这里只补一句成本视角：<strong>行读按行计费，深分页是烧额度最快的写法</strong>——OFFSET 翻一页就多读一段废行。优化手段和免费额度同向，这种巧合是选型选对了的信号。</p>
+
+<h2>R2：出流量免费改变一切</h2>
+<p>R2 最被低估的一条是<strong>出流量（egress）永久免费</strong>。S3 系存储的账单大头从来不是存储，是流量。个人项目把用户上传、头像、工作区文件放 R2，等于把最不可控的成本项直接归零。10 GiB 存储对代码工作区文件是起步容量，Class A/B 操作限额（100 万/1,000 万次每月）对 CRUD 型用法几乎无感。</p>
+<p>渡劫code 的工作区文件就走 <code>R2: ws/{workspaceId}/{path}</code>，元数据进 D1，KV 只放索引——分层的目的就是让每一级存储都待在自己的免费档里，谁也不越界。</p>
+
+<h2>Pages：被低估的免费之王</h2>
+<p>Cloudflare Pages 免费档不限带宽、不限请求数，还白送每个分支的预览部署。博客三端里最烧流量的静态站全放 Pages，动态 API 全走 Workers——<strong>把「不限量」的产品用在最可能爆的流量形态上</strong>，这是整套 0 元架构的核心思路。Durable Objects 同理：TerminalRoom 长连接是唯一有状态ful 需求的场景，恰好也是 DO 的免费额度最难触达的场景（个人项目的并发终端房间数个十数）。</p>
+
+<h2>榨干的本质是分层</h2>
+<table>
+  <tr><th>数据/流量形态</th><th>去处</th><th>为什么</th></tr>
+  <tr><td>静态页面、图片、CSS</td><td>Pages</td><td>不限带宽请求</td></tr>
+  <tr><td>API 逻辑、鉴权、限流</td><td>Workers</td><td>10 万请求/天够个人站</td></tr>
+  <tr><td>会话、热配置</td><td>KV</td><td>读廉价，写要省着用</td></tr>
+  <tr><td>关系数据、评论</td><td>D1</td><td>读多写少模型</td></tr>
+  <tr><td>文件、上传物</td><td>R2</td><td>出流量免费</td></tr>
+  <tr><td>单点协调、长连接</td><td>DO</td><td>有状态需求的唯一解</td></tr>
+</table>
+<p>最后一条可执行建议：<strong>把 Dashboard 的用量页面当日报看</strong>。免费额度不是保证书，是悬崖边的护栏——知道每项用了百分之几，才知道哪条增长曲线会先撞墙。额度用超之前 Cloudflare 会发邮件，但读懂用量曲线，比等邮件主动得多。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261021a" defer></script>
+</body>
+</html>

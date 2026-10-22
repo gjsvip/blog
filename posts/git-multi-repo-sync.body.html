@@ -1,0 +1,75 @@
+<p><a href="three-end-sync.html">架构记</a>讲了三端同步的 happy path，<a href="three-end-sync-advanced.html">进阶篇</a>讲了冲突与回滚。这篇补最底层的课：<strong>Git 本身怎么组织多仓库</strong>——refs 写法、orphan 分支、force push 的语义，以及 Gitee Pages 在国内的真实表现。</p>
+
+<h2>仓库拓扑：三个仓库，两种身份</h2>
+<table>
+  <tr><th>仓库/分支</th><th>身份</th><th>写入方</th></tr>
+  <tr><td>gjsvip/blog @ main</td><td>唯一事实源</td><td>人 + 本地生成器</td></tr>
+  <tr><td>gjsvip/blog @ gh-pages</td><td>孤儿分支，Pages 部署产物</td><td>Actions（force_orphan）</td></tr>
+  <tr><td>dujie_nb_admin/blog @ main</td><td>只读镜像</td><td>Actions 强推</td></tr>
+  <tr><td>dujie_nb_admin/blog @ gh-pages</td><td>Gitee Pages 源</td><td>Actions 强推</td></tr>
+</table>
+<p>关键认知：<strong>gh-pages 是孤儿分支，与 main 没有共同祖先</strong>。所以镜像它必须 <code>--force</code>——非强推的 fast-forward 检查对两个无共同历史的分支永远失败。这不是权限问题，是 Git 对象模型问题。理解这一点，才知道哪些操作必须带 force、哪些场景下带 force 是犯罪。</p>
+<p>三端能力对比摆在一起，分工就一目了然：</p>
+<table>
+  <tr><th>能力</th><th>CF Pages</th><th>GitHub Pages</th><th>Gitee Pages</th></tr>
+  <tr><td>国内访问</td><td>一般</td><td>差</td><td>优</td></tr>
+  <tr><td>国际访问</td><td>优</td><td>优</td><td>一般</td></tr>
+  <tr><td>分支预览部署</td><td>有</td><td>无</td><td>无</td></tr>
+  <tr><td>一键回滚</td><td>有</td><td>无</td><td>无</td></tr>
+  <tr><td>更新延迟</td><td>秒级</td><td>分钟级</td><td>分钟级</td></tr>
+  <tr><td>前置条件</td><td>无</td><td>无</td><td>实名认证</td></tr>
+</table>
+<p>结论直接写进架构：CF Pages 是主力（预览 + 回滚 + 国际），GitHub Pages 是规范镜像（.html 形态兼容搜索引擎），Gitee Pages 是国内兜底。<strong>没有哪端是不可替代的，这正是每端都能被单独放弃的原因。</strong></p>
+
+<h2>CI 双跑：两个工作流，一条主线</h2>
+<p>博客仓库有两个工作流，职责切干净：</p>
+<ul>
+  <li><strong>deploy-cf-pages.yml</strong>：主部署。内部两个 job——deploy 用 cloudflare/wrangler-action 推 CF Pages，update-gh-pages 用 peaceiris/actions-gh-pages 以 <code>force_orphan</code> 生成 gh-pages，后者 <code>needs: deploy</code> 串成主线</li>
+  <li><strong>mirror-to-gitee.yml</strong>：独立镜像。等 gh-pages 就绪（带 2 分钟超时的等待循环），把 main 与 gh-pages 强推到 Gitee</li>
+</ul>
+<p>为什么拆两个工作流，而不是一个 job 串到底？三个理由：<strong>失败隔离</strong>——Gitee 抽风不该让「CF Pages 部署成功」变红；<strong>重跑粒度</strong>——镜像失败只重跑镜像，不动主部署；<strong>跳过语义</strong>——Gitee Secret 未配置时镜像步骤显式 <code>exit 0</code> 跳过，主链路无感：</p>
+<pre><code class="language-yaml">- name: Mirror to Gitee
+  run: |
+    if [ -z "$GITEE_USER" ] || [ -z "$GITEE_TOKEN" ]; then
+      echo "未配置 Secret，跳过 Gitee 镜像"; exit 0
+    fi
+    git remote add gitee "https://$GITEE_USER:$GITEE_TOKEN@gitee.com/$GITEE_USER/blog.git"
+    git push --force gitee main:main
+    if git rev-parse --verify origin/gh-pages &gt;/dev/null 2&gt;&amp;1; then
+      git push --force gitee origin/gh-pages:gh-pages
+    else
+      echo "仓库无 gh-pages 分支，跳过"
+    fi
+  env:
+    GITEE_USER: ${{ secrets.GITEE_USER }}
+    GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+    GIT_TERMINAL_PROMPT: 0</code></pre>
+<p>令牌纪律单独说：Gitee 令牌只进 Actions Secrets，工作流里只有变量引用；<code>GIT_TERMINAL_PROMPT=0</code> 防交互卡死；本地 remote 里若存了令牌，那个文件永远别进仓库——文档与 workflow 里一律写占位符。</p>
+
+<h2>refspec：显式写法是保命符</h2>
+<p>早期 <code>git push gitee main:gh-pages</code> 被 Gitee 以 <code>deny updating a hidden ref</code> 拒绝——Gitee 对隐式 refspec 有额外校验。显式写全两侧 ref 名即可：</p>
+<pre><code class="language-bash">git push --force gitee origin/gh-pages:refs/heads/gh-pages
+#                    ~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~
+#                    本地 remote-tracking ref   远端完整 ref 名</code></pre>
+<p>镜像侧同理：等待 gh-pages 就绪的循环里，fetch 也要显式 refspec——<code>+refs/heads/gh-pages:refs/remotes/origin/gh-pages</code>——否则默认 fetch 配置下可能取不到刚生成的分支。纪律一句话：<strong>多仓库操作，ref 永远写全，不赌默认值</strong>。平台对「猜出来」的 refspec 各有各的洁癖。</p>
+
+<h2>Gitee Pages：国内加速的真实画像</h2>
+<p>三端并存的核心目的是国内可达性：GitHub Pages 在国内的间歇性超时是祖传技能，CF Pages 主域国际优秀。Gitee Pages 的国内访问是另一个世界——同网络环境下首字节稳定在几十毫秒级，首页完全加载一秒内，这是把博客放 Gitee 镜像的全部理由。渡劫code 的落地页还做了国内外分流提示：Worker 通过 <code>/api/region</code> 读 CF 的 country 字段，向国内访客推荐 Gitee/Pages 入口。</p>
+<p>但坑一样真实：</p>
+<ul>
+  <li><strong>实名认证前置</strong>：Gitee 账号要完成实名认证并手动开启仓库的 Pages 服务，缺一不可——缺了页面 404 且没有任何提示，排查全靠猜</li>
+  <li><strong>更新延迟</strong>：push 成功后 Pages 刷新有分钟级延迟，验证时别把「没生效」当故障，先看 Gitee 的部署记录</li>
+  <li><strong>无预览机制</strong>：Gitee Pages 没有 CF Pages 那样的分支预览部署，所以镜像的只能是已验证过的 gh-pages——它不配当第一道防线，只配当国内备份</li>
+  <li><strong>不做服务端跳转</strong>：国内访客分流靠落地页提示，不按地域 302——跳转在国内网络下反而制造二次故障，多一次 DNS 就多一次失败概率</li>
+</ul>
+
+<h2>本地手动同步：断电应急通道</h2>
+<p>CI 挂了也要能发文章。本地双 remote 是最后保险：</p>
+<pre><code class="language-bash">git remote -v   # origin=GitHub 主仓，gitee=镜像仓
+git push origin main &amp;&amp; git push gitee main:main
+git ls-remote origin main   # 必须等于本地 HEAD，防「以为推了其实没推」</code></pre>
+<p>顺序永远是先主仓后镜像——GitHub 是事实源，镜像仓的任何状态都可以随时被覆盖重建。<strong>永远不要直接往镜像仓推内容</strong>，那是三端同步的第一条铁律。推送收尾绝不用 <code>git push | tail</code> 之类的管道——退出码被管道吞掉，失败会显示成「成功」，这个坑咬过所有迷信命令行管道的人。</p>
+<p>还有个只在多仓库场景出现的细节：镜像 job 的 checkout 必须 <code>fetch-depth: 0</code>。默认浅克隆只有最近一次提交，孤儿分支的历史不在其中，<code>rev-parse origin/gh-pages</code> 直接失败。一行 <code>fetch-depth: 0</code> 换来完整历史，是多仓库 CI 的隐形门票。</p>
+
+<h2>小结</h2>
+<p>多仓库同步的成熟度标准：每条 ref 都显式、每端都可重建、本地有应急通道。Git 的对象模型决定了 orphan + force 是镜像的唯一正确姿势，CI 的 job 划分决定了故障时的爆炸半径。把这些钉死，剩下的交给 Actions——它们从不需要睡觉。下一篇聊聊支撑这一切的 <a href="cloudflare-free-tier.html">Cloudflare 免费额度</a>怎么做到月账单 0 元。</p>

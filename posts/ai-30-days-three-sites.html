@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我是怎么用 AI 编程助手 30 天搭出三个站的 · 渡劫博客</title>
+<meta name="description" content="30 天、三个站、一万二千行代码的复盘：哪些该交给 AI，哪些必须人来扛，以及一套救过我们多次的代码审查纪律。不神化，不甩锅。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="我是怎么用 AI 编程助手 30 天搭出三个站的 · 渡劫博客">
+<meta property="og:description" content="30 天、三个站、一万二千行代码的复盘：哪些该交给 AI，哪些必须人来扛，以及一套救过我们多次的代码审查纪律。不神化，不甩锅。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/ai-30-days-three-sites">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="我是怎么用 AI 编程助手 30 天搭出三个站的 · 渡劫博客">
+<meta name="twitter:description" content="30 天、三个站、一万二千行代码的复盘：哪些该交给 AI，哪些必须人来扛，以及一套救过我们多次的代码审查纪律。不神化，不甩锅。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/ai-30-days-three-sites">
+<link rel="stylesheet" href="../assets/style.css?v=20261021b">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "我是怎么用 AI 编程助手 30 天搭出三个站的", "description": "30 天、三个站、一万二千行代码的复盘：哪些该交给 AI，哪些必须人来扛，以及一套救过我们多次的代码审查纪律。不神化，不甩锅。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/ai-30-days-three-sites", "datePublished": "2026-10-21", "dateModified": "2026-10-21", "inLanguage": "zh-CN", "keywords": "AI编程, 复盘, 独立开发, 代码审查", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/ai-30-days-three-sites"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "我是怎么用 AI 编程助手 30 天搭出三个站的", "item": "https://www.520691.xyz/posts/ai-30-days-three-sites"}]}
+</script>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="../index.html">
+      <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+    </a>
+    <nav class="nav">
+      <a href="../index.html">首页</a>
+      <a href="../archive.html">归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../friends.html">友链</a>
+      <a href="../about.html">关于</a>
+    </nav>
+    <div class="header-actions">
+      <button class="search-trigger" aria-label="搜索文章">
+        <span>🔍</span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+      </button>
+      <button class="icon-btn theme-toggle" aria-label="切换主题">☀️</button>
+      <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>我是怎么用 AI 编程助手 30 天搭出三个站的</div>
+
+    <article>
+      <div class="article-header">
+        <h1>我是怎么用 AI 编程助手 30 天搭出三个站的</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span>📅 2026-10-21</span>
+          <span>📂 复盘</span>
+        </div>
+      </div>
+
+      <div class="article-cover" aria-hidden="true">🧠</div>
+
+      <div class="article-body">
+<p>过去 30 天，博客体系、渡劫code、个人官网站点全部推到了公网可访问状态。三个站背后是一万二千行 TypeScript、18 篇文章、3 条 GitHub Actions 工作流、4 张 D1 表。工作量是真的，但坦诚说：<strong>其中相当比例的第一稿出自 AI 编程助手</strong>。这篇复盘不神化也不甩锅——只讲哪些该它做，哪些必须我扛，以及一套救过我们多次的代码审查纪律。</p>
+
+<h2>先说清楚：30 天搭的不是从零开始</h2>
+<p>博客有 Hexo 时代的老底（第一篇文章写在 2024 年 12 月），渡劫code 也有一个多月的迭代。<strong>这 30 天做的是「从能跑到能发布」</strong>：评论系统、三端同步、SEO 治理、文章工程化、移动端适配全部落地。把 AI 的功劳记账成「30 天从零造三个站」是不诚实的——真实叙事是「30 天把三个半成品推到可公网访问，AI 是这期间的主力工人之一」。诚信这条铁律，复盘文里先立着。</p>
+
+<h2>该 AI 做的：机械劳动的全面外包</h2>
+<table>
+  <tr><th>类型</th><th>实例</th><th>人工估算</th></tr>
+  <tr><td>CRUD 样板</td><td>七个 Hono 路由文件的增删改查骨架</td><td>从约 2 天到约 2 小时</td></tr>
+  <tr><td>类型与接口</td><td>Env / AppVariables 绑定定义、CommentRow 等数据模型</td><td>半小时</td></tr>
+  <tr><td>CSS 适配</td><td>博客移动端断点、44px 触控区、safe-area</td><td>约 1 天</td></tr>
+  <tr><td>测试与假数据</td><td>边界用例、seed 数据</td><td>数小时</td></tr>
+  <tr><td>机械重构</td><td>手写 HTML → 生成器模板的批量迁移</td><td>约 3 天</td></tr>
+</table>
+<p>判断标准很清晰：<strong>有明确对错、模式重复、错了立刻可见的活，全给 AI</strong>。博客前几篇手写 HTML 迁移到 gen_posts.py 模板（见 <a href="static-blog-seo.html">SEO 全流程</a>），这种枯燥到反人类的活是人类犯错率最高的地方——复制漏一个 canonical、漏一段评论区——恰恰是 AI 的主场。它不知疲倦，也不会在第 20 次复制时走神。</p>
+
+<h2>不该 AI 做的：决策、安全与发布</h2>
+<ul>
+  <li><strong>架构决策</strong>：D1 还是自建 Postgres、自建评论还是 Giscus、每端独立的回滚路径——这些问题的关键信息在约束里而不在代码里。AI 看不到「国内读者打不开 GitHub Pages」这种真实约束，它的建议永远偏向「技术上更优雅」而不是「处境上更合适」</li>
+  <li><strong>安全代码</strong>：JWT 验签、限流窗口、CORS 白名单、访客指纹脱敏——这些逻辑「看起来对」和「对」之间的差距最大。AI 能写骨架，但白名单该放谁、异常该返回什么、密钥丢了怎么办，必须人来定（<a href="edge-security.html">边缘安全四件套</a>就是这么来的）</li>
+  <li><strong>发布动作</strong>：push、部署、开 Pages 服务、DNS 变更——每一发都该是人按下的。有意思的是，渡劫code 本身就把「人工审批」做成了产品功能（<a href="ai-coding-agent.html">五状态机与审批闸门</a>），自己用 AI 时没理由降级标准</li>
+</ul>
+
+<h2>代码审查：一套救过我们多次的纪律</h2>
+<p>AI 生成代码的审查成本和手写不同——它没有「当时怎么想的」可以问，只能全靠读。我们的流程固定五步：</p>
+<ol>
+  <li><strong>先看 diff 规模</strong>：一次改动超过五百行，退回重来。AI 擅长小步快跑，逼它一次吞一头象，产出必然虚胖——大 diff 是人类审查失守的头号原因</li>
+  <li><strong>安全相关逐行</strong>：涉及鉴权、限流、SQL、CORS 的 diff 逐行读，不抽样。这类代码的正确性幻觉代价最高</li>
+  <li><strong>类型即测试</strong>：TypeScript strict 加 Bindings 全类型（见 <a href="hono-workers-engineering.html">Hono 工程化</a>），让编译期先拦一批——类型系统是 24 小时不睡觉的初审员</li>
+  <li><strong>跑起来再信</strong>：任何「已实现」的声明，以 wrangler dev 里的真实响应为准、以 curl 的状态码为准——<strong>不以聊天记录为准</strong></li>
+  <li><strong>悬疑命名法</strong>：变量名看起来太顺、注释过于完整、边界情况一个没提——这三种「过度整洁」反而是重点审查信号，它在用流畅度掩盖没想清楚的部分</li>
+</ol>
+<p>最典型的一次教训：限流逻辑的 KV 计数 TTL 差一点覆盖不满整个滑动窗口，测试全绿、逻辑「显然正确」，是审查时对着分钟桶公式手推一遍才发现的。<strong>AI 写的正确性幻觉，只有人对数学。</strong>从此定下规矩：凡是涉及窗口、并发、时间、金额的代码，人手推一遍边界，不省这一步。</p>
+
+<h2>人机分工的最终形态</h2>
+<p>30 天下来，我的角色从「写代码的人」变成了「定约束、审产出、按发布钮的人」。三个站能上线，不是因为 AI 强，而是因为<strong>约束定得细</strong>——Env 接口注释写清每个绑定存什么，错误信封全项目只有一种，发布链路每条 ref 都显式。AI 在细约束里产出质量极高，在模糊地带产出的是看起来能跑的债。欠下的债不会消失，只会在凌晨的告警里连本带利。</p>
+<p>如果重来一次，我会更早做两件事：更早写全类型定义，让 AI 从第一天就在笼子里跳舞；更早把「跑起来验证」设为唯一验收标准。<strong>工具不会替代判断，但会放大判断——包括放大你的懒。</strong>渡劫还长，AI 是剑，握剑的还得是人。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+      <p>独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    </div>
+    <div class="footer-col">
+      <h4>导航</h4>
+      <a href="../archive.html">文章归档</a>
+      <a href="../tags.html">标签</a>
+      <a href="../says.html">说说</a>
+      <a href="../about.html">关于我</a>
+    </div>
+    <div class="footer-col">
+      <h4>项目</h4>
+      <a href="https://www.520691.xyz/" target="_blank" rel="noopener">个人官网</a>
+      <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">渡劫code</a>
+      <a href="https://github.com/gjsvip" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://gitee.com/gjsvip" target="_blank" rel="noopener">Gitee</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261021a" defer></script>
+</body>
+</html>
