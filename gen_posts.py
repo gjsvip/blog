@@ -128,8 +128,10 @@ __JSONLD__
         <div class="article-meta">
           <span class="avatar-mini">🌊</span>
           <span class="who">渡劫 · gjsvip</span>
-          <span>📅 __DATE__</span>
-          <span>📂 __CATEGORY__</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>__DATE__</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>__CATEGORY__</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>__WORDS__ 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 __READTIME__ 分钟</span>
         </div>
       </div>
 
@@ -319,6 +321,8 @@ def render_page(meta: dict, body: str) -> str:
         "__TITLE__": html.escape(meta["title"], quote=True),
         "__EXCERPT__": html.escape(meta.get("excerpt", ""), quote=True),
         "__CATEGORY__": html.escape(meta.get("category", "随笔"), quote=True),
+        "__WORDS__": str(meta.get("words", "—")),
+        "__READTIME__": str(meta.get("read_time", "—")),
         "__COVER_TONE__": tone_cover,
         "__COVER__": inner_cover,
         "__DATE__": meta["date"],

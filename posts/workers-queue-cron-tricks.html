@@ -66,12 +66,14 @@
         <div class="article-meta">
           <span class="avatar-mini">🌊</span>
           <span class="who">渡劫 · gjsvip</span>
-          <span>📅 2026-10-22</span>
-          <span>📂 Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>2233 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 6 分钟</span>
         </div>
       </div>
 
-      <div class="article-cover cover-tone-tech"><span class="cover-deco">⏰</span></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/workers-queue-cron-tricks.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>渡劫博客和渡劫code跑在 Cloudflare 上快一年了，架构上一直坚持一条原则：<strong>请求-响应链路里只做「必须同步」的事</strong>。评论写完要发通知、D1 要每天备份、AI 任务跑完要回写状态——这些统统不该让用户干等。这篇把我们在生产环境用了大半年的 Cloudflare Queues + Cron Triggers 方案完整摊开：包括日均几万次投递的真实用量、三次半夜告警的复盘，以及那些文档里一笔带过、实战里教你做人的坑。</p>

@@ -66,12 +66,14 @@
         <div class="article-meta">
           <span class="avatar-mini">🌊</span>
           <span class="who">渡劫 · gjsvip</span>
-          <span>📅 2026-10-22</span>
-          <span>📂 Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1791 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
         </div>
       </div>
 
-      <div class="article-cover cover-tone-tech"><span class="cover-deco">🔀</span></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/pages-functions-vs-workers.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>把静态博客做出动态能力，在 Cloudflare 上有两条路：<strong>Pages Functions</strong>（函数文件跟着 Pages 项目一起部署）和<strong>独立 Workers</strong>（单独一个 Worker 应用）。两条路底层是同一套 Workers 运行时，HTTP 场景下 API 几乎一样，但选错了会在部署耦合、路由规则、额度核算上付出代价。这篇用渡劫博客和渡劫code 一年的真实分工讲清楚怎么选。先说结论：<strong>给静态站「打补丁」用 Pages Functions，给产品「开 API」用独立 Workers；新项目建议直接上 Workers Static Assets</strong>。</p>

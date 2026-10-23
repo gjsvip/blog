@@ -66,12 +66,14 @@
         <div class="article-meta">
           <span class="avatar-mini">🌊</span>
           <span class="who">渡劫 · gjsvip</span>
-          <span>📅 2026-10-22</span>
-          <span>📂 Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1780 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
         </div>
       </div>
 
-      <div class="article-cover cover-tone-tech"><span class="cover-deco">💬</span></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/comment-system-design.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>这套评论系统的数据模型改过三版。第一版是自用优先的一张裸表，第二版为了反垃圾长出状态字段，第三版为了开源做了租户隔离和索引重构。这篇文章完整复盘三次演化的动因、每一步的取舍，以及最终稳定下来的三级状态机——approved、pending、hidden 的流转逻辑，全部跑在 Cloudflare D1（SQLite）上。</p>

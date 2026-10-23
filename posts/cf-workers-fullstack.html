@@ -66,12 +66,14 @@
         <div class="article-meta">
           <span class="avatar-mini">🌊</span>
           <span class="who">渡劫 · gjsvip</span>
-          <span>📅 2026-10-19</span>
-          <span>📂 架构</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-19</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>架构</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1629 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
         </div>
       </div>
 
-      <div class="article-cover cover-tone-tech"><span class="cover-deco">🧱</span></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/cf-workers-fullstack.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>渡劫code 的整个后端跑在 Cloudflare 边缘网络上，没有一台传统服务器。这篇文章把 <strong>Workers / KV / D1 / R2 / Durable Objects</strong> 五种原语的分工讲清楚：它们各自解决什么问题、彼此如何协作，以及我们在真实项目里的绑定方式。选型结论先行——<strong>无状态走 Worker，配置与限流走 KV，关系数据走 D1，大文件走 R2，需要单点协调的有状态逻辑走 DO</strong>。</p>

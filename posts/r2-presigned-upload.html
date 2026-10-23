@@ -66,12 +66,14 @@
         <div class="article-meta">
           <span class="avatar-mini">🌊</span>
           <span class="who">渡劫 · gjsvip</span>
-          <span>📅 2026-10-22</span>
-          <span>📂 Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1806 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 5 分钟</span>
         </div>
       </div>
 
-      <div class="article-cover cover-tone-tech"><span class="cover-deco">📦</span></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/r2-presigned-upload.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>渡劫code 的工作区要支持用户上传文件：代码片段、图片、打包产物。第一版图省事走 Worker 中转——浏览器 POST 给 Worker，Worker 再 PUT 进 R2。上线两周就撞墙：Cloudflare 账户在 Free/Pro 计划下<strong>请求体上限 100MB</strong>，大文件直接 413；而且中转意味着流量双倍走、免费额度下的 CPU 时间也白白消耗，传几个大文件就见底了。这篇讲我们切到 <strong>R2 S3 API 预签名直传</strong> 的完整方案：Worker 只当「签发机构」，数据一个字节都不经过 Worker。</p>

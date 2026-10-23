@@ -78,3 +78,70 @@ h1,h2,h3,.post-title,.hero h1,.section-head h2,.panel-title,.author-card h3,.art
 /* --- 选中态/滚动条细节 --- */
 ::selection{background:rgba(207,75,44,.35);color:#fff}
 ::-webkit-scrollbar-thumb{background:#4a3d2c;border-radius:4px}
+
+/* ============================================================
+   v2.1 结构重构层：卡片网格 / 打字机 / 毛玻璃 / 角标 / 信息卡
+   ============================================================ */
+
+/* --- 首页文章网格（大图卡片） --- */
+.post-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:24px}
+.post-card{display:flex;flex-direction:column;overflow:hidden;transition:transform .45s cubic-bezier(.22,1,.36,1),border-color .3s}
+.post-card:hover{transform:translateY(-6px);border-color:var(--border-strong)}
+.post-card .post-cover{aspect-ratio:16/9;border-radius:0;border:none;border-bottom:1px solid var(--border);display:block;position:relative;overflow:hidden}
+.post-card .post-cover img{transition:transform .7s cubic-bezier(.22,1,.36,1)}
+.post-card:hover .post-cover img{transform:scale(1.055)}
+.post-card .post-cover .cover-emoji{position:absolute;inset:0;display:grid;place-items:center;font-size:64px}
+.cover-cat{position:absolute;left:14px;top:14px;z-index:2;font-size:12px;font-weight:700;letter-spacing:.06em;padding:4px 12px;border-radius:999px;background:rgba(15,13,11,.68);color:#f0e8da;backdrop-filter:blur(6px)}
+.post-card .post-body{padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.post-card .post-title{font-size:19px;line-height:1.4;margin:0}
+.post-card .post-title a{color:var(--text);text-decoration:none}
+.post-card .post-title a:hover{color:var(--accent)}
+.post-card .post-excerpt{margin:0;font-size:13.5px;color:var(--text-2);line-height:1.75;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.post-card .post-meta-line{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--text-3);margin-top:auto}
+.m-item{display:inline-flex;align-items:center;gap:5px}
+.post-card .post-foot{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:4px}
+.tag-chip{font-size:12px;color:var(--text-3)}
+.stat-chip{font-size:12px;color:var(--text-3);margin-left:auto}
+svg.i{width:14px;height:14px;flex:none;position:static}
+.pinned-badge{position:absolute;right:14px;top:14px;z-index:2}
+
+/* --- 打字机 --- */
+.type-line{min-height:1.9em;margin:2px 0 6px;font-family:var(--serif);font-size:clamp(1.05rem,2vw,1.3rem);color:var(--text-2)}
+.type-line .caret{display:inline-block;width:2px;height:1.15em;margin-left:3px;vertical-align:-0.22em;background:var(--accent);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* --- 社交图标行 --- */
+.hero-social{display:flex;gap:14px;margin-top:6px}
+.hero-social a{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;border:1px solid var(--border);color:var(--text-2);transition:all .3s var(--ease)}
+.hero-social a:hover{color:#fff;background:var(--grad);border-color:transparent;transform:translateY(-3px)}
+
+/* --- 毛玻璃吸顶导航 --- */
+.site-header{background:transparent;backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border-bottom:1px solid var(--border)}
+body:not([data-theme="light"]) .site-header{background:rgba(15,13,11,.72)}
+[data-theme="light"] .site-header{background:rgba(244,239,230,.75)}
+
+/* --- 文章页信息卡 --- */
+.article-meta .am-item{display:inline-flex;align-items:center;gap:5px}
+.article-meta .am-item svg.i{width:14px;height:14px;opacity:.75}
+
+/* --- 侧栏增强：热门排名色 --- */
+.hot-item .rank{font-family:var(--serif);font-weight:900}
+.hot-item:nth-child(1) .rank{color:#cf4b2c}
+.hot-item:nth-child(2) .rank{color:#d4652c}
+.hot-item:nth-child(3) .rank{color:#d4a03c}
+
+/* --- 移动端适配 --- */
+@media (max-width:720px){
+  .post-list{grid-template-columns:1fr;gap:18px}
+  .hero-social a{width:38px;height:38px}
+  .post-card .post-title{font-size:17.5px}
+}
+
+/* --- 导航链接对比度修复（毛玻璃底上必须清晰） --- */
+.site-header .nav a{color:var(--text-2);font-weight:500}
+.site-header .nav a:hover{color:var(--text)}
+.site-header .nav a.active{background:var(--grad);color:#fff}
+.site-header .logo{color:var(--text)}
+.site-header .search-trigger{color:var(--text-2)}
+.site-header .icon-btn{color:var(--text-2)}
