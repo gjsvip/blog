@@ -145,3 +145,62 @@ body:not([data-theme="light"]) .site-header{background:rgba(15,13,11,.72)}
 .site-header .logo{color:var(--text)}
 .site-header .search-trigger{color:var(--text-2)}
 .site-header .icon-btn{color:var(--text-2)}
+
+/* ============================================================
+   v2.2 信息流排版层（对标 liushen：单列卡片流+光晕+终端hero）
+   ============================================================ */
+
+/* --- 文章列表：单列信息流（覆盖上轮网格） --- */
+.post-list{display:flex;flex-direction:column;gap:16px}
+.feed-card{position:relative;display:flex;gap:20px;align-items:flex-start;padding:22px 24px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);transition:border-color .3s,transform .35s var(--ease)}
+.feed-card:hover{border-color:var(--border-strong);transform:translateY(-2px)}
+.feed-card:hover .feed-title{color:var(--accent)}
+.feed-main{flex:1;min-width:0}
+.feed-title{font-family:var(--serif);font-size:20px;font-weight:700;line-height:1.45;margin:0 0 8px;color:var(--text);transition:color .25s}
+.feed-excerpt{margin:0 0 12px;font-size:15px;line-height:1.85;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.feed-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--text-3);align-items:center}
+.fm{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.fm-cat{color:var(--accent);font-weight:600}
+.feed-thumb{flex:none;width:132px;height:92px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.feed-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .7s var(--ease)}
+.feed-card:hover .feed-thumb img{transform:scale(1.06)}
+.feed-hit{position:absolute;inset:0;z-index:3;border-radius:inherit}
+.feed-card .post-foot{display:flex;gap:14px;margin-top:10px;font-size:12.5px;color:var(--text-3)}
+.feed-card .stat-chip{display:inline-flex;align-items:center;gap:4px}
+.feed-card .pinned-badge{position:static;order:-1;align-self:flex-start;margin-right:-8px}
+
+/* --- 鼠标跟随光晕（card-glow） --- */
+.card-glow{position:relative}
+.card-glow::before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .45s;pointer-events:none;z-index:0;background:radial-gradient(520px circle at var(--mx,50%) var(--my,50%),rgba(207,75,44,.09),transparent 42%)}
+.card-glow:hover::before{opacity:1}
+.feed-card>*{position:relative;z-index:1}
+.feed-card .feed-hit{z-index:3}
+
+/* --- 终端提示符 hero 行 --- */
+.term-line{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13.5px;margin-bottom:14px;color:var(--text-3)}
+.term-prompt{color:var(--accent);font-weight:700}
+.term-cmd{color:var(--text-2)}
+.term-out{color:var(--text-3)}
+.term-line::after{content:"";flex:1;height:1px;background:var(--border)}
+
+/* --- 碎念说说条（bber-talk 对标） --- */
+.bber-bar{grid-column:1 / -1;display:flex;align-items:center;gap:14px;padding:13px 18px;margin-bottom:4px;border:1px solid var(--border);border-radius:999px;background:var(--card);overflow:hidden}
+.bber-badge{flex:none;font-size:12.5px;font-weight:700;color:#fff;background:var(--grad);padding:3px 13px;border-radius:999px;letter-spacing:.08em}
+.bber-text{flex:1;min-width:0;font-size:14px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bber-text .bber-item{display:none}
+.bber-text .bber-item:first-child{display:inline}
+.bber-more{flex:none;font-size:13px;color:var(--accent);text-decoration:none}
+.bber-more:hover{text-decoration:underline}
+
+/* --- 移动端 --- */
+@media (max-width:720px){
+  .feed-card{flex-direction:column-reverse;padding:18px 16px}
+  .feed-thumb{width:100%;height:150px}
+  .bber-bar{border-radius:18px}
+  .feed-title{font-size:18px}
+}
+
+/* --- 修复：stats 图标不撒开，与标签同行紧凑排列 --- */
+.feed-card .stat-chip{margin-left:0}
+.feed-card .post-foot{gap:8px 16px;flex-wrap:wrap;align-items:center}
+.feed-card .stat-chip:first-of-type{margin-left:auto}
