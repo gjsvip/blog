@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://dujiecone.520691.xyz" crossorigin>
+<link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.travellings.cn">
 <title>Git 多仓库三端同步方案：镜像、CI 双跑与 Gitee Pages 国内加速 · 渡劫博客</title>
 <meta name="description" content="架构篇讲完 happy path 与回滚，这篇讲最底层的 Git 组织：孤儿分支为什么必须 force push、显式 refspec 保活、双工作流职责分离、Gitee Pages 国内访问实测与实名认证的坑。">
 <meta name="author" content="gjsvip · 渡劫">
@@ -17,7 +20,7 @@
 <meta name="twitter:description" content="架构篇讲完 happy path 与回滚，这篇讲最底层的 Git 组织：孤儿分支为什么必须 force push、显式 refspec 保活、双工作流职责分离、Gitee Pages 国内访问实测与实名认证的坑。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/git-multi-repo-sync">
-<link rel="stylesheet" href="../assets/style.css?v=20261021c">
+<link rel="stylesheet" href="../assets/style.css?v=20261023c">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -243,6 +246,6 @@ git ls-remote origin main   # 必须等于本地 HEAD，防「以为推了其实
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261021b" defer></script>
+<script src="../assets/blog.js?v=20261023c" defer></script>
 </body>
 </html>
