@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="不引入任何第三方评论服务，用 Cloudflare D1 + Worker 自建评论 API，三端静态站共用一套数据，国内发的评论国际站也能看到。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/blog-comment-system">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">💬</div>
+      <div class="article-cover cover-tone-craft"><span class="cover-deco">💬</span></div>
 
       <div class="article-body">
 <p>静态博客最大的短板是<strong>没有动态能力</strong>——评论、点赞、浏览量，全都要服务端。第三方评论服务（Disqus、Giscus 之流）要么国内访问困难，要么强依赖 GitHub 账号。这次干脆自己造：<strong>Cloudflare D1 做存储，Worker 做 API，三个静态站共用一套后端</strong>。</p>

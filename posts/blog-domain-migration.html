@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="主域从 dujiecone.com 迁到 520691.xyz 的完整复盘：双路由 301 并行、三端按序切换、GSC 变更地址、IndexNow 密钥留旧域 180 天，含下划线主机名导致证书 pending 两小时的故障。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/blog-domain-migration">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🌐</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">🌐</span></div>
 
       <div class="article-body">
 <p>渡劫博客今年换了主域名：从早期的 <code>dujiecone.com</code> 切到 <code>520691.xyz</code>，旧域名保留 301 跳转。域名迁移表面上是改个 DNS 记录，实际是<strong>一次涉及证书、SEO、外链、三端部署的系统工程</strong>——处理不好，收录掉一半、排名归零、读者书签 404。这篇完整复盘全过程，包括那个因为一个下划线挂了两小时的证书故障，和迁移后 30 天的真实流量数据。</p>

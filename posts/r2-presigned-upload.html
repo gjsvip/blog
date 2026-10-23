@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="Worker 中转撞上 100MB 请求体上限后，渡劫code 切到 R2 预签名直传：Workers 请求量降 87%，成功率升至 99.7%。六个坑逐个拆：CORS 报错、Content-Type 陷阱、中文名编码、孤儿对象对账。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/r2-presigned-upload">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">📦</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">📦</span></div>
 
       <div class="article-body">
 <p>渡劫code 的工作区要支持用户上传文件：代码片段、图片、打包产物。第一版图省事走 Worker 中转——浏览器 POST 给 Worker，Worker 再 PUT 进 R2。上线两周就撞墙：Cloudflare 账户在 Free/Pro 计划下<strong>请求体上限 100MB</strong>，大文件直接 413；而且中转意味着流量双倍走、免费额度下的 CPU 时间也白白消耗，传几个大文件就见底了。这篇讲我们切到 <strong>R2 S3 API 预签名直传</strong> 的完整方案：Worker 只当「签发机构」，数据一个字节都不经过 Worker。</p>

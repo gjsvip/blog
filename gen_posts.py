@@ -84,7 +84,9 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:description" content="__EXCERPT__">
 <meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
@@ -131,7 +133,7 @@ __JSONLD__
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">__COVER__</div>
+      <div class="article-cover __COVER_TONE__">__COVER__</div>
 
       <div class="article-body">
 __BODY__
@@ -287,14 +289,38 @@ def build_jsonld(meta: dict) -> str:
     return "\n".join(blocks)
 
 
+_TONE_MAP = {
+    "Cloudflare": "cover-tone-tech", "架构": "cover-tone-tech", "运维": "cover-tone-tech",
+    "工程实践": "cover-tone-tech",
+    "实战": "cover-tone-craft", "工具": "cover-tone-craft", "教程": "cover-tone-craft",
+    "项目发布": "cover-tone-craft",
+    "复盘": "cover-tone-life", "随笔": "cover-tone-life",
+    "AI": "cover-tone-ai",
+}
+
+
+def _cover_parts(meta):
+    """封面双模式：URL -> 真实图；否则分类色渐变横幅 + emoji 水印（禁空白容器）。"""
+    cover = str(meta.get("cover") or "📄")
+    if cover.startswith(("http://", "https://")):
+        tone = "cover-img"
+        inner = '<img src="%s" alt="" loading="lazy" decoding="async">' % html.escape(cover, quote=True)
+    else:
+        tone = _TONE_MAP.get(str(meta.get("category", "")), "cover-tone-default")
+        inner = '<span class="cover-deco">%s</span>' % html.escape(cover, quote=True)
+    return tone, inner
+
+
 def render_page(meta: dict, body: str) -> str:
     """把元数据与正文套入 PAGE_TEMPLATE，返回完整 HTML 文本。"""
     canonical = f"{SITE_URL}/posts/{meta['slug']}"
+    tone_cover, inner_cover = _cover_parts(meta)
     replacements = {
         "__TITLE__": html.escape(meta["title"], quote=True),
         "__EXCERPT__": html.escape(meta.get("excerpt", ""), quote=True),
         "__CATEGORY__": html.escape(meta.get("category", "随笔"), quote=True),
-        "__COVER__": html.escape(meta.get("cover", "📄"), quote=True),
+        "__COVER_TONE__": tone_cover,
+        "__COVER__": inner_cover,
         "__DATE__": meta["date"],
         "__AUTHOR__": AUTHOR,
         "__SITE_NAME__": SITE_NAME,

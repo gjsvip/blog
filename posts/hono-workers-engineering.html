@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="渡劫code 一万二千行 Worker 代码的组织方式：入口分流、路由按域挂载、AppEnv 类型安全 Bindings、{code,message} 错误信封、wrangler dev 调试实战——全部用线上真实代码举例。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/hono-workers-engineering">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🧩</div>
+      <div class="article-cover cover-tone-craft"><span class="cover-deco">🧩</span></div>
 
       <div class="article-body">
 <p>裸写 Cloudflare Workers 的项目，五百行是舒适区，五千行是绞刑架。渡劫code 的 Worker 端一万多行代码还能 maintain，靠的是 Hono 加一套工程化纪律。这篇全部用线上真实代码举例——哪些可以照抄，哪些是抄不动的设计决策。</p>

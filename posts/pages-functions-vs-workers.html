@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="两条路底层同一套 Workers 运行时，但 Pages Functions 不支持 Cron、Queue 消费者与原生 WebSocket。附能力对照表、三条判断线，及新项目为何建议直接上 Workers Static Assets。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/pages-functions-vs-workers">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🔀</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">🔀</span></div>
 
       <div class="article-body">
 <p>把静态博客做出动态能力，在 Cloudflare 上有两条路：<strong>Pages Functions</strong>（函数文件跟着 Pages 项目一起部署）和<strong>独立 Workers</strong>（单独一个 Worker 应用）。两条路底层是同一套 Workers 运行时，HTTP 场景下 API 几乎一样，但选错了会在部署耦合、路由规则、额度核算上付出代价。这篇用渡劫博客和渡劫code 一年的真实分工讲清楚怎么选。先说结论：<strong>给静态站「打补丁」用 Pages Functions，给产品「开 API」用独立 Workers；新项目建议直接上 Workers Static Assets</strong>。</p>

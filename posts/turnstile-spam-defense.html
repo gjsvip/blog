@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="评论上线一周 47 条垃圾评论后，接入 Turnstile 的复盘：无感模式、IP 哈希灰度、3 秒超时 fail-open 进审核队列，全量后 8 周零垃圾，附五个真实踩坑。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/turnstile-spam-defense">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🔒</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">🔒</span></div>
 
       <div class="article-body">
 <p>评论系统上线第一周，我收到了 47 条"评论"。点开之前以为是友好交流，点开之后全是博彩链接、英文药房广告和俄文乱码——唯一一条真人评论还是我自己测试时留的。这篇文章复盘渡劫博客评论系统接入 Cloudflare Turnstile 的完整过程：为什么不用 reCAPTCHA、灰度开关怎么设计、以及最关键的 fail-open 策略——人机校验挂了，评论功能不能跟着陪葬。</p>

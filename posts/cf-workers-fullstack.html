@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="无状态走 Worker、配置限流走 KV、关系数据走 D1、大文件走 R2、单点协调走 DO——渡劫code 五种边缘原语的分工、绑定方式与决策速查表。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/cf-workers-fullstack">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🧱</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">🧱</span></div>
 
       <div class="article-body">
 <p>渡劫code 的整个后端跑在 Cloudflare 边缘网络上，没有一台传统服务器。这篇文章把 <strong>Workers / KV / D1 / R2 / Durable Objects</strong> 五种原语的分工讲清楚：它们各自解决什么问题、彼此如何协作，以及我们在真实项目里的绑定方式。选型结论先行——<strong>无状态走 Worker，配置与限流走 KV，关系数据走 D1，大文件走 R2，需要单点协调的有状态逻辑走 DO</strong>。</p>

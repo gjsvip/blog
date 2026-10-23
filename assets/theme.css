@@ -1,0 +1,80 @@
+/* ============================================================
+   渡劫博客 · 墨岩朱砂 v2 —— 反AI味换血层 (2026-10-24a)
+   加载于 style.css 之后，全部为覆盖式设计令牌与新增规则
+   依据 AGENTS.md 设计宪法：禁蓝紫渐变/禁emoji当封面/禁居中hero
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+:root{
+  --bg:#0f0d0b;--bg-soft:#171310;--bg-deep:#0a0806;
+  --card:rgba(236,229,216,0.035);--card-solid:#1a1511;
+  --border:rgba(236,229,216,0.10);--border-strong:rgba(236,229,216,0.2);
+  --text:#ece5d8;--text-2:#a99e8a;--text-3:#6f6656;
+  --accent:#cf4b2c;--accent-2:#d4a03c;--accent-3:#6f8f6a;
+  --grad:linear-gradient(135deg,#cf4b2c 0%,#d4a03c 100%);
+  --grad-soft:linear-gradient(135deg,rgba(207,75,44,0.13),rgba(212,160,60,0.10));
+  --danger:#cf4b2c;--ok:#6f8f6a;--warn:#d4a03c;
+  --code-bg:#17130e;
+  --shadow:0 6px 24px rgba(8,5,2,0.45);--shadow-lg:0 20px 56px rgba(8,5,2,0.6);
+  --serif:"Noto Serif SC","Songti SC","STSong",Georgia,serif;
+  --font:"Noto Sans SC",-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+[data-theme="light"]{
+  --bg:#f4efe6;--bg-soft:#faf6ee;--bg-deep:#e8e1d2;
+  --card:rgba(255,253,248,0.82);--card-solid:#fffdf8;
+  --border:rgba(50,38,24,0.12);--border-strong:rgba(50,38,24,0.22);
+  --text:#2a2318;--text-2:#5f5545;--text-3:#8f8470;
+  --accent:#b23a1c;--accent-2:#a4771c;--accent-3:#4d6b48;
+  --grad:linear-gradient(135deg,#b23a1c 0%,#a4771c 100%);
+  --grad-soft:linear-gradient(135deg,rgba(178,58,28,0.09),rgba(164,119,28,0.07));
+  --code-bg:#efe8d8;
+}
+
+/* --- 噪点质感：全站胶片颗粒 --- */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:2147483000;opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+
+/* --- 衬线编辑部标题 --- */
+body{font-family:var(--font)}
+h1,h2,h3,.post-title,.hero h1,.section-head h2,.panel-title,.author-card h3,.article-header h1{font-family:var(--serif);letter-spacing:-0.01em}
+
+/* --- Hero：左对齐超大衬线，去居中模板脸 --- */
+.hero{text-align:left}
+.hero h1{font-size:clamp(2.3rem,5vw,3.8rem);line-height:1.14;font-weight:900;letter-spacing:-0.02em}
+.hero p{max-width:600px;margin-left:0}
+.hero .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text}
+.hero-tag{border:1px solid var(--border-strong)}
+
+/* --- 编排式入场（staggered，禁通用淡入） --- */
+.hero>*{animation:rise .7s cubic-bezier(.22,1,.36,1) both}
+.hero>*:nth-child(2){animation-delay:.12s}
+.hero>*:nth-child(3){animation-delay:.22s}
+.hero>*:nth-child(4){animation-delay:.32s}
+@keyframes rise{from{transform:translateY(22px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media (prefers-reduced-motion:reduce){.hero>*{animation:none}}
+
+/* --- 文章封面：真实图 / 渐变+水印 双模式（修空白bug） --- */
+.article-cover{position:relative;display:block;overflow:hidden;border:1px solid var(--border)}
+.article-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.article-cover .cover-deco{position:absolute;right:3%;bottom:-14%;font-size:min(190px,22vw);line-height:1;opacity:.16;pointer-events:none;user-select:none}
+/* 分类色横幅（暖色系，永别蓝紫） */
+.cover-tone-tech{background:linear-gradient(135deg,#7c2d12,#92400e)}
+.cover-tone-craft{background:linear-gradient(135deg,#9a3412,#a16207)}
+.cover-tone-life{background:linear-gradient(135deg,#3f5c3f,#4d7c4d)}
+.cover-tone-ai{background:linear-gradient(135deg,#7f1d1d,#c2410c)}
+.cover-tone-default{background:linear-gradient(135deg,#5c3a1e,#8a5a24)}
+
+/* --- 列表卡片封面img --- */
+.post-cover img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* --- 卡片质感：细线代重阴影（编辑部hairline风） --- */
+.panel{box-shadow:none}
+.post-card{box-shadow:0 1px 0 var(--border)}
+
+/* --- 按钮：朱砂实底，去蓝紫 --- */
+.btn-primary{background:var(--grad);border:none}
+.btn-primary:hover{filter:brightness(1.08)}
+
+/* --- 选中态/滚动条细节 --- */
+::selection{background:rgba(207,75,44,.35);color:#fff}
+::-webkit-scrollbar-thumb{background:#4a3d2c;border-radius:4px}

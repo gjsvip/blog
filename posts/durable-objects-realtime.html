@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="几人共享一个浏览器终端，输入实时广播、断线补发历史——核心是让全球连接共享同一份有序状态。200 行最小实现、hibernation 把 DO 时长费从 8 刀降到 1 刀、三次翻车复盘与单实例规模边界实测。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/durable-objects-realtime">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🖥️</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">🖥️</span></div>
 
       <div class="article-body">
 <p>渡劫code 的终端房间是这个产品里最「魔法」的功能：浏览器里打开一个分享链接，几个人同时连同一个终端会话，A 输入的命令 B 实时看到，输出广播给所有人，断线重连后历史回放。这个功能的核心难点不是 WebSocket 本身——WebSocket 谁都会连——而是<strong>怎么让散落在全球的连接共享同一份有序状态</strong>。我们的答案是 Durable Objects。这篇从最小实现讲起，包含 hibernation 省钱的细节、单 DO 的广播上限，和三次翻车复盘。</p>

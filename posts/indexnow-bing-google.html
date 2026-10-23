@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="IndexNow 接入全流程复盘：key 部署、CI 自动推送、Bing CNAME 26 秒验证、SubmitUrlBatch 24 条全 200；Google 不支持 IndexNow，收录只能靠 sitemap 与等待。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/indexnow-bing-google">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">⚡</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">⚡</span></div>
 
       <div class="article-body">
 <p>新文章发出去，最尴尬的不是没人看，而是根本没人知道它存在。搜索引擎收录就是这条链路上的第一道闸门：Bing 不收录，站长工具里的一片空白能让你怀疑人生；Google 不收录，你连诊断数据的边都摸不到。这篇文章复盘渡劫博客接入 IndexNow 的完整过程——从 key 部署、CI 自动推送，到 Bing 站长平台 26 秒通过 CNAME 验证的实录，以及一个必须接受的事实：Google 那边，你还是得等。</p>

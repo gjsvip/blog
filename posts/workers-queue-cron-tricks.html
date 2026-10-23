@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="评论通知异步化、D1 每天定时备份进 R2、失败重试与死信队列——Queues + Cron 是 Cloudflare 全家桶里性价比最高的一对组合。附月额度实测占比、三次半夜告警复盘，以及那些文档一笔带过、实战教你做人的坑。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/workers-queue-cron-tricks">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">⏰</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">⏰</span></div>
 
       <div class="article-body">
 <p>渡劫博客和渡劫code跑在 Cloudflare 上快一年了，架构上一直坚持一条原则：<strong>请求-响应链路里只做「必须同步」的事</strong>。评论写完要发通知、D1 要每天备份、AI 任务跑完要回写状态——这些统统不该让用户干等。这篇把我们在生产环境用了大半年的 Cloudflare Queues + Cron Triggers 方案完整摊开：包括日均几万次投递的真实用量、三次半夜告警的复盘，以及那些文档里一笔带过、实战里教你做人的坑。</p>

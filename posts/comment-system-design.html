@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="评论系统数据模型三版演化复盘：从自用裸表到反垃圾状态字段，再到开源多租户改造，最终收敛于 approved/pending/hidden 三级状态机与四条合法流转边。约束下沉数据库，语义上浮应用层。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/comment-system-design">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">💬</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">💬</span></div>
 
       <div class="article-body">
 <p>这套评论系统的数据模型改过三版。第一版是自用优先的一张裸表，第二版为了反垃圾长出状态字段，第三版为了开源做了租户隔离和索引重构。这篇文章完整复盘三次演化的动因、每一步的取舍，以及最终稳定下来的三级状态机——approved、pending、hidden 的流转逻辑，全部跑在 Cloudflare D1（SQLite）上。</p>

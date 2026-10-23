@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/three-end-sync">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">☁️</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">☁️</span></div>
 
       <div class="article-body">
 <p>目标很朴素：<strong>一次 <code>git push</code>，三端全部自动更新</strong>，国内用户走 Gitee、海外用户走 GitHub / Cloudflare，谁都能打开官网。这篇记录完整的落地过程与踩过的坑。</p>

@@ -17,7 +17,9 @@
 <meta name="twitter:description" content="gh-pages 孤儿分支竞态、Gitee 隐式 refspec 拒绝、每端独立的回滚路径、git ls-remote 强制验证——把三端同步从「能跑」打磨到「敢睡」。">
 <meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
 <link rel="canonical" href="https://www.520691.xyz/posts/three-end-sync-advanced">
-<link rel="stylesheet" href="../assets/style.css?v=20261023c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261024a">
+<link rel="stylesheet" href="../assets/theme.css?v=20261024a">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
 <script type="application/ld+json">
@@ -69,7 +71,7 @@
         </div>
       </div>
 
-      <div class="article-cover" aria-hidden="true">🛡️</div>
+      <div class="article-cover cover-tone-tech"><span class="cover-deco">🛡️</span></div>
 
       <div class="article-body">
 <p><a href="three-end-sync.html">上一篇</a>讲了三端同步的「happy path」：一次 push，CF Pages、GitHub Pages、Gitee 全部更新。但真实世界里，同步系统的难点从来不是搭建，而是<strong>冲突发生时谁说了算、坏了怎么退回去</strong>。这篇记录我们把三端同步从「能跑」打磨到「敢睡」的完整过程。</p>
