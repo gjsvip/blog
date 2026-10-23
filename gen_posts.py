@@ -24,11 +24,24 @@ import html
 import json
 import re
 import sys
+import os
+import io
+import urllib.request
+import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 POSTS_JSON = ROOT / "posts.json"
 POSTS_DIR = ROOT / "posts"
+
+#: 图床（写作流自动把文章本地图传上去，减轻主站带宽）
+MEDIA_HOST = "https://media.520691.xyz"
+MEDIA_KEY = os.environ.get("MEDIA_KEY", "B2O-AZl1IcREodD4cW4qZDr_cvt1SGTP")
+MEDIA_MAX_DIM = 1280
+MEDIA_TARGET_KB = 20
+MEDIA_FLOOR_Q = 25
+#: 仅这类 src 视为"需要上传的本地文章图"（站点资源 /assets 与主站同源，保留）
+_IMG_RE = re.compile(r'(<img\b[^>]*?\bsrc=")([^"]+)(")', re.IGNORECASE)
 
 #: slug 只允许小写字母、数字与连字符
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -71,7 +84,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:description" content="__EXCERPT__">
 <meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
-<link rel="stylesheet" href="../assets/style.css?v=20261021d">
+<link rel="stylesheet" href="../assets/style.css?v=20261023c">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
@@ -218,7 +231,7 @@ __BODY__
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261021c" defer></script>
+<script src="../assets/blog.js?v=20261023c" defer></script>
 </body>
 </html>
 """
@@ -330,6 +343,69 @@ def count_cjk(text: str) -> int:
     return len(CJK_RE.findall(plain))
 
 
+def _compress_to_webp(path: str) -> bytes:
+    """把本地图片压到 TARGET_KB 以下（长边缩 + WebP 自适应质量）。返回字节。"""
+    from PIL import Image
+    img = Image.open(path)
+    img = img.convert("RGB") if img.mode in ("RGBA", "P", "LA") else img
+    bw, bh = img.size
+    target = MEDIA_TARGET_KB * 1024
+    q, scale = 90, 1.0
+    while True:
+        cur = img.resize((max(16, int(bw * scale)), max(16, int(bh * scale))), Image.LANCZOS) if scale < 1.0 else img
+        buf = io.BytesIO()
+        cur.save(buf, format="WEBP", quality=q, method=6)
+        data = buf.getvalue()
+        if len(data) <= target:
+            return data
+        if q > MEDIA_FLOOR_Q:
+            q -= 5
+            continue
+        if min(cur.size) < 160:
+            return data
+        scale *= 0.7
+        q = 80
+
+
+def _upload_image(local_path: str) -> str | None:
+    """压缩并上传本地图到图床，返回公开 URL；失败返回 None（保留原链接）。"""
+    try:
+        data = _compress_to_webp(local_path)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[gen_posts][图片] 压缩失败 {local_path}: {exc}", file=sys.stderr)
+        return None
+    req = urllib.request.Request(
+        MEDIA_HOST + "/upload", data=data, method="POST"
+    )
+    req.add_header("x-api-key", MEDIA_KEY)
+    req.add_header("content-type", "image/webp")
+    req.add_header("User-Agent", "Mozilla/5.0 (compatible; dujie-gen/1.0)")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.loads(r.read().decode()).get("url")
+    except Exception as exc:  # noqa: BLE001
+        print(f"[gen_posts][图片] 上传失败 {local_path}: {exc}", file=sys.stderr)
+        return None
+
+
+def rewrite_images(body: str, base_dir: Path) -> str:
+    """把正文中引用的本地文章图自动传到图床并改写 src。
+
+    - http(s)://、//、data:、含 /assets/ 的站点资源 一律跳过
+    - 其余相对路径视为本地图：存在则上传并替换为 CDN URL
+    """
+    def repl(m):
+        pre, src, post = m.group(1), m.group(2), m.group(3)
+        if src.startswith(("http://", "https://", "//", "data:")) or "/assets/" in src:
+            return m.group(0)
+        local = (base_dir / src).resolve()
+        if not local.is_file():
+            return m.group(0)
+        url = _upload_image(str(local))
+        return pre + (url or src) + post if url else m.group(0)
+    return _IMG_RE.sub(repl, body)
+
+
 def main(argv: list) -> int:
     """入口：生成或校验全部文章产物。"""
     check_only = "--check" in argv
@@ -350,6 +426,7 @@ def main(argv: list) -> int:
             exit_code = 1
             continue
         body = body_file.read_text(encoding="utf-8")
+        body = rewrite_images(body, body_file.parent)
         cjk = count_cjk(body)
         if cjk < MIN_CJK_CHARS:
             warnings.append(f"{slug}: 正文仅 {cjk} 个中文字符（< {MIN_CJK_CHARS}）")
