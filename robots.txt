@@ -3,5 +3,3 @@ Allow: /
 
 # 主域（Cloudflare Pages）：仅含 www.520691.xyz 无扩展名规范 URL
 Sitemap: https://www.520691.xyz/sitemap.xml
-# GitHub Pages 镜像端：单独文件，不混入主 sitemap
-Sitemap: https://gjsvip.github.io/blog/sitemap-github.xml
