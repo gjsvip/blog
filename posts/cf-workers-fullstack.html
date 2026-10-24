@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/cf-workers-fullstack.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/cf-workers-fullstack.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>渡劫code 的整个后端跑在 Cloudflare 边缘网络上，没有一台传统服务器。这篇文章把 <strong>Workers / KV / D1 / R2 / Durable Objects</strong> 五种原语的分工讲清楚：它们各自解决什么问题、彼此如何协作，以及我们在真实项目里的绑定方式。选型结论先行——<strong>无状态走 Worker，配置与限流走 KV，关系数据走 D1，大文件走 R2，需要单点协调的有状态逻辑走 DO</strong>。</p>
@@ -205,6 +205,7 @@ npx wrangler deploy                 # 发布（生产由 Actions 执行）</code
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="ai-coding-agent.html"><img src="https://media.520691.xyz/covers/2026v2/ai-coding-agent.webp" alt="" loading="lazy"><span class="r-body"><b>Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批</b><time>2026-10-21</time></span></a><a class="related-card" href="three-end-sync.html"><img src="https://media.520691.xyz/covers/2026v2/three-end-sync.webp" alt="" loading="lazy"><span class="r-body"><b>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</b><time>2026-10-21</time></span></a><a class="related-card" href="three-end-sync-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/three-end-sync-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>三端同步再进阶：CF Pages + GitHub Pages + Gitee 的冲突与回滚</b><time>2026-10-20</time></span></a></div></div>
     </article>
 
     <section class="comments">

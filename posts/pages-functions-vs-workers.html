@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/pages-functions-vs-workers.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>把静态博客做出动态能力，在 Cloudflare 上有两条路：<strong>Pages Functions</strong>（函数文件跟着 Pages 项目一起部署）和<strong>独立 Workers</strong>（单独一个 Worker 应用）。两条路底层是同一套 Workers 运行时，HTTP 场景下 API 几乎一样，但选错了会在部署耦合、路由规则、额度核算上付出代价。这篇用渡劫博客和渡劫code 一年的真实分工讲清楚怎么选。先说结论：<strong>给静态站「打补丁」用 Pages Functions，给产品「开 API」用独立 Workers；新项目建议直接上 Workers Static Assets</strong>。</p>
@@ -170,6 +170,7 @@ export const onRequestGet: PagesFunction = async (ctx) =&gt; {
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="r2-presigned-upload.html"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy"><span class="r-body"><b>R2 预签名上传实战：浏览器直传与工作区文件管理</b><time>2026-10-22</time></span></a><a class="related-card" href="durable-objects-realtime.html"><img src="https://media.520691.xyz/covers/2026v2/durable-objects-realtime.webp" alt="" loading="lazy"><span class="r-body"><b>Durable Objects 实时协作入门：从一个终端房间说起</b><time>2026-10-22</time></span></a></div></div>
     </article>
 
     <section class="comments">

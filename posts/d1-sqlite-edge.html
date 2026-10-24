@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/d1-sqlite-edge.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/d1-sqlite-edge.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>渡劫博客的<a href="blog-comment-system.html">评论系统</a>跑在 Cloudflare D1 上，从上线到现在这段时间运行下来攒了一肚子经验：事务怎么开、批量怎么写不炸、索引怎么建、冷启动到底有多冷。这篇全部讲清楚——D1 是 SQLite，但<strong>不是你能本地随便造的 SQLite</strong>，边缘环境的约束会改变你写 SQL 的习惯。</p>
@@ -197,6 +197,7 @@ npx wrangler d1 execute blog --remote --command "SELECT count(*) FROM comments"<
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a></div></div>
     </article>
 
     <section class="comments">

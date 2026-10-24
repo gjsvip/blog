@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/turnstile-spam-defense.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/turnstile-spam-defense.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>评论系统上线第一周，我收到了 47 条"评论"。点开之前以为是友好交流，点开之后全是博彩链接、英文药房广告和俄文乱码——唯一一条真人评论还是我自己测试时留的。这篇文章复盘渡劫博客评论系统接入 Cloudflare Turnstile 的完整过程：为什么不用 reCAPTCHA、灰度开关怎么设计、以及最关键的 fail-open 策略——人机校验挂了，评论功能不能跟着陪葬。</p>
@@ -181,6 +181,7 @@ const enabled = rollout >= 100 || (rollout &gt; 0 &amp;&amp; hash(request.ip) % 
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="pages-functions-vs-workers.html"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy"><span class="r-body"><b>Pages Functions vs Workers：静态站动态化的两条路怎么选</b><time>2026-10-22</time></span></a><a class="related-card" href="r2-presigned-upload.html"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy"><span class="r-body"><b>R2 预签名上传实战：浏览器直传与工作区文件管理</b><time>2026-10-22</time></span></a></div></div>
     </article>
 
     <section class="comments">

@@ -150,6 +150,7 @@ __BODY__
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related">__RELATED__</div>
     </article>
 
     <section class="comments">
@@ -313,7 +314,30 @@ def _cover_parts(meta):
     return tone, inner
 
 
-def render_page(meta: dict, body: str) -> str:
+def build_related(meta, all_posts):
+    """相关阅读：同分类优先取 3 篇。"""
+    if not all_posts:
+        return ""
+    pool = [p for p in all_posts if p.get("slug") != meta.get("slug")]
+    same = [p for p in pool if p.get("category") == meta.get("category")]
+    picks = (same if len(same) >= 3 else (same + [p for p in pool if p not in same]))[:3]
+    if not picks:
+        return ""
+    cards = []
+    for p in picks:
+        cover = str(p.get("cover", ""))
+        if cover.startswith(("http://", "https://")):
+            img = '<img src="%s" alt="" loading="lazy">' % html.escape(cover, quote=True)
+        else:
+            img = '<span class="r-emoji">%s</span>' % html.escape(cover[:2] or "📄", quote=True)
+        cards.append(
+            '<a class="related-card" href="%s.html">%s<span class="r-body"><b>%s</b><time>%s</time></span></a>'
+            % (html.escape(p["slug"], quote=True), img, html.escape(p["title"]), html.escape(p.get("date", "")))
+        )
+    return '<h2 class="related-head">相关阅读</h2><div class="related-grid">' + "".join(cards) + "</div>"
+
+
+def render_page(meta: dict, body: str, all_posts=None) -> str:
     """把元数据与正文套入 PAGE_TEMPLATE，返回完整 HTML 文本。"""
     canonical = f"{SITE_URL}/posts/{meta['slug']}"
     tone_cover, inner_cover = _cover_parts(meta)
@@ -333,6 +357,7 @@ def render_page(meta: dict, body: str) -> str:
         "__FAVICON__": FAVICON,
         "__JSONLD__": build_jsonld(meta),
         "__BODY__": body.rstrip("\n"),
+        "__RELATED__": build_related(meta, all_posts),
     }
     page = PAGE_TEMPLATE
     for token, value in replacements.items():
@@ -461,7 +486,7 @@ def main(argv: list) -> int:
         if cjk < MIN_CJK_CHARS:
             warnings.append(f"{slug}: 正文仅 {cjk} 个中文字符（< {MIN_CJK_CHARS}）")
         try:
-            page = render_page(meta, body)
+            page = render_page(meta, body, posts)
         except ValueError as exc:
             print(f"[gen_posts] {slug} 渲染失败: {exc}", file=sys.stderr)
             exit_code = 1

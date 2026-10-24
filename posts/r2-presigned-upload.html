@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/r2-presigned-upload.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>渡劫code 的工作区要支持用户上传文件：代码片段、图片、打包产物。第一版图省事走 Worker 中转——浏览器 POST 给 Worker，Worker 再 PUT 进 R2。上线两周就撞墙：Cloudflare 账户在 Free/Pro 计划下<strong>请求体上限 100MB</strong>，大文件直接 413；而且中转意味着流量双倍走、免费额度下的 CPU 时间也白白消耗，传几个大文件就见底了。这篇讲我们切到 <strong>R2 S3 API 预签名直传</strong> 的完整方案：Worker 只当「签发机构」，数据一个字节都不经过 Worker。</p>
@@ -215,6 +215,7 @@ app.post('/api/upload/presign', async (c) =&gt; {
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="pages-functions-vs-workers.html"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy"><span class="r-body"><b>Pages Functions vs Workers：静态站动态化的两条路怎么选</b><time>2026-10-22</time></span></a><a class="related-card" href="durable-objects-realtime.html"><img src="https://media.520691.xyz/covers/2026v2/durable-objects-realtime.webp" alt="" loading="lazy"><span class="r-body"><b>Durable Objects 实时协作入门：从一个终端房间说起</b><time>2026-10-22</time></span></a></div></div>
     </article>
 
     <section class="comments">

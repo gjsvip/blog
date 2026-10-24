@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026/comment-system-design.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/comment-system-design.webp" alt="" loading="lazy" decoding="async"></div>
 
       <div class="article-body">
 <p>这套评论系统的数据模型改过三版。第一版是自用优先的一张裸表，第二版为了反垃圾长出状态字段，第三版为了开源做了租户隔离和索引重构。这篇文章完整复盘三次演化的动因、每一步的取舍，以及最终稳定下来的三级状态机——approved、pending、hidden 的流转逻辑，全部跑在 Cloudflare D1（SQLite）上。</p>
@@ -169,6 +169,7 @@ WHERE site_id = ? AND status = ? ORDER BY created_at DESC;</code></pre>
       </div>
 
       <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="pages-functions-vs-workers.html"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy"><span class="r-body"><b>Pages Functions vs Workers：静态站动态化的两条路怎么选</b><time>2026-10-22</time></span></a><a class="related-card" href="r2-presigned-upload.html"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy"><span class="r-body"><b>R2 预签名上传实战：浏览器直传与工作区文件管理</b><time>2026-10-22</time></span></a></div></div>
     </article>
 
     <section class="comments">
