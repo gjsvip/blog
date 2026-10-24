@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://dujiecone.520691.xyz" crossorigin>
+<link rel="preconnect" href="https://api.520691.xyz" crossorigin>
 <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin>
 <link rel="dns-prefetch" href="https://www.travellings.cn">
 <meta name="robots" content="noindex,nofollow">
@@ -127,7 +127,8 @@
 <script>
 (function () {
   'use strict';
-  var API = 'https://dujiecone.520691.xyz';
+  var API = 'https://api.520691.xyz';
+  var API_FALLBACK = 'https://dujiecone.520691.xyz';
   var TOKEN_KEY = 'dujie-admin-token';
   var token = sessionStorage.getItem(TOKEN_KEY) || '';
   var state = { tab: 'comments', page: 1, total: 0, banPage: 1, banTotal: 0 };
@@ -145,13 +146,19 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
+  function apiCall(url, opts) {
+    return fetch(url, opts).then(function (r) {
+      if (r.status === 401) { sessionStorage.removeItem(TOKEN_KEY); location.reload(); throw new Error('unauthorized'); }
+      return r.json();
+    });
+  }
   function api(path, opts) {
     opts = opts || {};
     opts.headers = { 'X-Admin-Token': token };
     if (opts.body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(opts.body); }
-    return fetch(API + path, opts).then(function (r) {
-      if (r.status === 401) { sessionStorage.removeItem(TOKEN_KEY); location.reload(); throw new Error('unauthorized'); }
-      return r.json();
+    return apiCall(API + path.replace(/^\/api\//, '/'), opts).catch(function (e) {
+      if (e && e.message === 'unauthorized') throw e;
+      return apiCall(API_FALLBACK + path, opts);
     });
   }
   function badge(status) {

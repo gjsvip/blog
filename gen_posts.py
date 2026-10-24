@@ -85,8 +85,8 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:image" content="__OG_IMAGE__">
 <link rel="canonical" href="__CANONICAL__">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="../assets/style.css?v=20261025a">
-<link rel="stylesheet" href="../assets/theme.css?v=20261025a">
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
 <link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
 <link rel="icon" href="__FAVICON__">
 __JSONLD__
@@ -232,7 +232,7 @@ __BODY__
 
 <div id="toast-wrap"></div>
 <button id="back-top" aria-label="返回顶部">↑</button>
-<script src="../assets/blog.js?v=20261025a" defer></script>
+<script src="../assets/blog.js?v=20261025c" defer></script>
 </body>
 </html>
 """
