@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据 · 渡劫博客</title>
+<meta name="description" content="承接 SEO 全流程，这篇只讲上线后的真事：IndexNow 18 条 URL 的提交记录、百度为什么不认 IndexNow、lastmod 与修订文章的矛盾、JSON-LD 静默失效——以及 Search Console 里三类信号各自的含义。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据 · 渡劫博客">
+<meta property="og:description" content="承接 SEO 全流程，这篇只讲上线后的真事：IndexNow 18 条 URL 的提交记录、百度为什么不认 IndexNow、lastmod 与修订文章的矛盾、JSON-LD 静默失效——以及 Search Console 里三类信号各自的含义。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/static-blog-seo-advanced">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据 · 渡劫博客">
+<meta name="twitter:description" content="承接 SEO 全流程，这篇只讲上线后的真事：IndexNow 18 条 URL 的提交记录、百度为什么不认 IndexNow、lastmod 与修订文章的矛盾、JSON-LD 静默失效——以及 Search Console 里三类信号各自的含义。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/static-blog-seo-advanced">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据", "description": "承接 SEO 全流程，这篇只讲上线后的真事：IndexNow 18 条 URL 的提交记录、百度为什么不认 IndexNow、lastmod 与修订文章的矛盾、JSON-LD 静默失效——以及 Search Console 里三类信号各自的含义。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/static-blog-seo-advanced", "datePublished": "2026-10-21", "dateModified": "2026-10-21", "inLanguage": "zh-CN", "keywords": "SEO, IndexNow, 百度, 结构化数据", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/static-blog-seo-advanced"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据", "item": "https://www.520691.xyz/posts/static-blog-seo-advanced"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</div>
+
+    <article>
+      <div class="article-header">
+        <h1>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-21</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>实战</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1398 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 3 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p><a href="static-blog-seo.html">上一篇</a>讲了静态博客 SEO 的完整流程：软 404、sitemap 纪律、RSS、结构化数据、收录提交。那篇是「施工图」，这篇是「竣工后的巡查记录」——只讲上线之后真正发生的坑、数字和观察。</p>
+
+<h2>IndexNow：提交了不等于收录了</h2>
+<p>我们的发布链路里，IndexNow 是全自动的：push 到 main，<code>indexnow.yml</code> 工作流跑 <code>scripts/indexnow.py --new</code>，从 sitemap 提取未提交过的 URL，POST 到 <code>api.indexnow.org</code>，成功后回写记录文件。目前 <code>.indexnow-submitted.json</code> 里躺着 18 条 URL——首页、归档、标签、说说、友链、关于加 12 篇文章，一条不落。</p>
+<p>但必须泼一盆冷水：<strong>IndexNow 只负责「告知」，不负责「收录」</strong>。它的接入方是 Bing、Yandex、Seznam、Naver 这些引擎，百度不在其中。Google 则完全不走 IndexNow，它只认真理的 sitemap 和 Search Console。所以「三个入口都要交」不是洁癖，是分工：IndexNow 管 Bing 系，Search Console 管 Google，百度搜索资源平台管百度。各管一段，互不替代。</p>
+<pre><code class="language-bash"># IndexNow 的成功返回只有 200/202，语义是「已接收」不是「已收录」
+python3 scripts/indexnow.py --new
+# [indexnow] 模式: 增量（上限 10 条）；待提交 6 条 URL
+# [indexnow] 提交成功，HTTP 202（IndexNow API 已接收）
+# [indexnow] 记录文件已更新（累计 18 条）</code></pre>
+<p>记录文件本身是个小宝藏：它让每次发文只推真正的新 URL，重复推送同一个 key 会被引擎侧判定为噪声。配合 CI 自动回写，「提交去重」这件事零维护。</p>
+
+<h2>百度：慢、配额，和不认 IndexNow</h2>
+<p>百度搜索资源平台（ziyuan.baidu.com）是另一套逻辑：站点验证靠 DNS TXT 或文件验证，提交入口有三个——sitemap、手动提交 URL、API 推送。手动提交有每日配额，收录周期以周甚至月计。我们的做法务实：sitemap 照交，新文章发布当天手动提一次，然后<strong>接受它的慢</strong>。个人站和百度之间没有技巧，只有耐心和持续更新。</p>
+<p>一个被平台差异逼出来的分工：百度对「无扩展名 URL」的兼容历史上有过问题，所以 GitHub Pages 镜像端保留 <code>.html</code> 形态（sitemap-github.xml 的注释里写着这条），主域 CF Pages 端用无扩展名。同一篇文章两个 URL 形态，靠 canonical 把权重收拢到主域——这不是设计出来的优雅，是适配出来的生存。</p>
+
+<h2>sitemap 的新坑：lastmod 与「修订文章」的矛盾</h2>
+<p>上一篇立过规矩：lastmod 必须真实，取 <code>posts.json</code> 里的 date。执行下来发现一个边角——<strong>修订已发布文章时，date 不变，lastmod 就不动</strong>。搜索引擎对「声明从未更新」的页面会降低重抓频率，等于改了内容却对抓取端不可见。</p>
+<p>我们的处理：文章正文有实质修订时，在 posts.json 里把 date 更新到修订日——对个人站来说，「发布时间」的精确语义可以让渡给「重抓信号」；纯笔误修复不动。两条路都不完美，但<strong>最差的选择是装死</strong>：声明与事实脱节，比二选一都伤信任。</p>
+<p>另一个容易漏的动作：Search Console 和 Bing 站长平台要<strong>分别提交各自的 sitemap</strong>。robots.txt 里声明两条（主域加 GitHub 端）只是让爬虫「发现」文件，不代表站长平台「收录」了这份 sitemap——提交动作本身要在每个平台手动做一次，提交完还要盯一眼「已读取」状态。</p>
+
+<h2>结构化数据：写错是静默失效</h2>
+<p>每篇文章页现在由 gen_posts.py 注入两块 JSON-LD：BlogPosting（headline/datePublished/author/mainEntityOfPage）与 BreadcrumbList。最大的教训来自验证环节——<strong>JSON-LD 有语法错误时页面照常渲染，搜索引擎静默忽略整块数据</strong>，不报错、不告警、不降权，就是当你不存在。唯一可靠的验证是 Google Rich Results Test 和 Schema.org Validator，改完模板必须跑一遍，肉眼检查 JSON 等于没检查。</p>
+<p>OG 分享卡同样有静默坑：og:image 尺寸不达标时，社交平台显示残缺缩略图而不是报错。我们用 <code>scripts/gen_og_image.py</code> 统一产出 1200×630 的默认分享图，全站一个出口——和文章页一样，模板化自动注入，杜绝手写页面漏配。</p>
+
+<h2>提交之后的观察：三类信号三种病</h2>
+<table>
+  <tr><th>Search Console 状态</th><th>含义</th><th>处方</th></tr>
+  <tr><td>sitemap 报错</td><td>文件坏了或读不到</td><td>先修文件，再谈收录</td></tr>
+  <tr><td>已抓取 – 尚未编入索引</td><td>质量存疑或新站信任期</td><td>查重复内容，然后等</td></tr>
+  <tr><td>软 404</td><td>状态码错了</td><td>补 404.html（见上一篇）</td></tr>
+</table>
+<p>新站的信任期以月计，这期间最该做的三件事：保持更新频率（我们目前 18 篇，节奏稳定）、内链保证爬虫三跳内到达任何文章、收录未稳时绝不改 URL。改 URL 对 SEO 是拆迁——301 能搬走权重，搬不走重新建立信任的时间成本。</p>
+
+<h2>可执行清单</h2>
+<ul>
+  <li>发布当天：IndexNow 自动推 Bing 系；百度手动提一次；两个站长平台确认 sitemap 状态</li>
+  <li>修订文章：date 与 lastmod 联动更新，宁可选「显示更新」，不选「装死」</li>
+  <li>改模板后：Rich Results Test 验证 JSON-LD，og:image 核对尺寸</li>
+  <li>每周一次：看覆盖率报告的三类信号，不做无观测的优化</li>
+</ul>
+<p>SEO 到这个阶段，技术动作已全部自动化，剩下的比拼是谁更能<strong>诚实地面对数据</strong>。下一篇聊聊把这些自动化跑在 Cloudflare 免费额度里的<a href="cloudflare-free-tier.html">成本账</a>。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a><a class="related-card" href="git-multi-repo-sync.html"><img src="https://media.520691.xyz/covers/2026v2/git-multi-repo-sync.webp" alt="" loading="lazy"><span class="r-body"><b>Git 多仓库三端同步方案：镜像、CI 双跑与 Gitee Pages 国内加速</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

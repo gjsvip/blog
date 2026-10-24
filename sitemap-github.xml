@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GitHub Pages 端（https://gjsvip.github.io/blog/）专用 sitemap。
+  GitHub Pages 不支持无扩展名 URL，故此处一律使用 .html 形态。
+  主域 sitemap（sitemap.xml）只含 www.520691.xyz，两者互不混载。
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://gjsvip.github.io/blog/</loc><lastmod>2026-10-21</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/archive.html</loc><lastmod>2026-10-21</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/tags.html</loc><lastmod>2026-10-21</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/says.html</loc><lastmod>2026-10-21</lastmod><changefreq>daily</changefreq><priority>0.4</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/friends.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/about.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/workers-queue-cron-tricks.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/pages-functions-vs-workers.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/r2-presigned-upload.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/durable-objects-realtime.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/zero-cost-monitoring.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/blog-domain-migration.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/indexnow-bing-google.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/turnstile-spam-defense.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/ai-agent-workflow.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/static-site-perf.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/open-source-side-project.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/comment-system-design.html</loc><lastmod>2026-10-22</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/static-blog-seo-advanced.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/cloudflare-free-tier.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/hono-workers-engineering.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/git-multi-repo-sync.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/indie-dev-tools-2026.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/ai-30-days-three-sites.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/indie-dev-journey.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/edge-security.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/ai-coding-agent.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/blog-comment-system.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/three-end-sync.html</loc><lastmod>2026-10-21</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/mobile-responsive-blog.html</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/three-end-sync-advanced.html</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/static-blog-seo.html</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/dujiecode-release.html</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/d1-sqlite-edge.html</loc><lastmod>2026-10-19</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/cf-workers-fullstack.html</loc><lastmod>2026-10-19</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://gjsvip.github.io/blog/posts/hello-world.html</loc><lastmod>2024-12-26</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+</urlset>

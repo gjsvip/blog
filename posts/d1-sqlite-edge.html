@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动 · 渡劫博客</title>
+<meta name="description" content="batch 即事务、UNIQUE 替代应用层校验、keyset 分页代替深分页、冷启动 20–80ms 的优化排序——边缘 SQLite 的正确写法全部来自线上评论系统。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动 · 渡劫博客">
+<meta property="og:description" content="batch 即事务、UNIQUE 替代应用层校验、keyset 分页代替深分页、冷启动 20–80ms 的优化排序——边缘 SQLite 的正确写法全部来自线上评论系统。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/d1-sqlite-edge">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动 · 渡劫博客">
+<meta name="twitter:description" content="batch 即事务、UNIQUE 替代应用层校验、keyset 分页代替深分页、冷启动 20–80ms 的优化排序——边缘 SQLite 的正确写法全部来自线上评论系统。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/d1-sqlite-edge">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动", "description": "batch 即事务、UNIQUE 替代应用层校验、keyset 分页代替深分页、冷启动 20–80ms 的优化排序——边缘 SQLite 的正确写法全部来自线上评论系统。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/d1-sqlite-edge", "datePublished": "2026-10-19", "dateModified": "2026-10-19", "inLanguage": "zh-CN", "keywords": "D1, SQLite, 性能优化, Workers", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/d1-sqlite-edge"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动", "item": "https://www.520691.xyz/posts/d1-sqlite-edge"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动</div>
+
+    <article>
+      <div class="article-header">
+        <h1>D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-19</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>实战</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1654 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/d1-sqlite-edge.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>渡劫博客的<a href="blog-comment-system.html">评论系统</a>跑在 Cloudflare D1 上，从上线到现在这段时间运行下来攒了一肚子经验：事务怎么开、批量怎么写不炸、索引怎么建、冷启动到底有多冷。这篇全部讲清楚——D1 是 SQLite，但<strong>不是你能本地随便造的 SQLite</strong>，边缘环境的约束会改变你写 SQL 的习惯。</p>
+
+<h2>D1 是什么，不是什么</h2>
+<p>D1 是托管在 Cloudflare 边缘的 SQLite，支持标准 SQL 子集与 SQLite 方言，通过 <code>wrangler d1</code> 管理迁移。它<strong>不是</strong>：</p>
+<ul>
+  <li>不是本地 SQLite——没有 <code>PRAGMA</code> 自由，没有文件系统访问</li>
+  <li>不是高并发写库——单库单写点，写吞吐有硬上限，热点行更新会排队</li>
+  <li>不是关系齐全的 PG——窗口函数支持有限，外键默认不强制（可开）</li>
+</ul>
+<p>所以正确的姿势是：<strong>读走索引、写走 batch、Schema 一次想清楚</strong>。</p>
+
+<h2>Schema：先把约束建对</h2>
+<p>评论系统的四张表，注意每处 UNIQUE 都在替代一段应用层逻辑：</p>
+<pre><code class="language-sql">CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL,
+  parent_id INTEGER DEFAULT NULL,
+  nickname TEXT NOT NULL,
+  email TEXT DEFAULT NULL,
+  content TEXT NOT NULL,
+  visitor TEXT NOT NULL,
+  status INTEGER NOT NULL DEFAULT 1,   -- 0 待审核 / 1 通过
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_comments_slug ON comments(slug, status, created_at);
+
+CREATE TABLE IF NOT EXISTS likes (
+  visitor TEXT NOT NULL,
+  comment_id INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (visitor, comment_id)      -- 一人一赞，重复提交由 DB 拦截
+);
+
+CREATE TABLE IF NOT EXISTS views (
+  slug TEXT NOT NULL,
+  visitor TEXT NOT NULL,
+  n INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (slug, visitor)            -- UV 级去重
+);</code></pre>
+<p>所有迁移语句一律带 <code>IF NOT EXISTS</code>，保证 CI 里幂等重放不炸——我们的部署流程会重复执行 <code>wrangler d1 migrations apply</code>，见<a href="three-end-sync.html">三端同步架构记</a>。</p>
+
+<h2>事务：batch() 就是你的 transaction</h2>
+<p>D1 没有交互式事务（BEGIN…COMMIT 跨往返）。多语句原子性靠 <code>db.batch([...])</code>：要么全部成功，要么全部回滚。发一条评论同时要把文章评论数 +1，这两步必须同生共死：</p>
+<pre><code class="language-typescript">const [comment] = await db.batch([
+  db.prepare(
+    'INSERT INTO comments (slug, nickname, email, content, visitor) VALUES (?, ?, ?, ?, ?)'
+  ).bind(slug, nickname, email, content, visitor),
+  db.prepare(
+    `INSERT INTO stats (slug, comments) VALUES (?, 1)
+     ON CONFLICT(slug) DO UPDATE SET comments = comments + 1`
+  ).bind(slug),
+]);
+return comment.results[0].last_row_id;</code></pre>
+<blockquote><p>batch 的代价：所有语句共享一次往返，但<strong>总大小与语句数有上限</strong>（超限返回 400）。经验值：单批控制在几十条、几百 KB 以内，超长内容先截断再入库。</p></blockquote>
+
+<h2>批量读写：消灭 N+1 往返</h2>
+<p>最常见的性能事故是循环里 await 单条语句——每条都是一次边缘往返，十条评论就是十次。正确做法是预编译后一次 batch：</p>
+<pre><code class="language-typescript">// 错误：N 次往返
+for (const s of slugs) { await db.prepare('SELECT * FROM views WHERE slug = ?').bind(s).first(); }
+
+// 正确：1 次往返
+const rows = await db.batch(slugs.map((s) =>
+  db.prepare('SELECT * FROM views WHERE slug = ?').bind(s)
+)).then((r) =&gt; r.map((x) =&gt; x.results).flat());</code></pre>
+
+<h2>索引与查询：从深分页到 keyset</h2>
+<p>评论列表用 <code>ORDER BY created_at DESC LIMIT 20 OFFSET 4000</code> 会把页面拖死——OFFSET 本质是「扫过并丢弃前 4000 行」。改成 keyset 分页，索引直接定位：</p>
+<pre><code class="language-sql">-- 深分页：越翻越慢
+SELECT * FROM comments WHERE slug = ? AND status = 1
+ORDER BY created_at DESC LIMIT 20 OFFSET 4000;
+
+-- keyset：恒速，配合 (slug, status, created_at) 索引
+SELECT * FROM comments WHERE slug = ? AND status = 1 AND created_at &lt; ?
+ORDER BY created_at DESC LIMIT 20;</code></pre>
+<p>时间统一存 ISO-8601 文本（<code>datetime('now')</code> 输出 UTC），字符串比较即时间比较，跨语言零转换。楼中楼查询同理：先取顶层 20 条，再按 <code>parent_id IN (...)</code> 一次取回，避免递归往返。</p>
+
+<h2>冷启动到底有多冷</h2>
+<p>实测：一个新库在新 PoP 的首次查询约 <strong>20–80ms</strong>（SQLite 文件打开 + 索引预热），同 PoP 后续查询降到个位数 ms；跨国场景受就近 PoP 与库副本同步影响。优化手段按收益排序：</p>
+<ul>
+  <li><strong>减少往返次数</strong>——batch 一次搞定，比任何微优化都管用</li>
+  <li><strong>保持 Schema 精简</strong>——列越少、行越小，打开越快</li>
+  <li><strong>读路径全走索引</strong>——<code>EXPLAIN QUERY PLAN</code> 验证没有全表扫描</li>
+  <li><strong>合并轮询</strong>——前端用 <code>/stats?slugs=a,b,c</code> 批量拉，别一页发十个请求</li>
+</ul>
+
+<h2>迁移与本地开发</h2>
+<pre><code class="language-bash"># 本地：wrangler 会起一个本地 SQLite，数据不落远端
+npx wrangler d1 migrations apply blog --local
+npm run dev
+
+# 生产：幂等，可重复执行
+npx wrangler d1 migrations apply blog --remote
+
+# 临时查询（不写文件）
+npx wrangler d1 execute blog --remote --command "SELECT count(*) FROM comments"</code></pre>
+<p>迁移文件按时间戳命名、只追加不删除——这是 D1 世界的「schema 版本控制」：回滚代码时不回滚表结构，新旧代码必须能在同一张表上共存，可退可进。</p>
+
+<h2>计数与聚合：能下推就不上层</h2>
+<p>「每篇文章多少评论、多少赞」这类仪表盘数字，不要查出来在内存里加。用 SQL 聚合一次算完，索引覆盖下即使十万行也是毫秒级：</p>
+<pre><code class="language-sql">SELECT slug, COUNT(*) AS c FROM comments WHERE status = 1 GROUP BY slug;</code></pre>
+<p>更稳的做法是物化：写评论时顺手 UPSERT 更新 stats 表的计数字段，读路径零计算。空间换时间，在读多写少的边缘场景永远划算。我们的批量接口 <code>/api/blog/stats?slugs=a,b,c</code> 就是这么设计的——一次请求拿回首页全部文章的互动数据。如果某个 key 的写入成为全站热点（比如全局计数器），正确的下一步不是硬扛，而是把它挪进 Durable Objects：用 DO 的串行内存在累加，定时落库——D1 的写瓶颈就这样被绕开，选型逻辑见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a>。</p>
+
+<h2>备份、导出与监控</h2>
+<p>D1 支持快照导出，定时把数据落进 R2，个人项目就拥有了「真的备份」：</p>
+<pre><code class="language-bash">npx wrangler d1 export blog --remote --output=backup-$(date +%F).sql
+# 生产方案：Workers Cron Trigger 每天触发一次导出，写入 R2 桶</code></pre>
+<p>监控方面，Cloudflare 后台能看到 D1 的读写次数与延迟曲线；我们还在 Worker 里加了一层耗时打点，超过 200ms 的查询记警告日志，<code>wrangler tail</code> 实时可见。数据量级心里有数，流量来时第一个夜晚才睡得着。</p>
+
+<h2>小结</h2>
+<p>D1 的哲学是「<strong>用 SQLite 的简单换边缘的延迟</strong>」。约束本身给了你明确的写法：batch 代替交互事务、UNIQUE 代替应用层校验、keyset 代替深分页、聚合下推代替内存计算。把这些当成肌肉记忆，边缘数据库就不会成为瓶颈——渡劫博客的评论、点赞、浏览全部由它承载，至今没有一次因为数据库半夜报警。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

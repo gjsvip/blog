@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批 · 渡劫博客</title>
+<meta name="description" content="计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批 · 渡劫博客">
+<meta property="og:description" content="计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/ai-coding-agent">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批 · 渡劫博客">
+<meta name="twitter:description" content="计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/ai-coding-agent">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批", "description": "计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/ai-coding-agent", "datePublished": "2026-10-21", "dateModified": "2026-10-21", "inLanguage": "zh-CN", "keywords": "渡劫code, AI, Agent, Durable Objects", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/ai-coding-agent"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批", "item": "https://www.520691.xyz/posts/ai-coding-agent"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-21</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>架构</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1378 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 3 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/ai-coding-agent.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>渡劫code 是一个跑在浏览器里的 AI 编程工作台：<a href="dujiecode-release.html">发布记</a>里介绍了 Monaco 编辑器、虚拟 Shell 与远程执行后端。这篇深入它的心脏——<strong>Agent 循环与人工审批</strong>：AI 如何一步步把自然语言变成可运行的代码，以及在哪些环节必须停下来等人类点头。</p>
+
+<h2>为什么 Web 版 Agent 是不同的物种</h2>
+<p>本地 CLI Agent（Claude Code、Codex CLI 之流）跑在你自己的机器上，文件系统就是战场。Web 版工作台面临三个额外约束：</p>
+<ul>
+  <li><strong>无信任文件系统</strong>：用户的浏览器沙箱里没有真实磁盘，一切文件操作必须先落在虚拟文件系统（VFS）</li>
+  <li><strong>长连接管理</strong>：AI 流式输出、终端回显、执行结果推送都是持续通道，HTTP 短连接撑不住，需要 Durable Objects 承载 WebSocket 房间</li>
+  <li><strong>破坏性操作必须审批</strong>：云端环境里误删、误覆盖的代价比本地高一个数量级</li>
+</ul>
+
+<h2>Agent 循环：五状态机</h2>
+<p>核心是一个显式状态机，每一步都通过 SSE 推送给前端，前端用同一套事件渲染对话区、diff 视图与终端：</p>
+<pre><code class="language-bash">┌──────────┐   计划    ┌──────────┐   生成    ┌──────────┐
+│  PLAN    │ ───────► │  EDIT    │ ───────► │  APPLY   │
+│ 需求拆解 │          │ 生成 diff │          │ 写入 VFS │
+└──────────┘          └──────────┘          └────┬─────┘
+     ▲                                          │
+     │               ┌──────────┐               │
+     └────────────── │  REVIEW  │ ◄─────────────┘
+       根据反馈修订   │ 人工审批 │      涉及危险操作时
+                     └────┬─────┘
+                          │ 批准
+                     ┌────▼─────┐
+                     │  EXECUTE │  虚拟 Shell 校验 / 远程节点执行
+                     └──────────┘</code></pre>
+<p>SSE 事件类型即前后端契约，每种事件对应 UI 的一个组件：</p>
+<pre><code class="language-typescript">type AgentEvent =
+  | { t: 'plan'; steps: string[] }            // 渲染计划列表
+  | { t: 'token'; text: string }              // 流式追加到对话气泡
+  | { t: 'diff'; file: string; patch: string }// 渲染可审阅的 diff 卡片
+  | { t: 'approval'; action: string; risk: 'low' | 'high' } // 弹出审批框
+  | { t: 'applied'; file: string }            // VFS 已更新，刷新编辑器
+  | { t: 'exec'; cmd: string; out?: string }  // 终端输出
+  | { t: 'done'; summary: string };</code></pre>
+
+<h2>审批闸门：哪些操作必须停下来</h2>
+<p>Agent 自主性的边界由一张风险表定义，高风险动作强制进入 REVIEW：</p>
+<table>
+  <tr><th>操作</th><th>风险</th><th>行为</th></tr>
+  <tr><td>新建/修改单个文件</td><td>低</td><td>diff 卡片展示，可自动应用</td></tr>
+  <tr><td>批量重命名 / 删除</td><td>高</td><td>审批框列出全部受影响文件</td></tr>
+  <tr><td>覆盖已有文件</td><td>高</td><td>展示 before/after，需明确批准</td></tr>
+  <tr><td>远程节点执行任意命令</td><td>高</td><td>展示完整命令行，批准后才下发</td></tr>
+  <tr><td>读取密钥/环境变量</td><td>禁止</td><td>Agent 上下文直接过滤</td></tr>
+</table>
+<p>审批不是形式主义：审批框里呈现的是<strong>完整 diff 与完整命令</strong>，用户一眼能看出 AI 要干嘛。批准动作本身也走 WebSocket 回传，与 Agent 事件复用同一条通道。</p>
+
+<h2>虚拟 Shell：浏览器里的安全试炼场</h2>
+<p>AI 生成的命令如果直接打到远程节点上，一次 <code>rm -rf</code> 就是事故。所以中间垫了一层浏览器内的虚拟 Shell：命令先在 VFS 上解释执行，只有 <code>ls / cat / echo / cd / mkdir</code> 等白名单命令被支持，且路径被限制在项目根内（<code>..</code> 越界直接拒绝）。AI 的「运行一下看看」在虚拟层完成，零成本零风险。</p>
+<pre><code class="language-typescript">const ALLOWED = new Set(['ls', 'cat', 'echo', 'cd', 'mkdir', 'pwd', 'touch']);
+function safePath(root: string, input: string): string | null {
+  const p = normalize(join(root, input));
+  return p.startsWith(root) ? p : null;   // 防 .. 逃逸
+}</code></pre>
+<p>真正需要算力的构建与测试，才通过 WebSocket 分发到注册的远程执行节点——通道由 Durable Objects 房间承载，单房间单实例保证命令串行，细节见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a>。</p>
+
+<h2>上下文：AI 能看到什么</h2>
+<p>Agent 的质量上限由上下文决定。渡劫code 的上下文窗口按需组装，不搞「全文件库塞进去」：</p>
+<ul>
+  <li>当前活动文件全文 + 光标位置</li>
+  <li>VFS 目录树（自动裁剪 node_modules 等噪音目录）</li>
+  <li>选中代码片段（用户显式 @ 的文件优先级最高）</li>
+  <li>最近 N 条终端输出（报错信息是最高价值的信号）</li>
+</ul>
+<p>流式输出用 SSE 而不是 WebSocket：Agent 推理是单向广播，SSE 的重连语义（Last-Event-ID）更合适；审批回传与终端推送这类双向流量才走 WebSocket。两种通道在同一页面共存，各司其职。</p>
+
+<h2>失败、恢复与断线</h2>
+<p>Agent 任务动辄几十秒，中途断线是常态，恢复策略分三层。SSE 断线后浏览器自动重连并携带 <code>Last-Event-ID</code>，Worker 从该事件之后补发，对话不丢字；WebSocket 断开则重新进入 DO 房间，会话状态本就持久化在 <code>storage</code> 里，天然恢复；AI 流被限流时，前端指数退避重试并提示「模型繁忙」，绝不静默失败。审批框在断线期间保持挂起，恢复后原样呈现——用户批准过的动作，不会因为刷新页面而丢失。</p>
+
+<h2>工程化：模板与生成器</h2>
+<p>工作台的前端是 Vite + React + MUI + Tailwind，编辑器是 Monaco。整个项目同样遵循「产物可重新生成」的纪律——连这个博客的文章页都由 <code>gen_posts.py</code> 从元数据生成（见<a href="static-blog-seo.html">SEO 全流程</a>）。工作台与博客共享同一条边缘后端：Workers + D1 + KV + R2 + DO 的绑定方式在<a href="cf-workers-fullstack.html">全栈实践</a>里有完整拆解。</p>
+
+<h2>小结</h2>
+<p>Web 版 AI 编程工作台的设计内核只有一句话：<strong>让 AI 自由发挥创造，让人类手握破坏的闸门</strong>。计划可自动、生成可流式、应用可即时，但删除、覆盖、远程执行必须过审批——这条边界划清楚了，浏览器里的 IDE 才能既聪明又敢用。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="three-end-sync.html"><img src="https://media.520691.xyz/covers/2026v2/three-end-sync.webp" alt="" loading="lazy"><span class="r-body"><b>渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare</b><time>2026-10-21</time></span></a><a class="related-card" href="three-end-sync-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/three-end-sync-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>三端同步再进阶：CF Pages + GitHub Pages + Gitee 的冲突与回滚</b><time>2026-10-20</time></span></a><a class="related-card" href="cf-workers-fullstack.html"><img src="https://media.520691.xyz/covers/2026v2/cf-workers-fullstack.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职</b><time>2026-10-19</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

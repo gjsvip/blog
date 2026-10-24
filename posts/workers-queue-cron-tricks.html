@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试 · 渡劫博客</title>
+<meta name="description" content="评论通知异步化、D1 每天定时备份进 R2、失败重试与死信队列——Queues + Cron 是 Cloudflare 全家桶里性价比最高的一对组合。附月额度实测占比、三次半夜告警复盘，以及那些文档一笔带过、实战教你做人的坑。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试 · 渡劫博客">
+<meta property="og:description" content="评论通知异步化、D1 每天定时备份进 R2、失败重试与死信队列——Queues + Cron 是 Cloudflare 全家桶里性价比最高的一对组合。附月额度实测占比、三次半夜告警复盘，以及那些文档一笔带过、实战教你做人的坑。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/workers-queue-cron-tricks">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试 · 渡劫博客">
+<meta name="twitter:description" content="评论通知异步化、D1 每天定时备份进 R2、失败重试与死信队列——Queues + Cron 是 Cloudflare 全家桶里性价比最高的一对组合。附月额度实测占比、三次半夜告警复盘，以及那些文档一笔带过、实战教你做人的坑。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/workers-queue-cron-tricks">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试", "description": "评论通知异步化、D1 每天定时备份进 R2、失败重试与死信队列——Queues + Cron 是 Cloudflare 全家桶里性价比最高的一对组合。附月额度实测占比、三次半夜告警复盘，以及那些文档一笔带过、实战教你做人的坑。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/workers-queue-cron-tricks", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "Cloudflare, Queues, Cron, Workers", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/workers-queue-cron-tricks"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试", "item": "https://www.520691.xyz/posts/workers-queue-cron-tricks"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>2233 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 6 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>渡劫博客和渡劫code跑在 Cloudflare 上快一年了，架构上一直坚持一条原则：<strong>请求-响应链路里只做「必须同步」的事</strong>。评论写完要发通知、D1 要每天备份、AI 任务跑完要回写状态——这些统统不该让用户干等。这篇把我们在生产环境用了大半年的 Cloudflare Queues + Cron Triggers 方案完整摊开：包括日均几万次投递的真实用量、三次半夜告警的复盘，以及那些文档里一笔带过、实战里教你做人的坑。</p>
+
+<h2>一、为什么需要队列：Worker 的请求模型很「短」</h2>
+
+<p>Workers 的执行模型是请求进来、响应回去，过程越短越好。免费额度下每个请求只有 <strong>10ms CPU 时间</strong>，虽然挂起等待外部 I/O 不严格计入 CPU，但把耗时操作塞进响应链路有三个现实问题：用户体感差、失败无法重试（响应已经返回了）、外部服务抖动会直接拖垮接口本身。</p>
+
+<p>我们的场景很典型：</p>
+
+<ul>
+<li>新评论入库后，给博主发 Telegram 通知（调外部 API，可能超时）</li>
+<li>渡劫code 的 AI 任务状态变更，要广播给房间内所有 WebSocket 连接（这部分走了 DO，见 <a href="durable-objects-realtime.html">Durable Objects 实时协作</a>）</li>
+<li>每天 UTC 16:00 把 D1 导出成 SQL 落进 R2</li>
+<li>各类脏活：统计聚合、文件元数据补全、缓存预热</li>
+</ul>
+
+<p>结论先行：<strong>凡是「最终一致」的事，全部丢进队列；凡是「定时」的事，全部走 Cron</strong>。Worker 本体只做读库、写库、返回，把慢动作和重复劳动外包出去。</p>
+
+<h2>二、第一个队列：评论通知异步化</h2>
+
+<p>Producer 端简单到只有几行。在评论 Worker 里，入库成功后投递消息：</p>
+
+<pre><code class="language-typescript">// 评论 Worker：入库成功即投递，消息体只带摘要，别把整条评论塞进去
+await env.NOTIFY_QUEUE.send({
+  type: 'comment',
+  slug,
+  nickname,
+  preview: content.slice(0, 100),
+  ts: Date.now(),
+});</code></pre>
+
+<p>Consumer 是一个独立的 Worker，绑定同一个队列：</p>
+
+<pre><code class="language-typescript">export default {
+  async queue(batch: MessageBatch, env: Env) {
+    for (const msg of batch.messages) {
+      try {
+        await handle(msg.body, env);
+        msg.ack();
+      } catch (err) {
+        console.error('notify failed', msg.body, err);
+        msg.retry(); // 单条重试，不拖累同批其他消息
+      }
+    }
+  },
+};</code></pre>
+
+<p>几个实战细节：</p>
+
+<ul>
+<li><strong>批量投递</strong>：<code>sendBatch</code> 一次最多 100 条、总计 256KB，循环单发在高峰期纯属浪费。渡劫code 的 AI 任务收尾时用 <code>sendBatch</code> 一次性推全部状态变更。</li>
+<li><strong>批量消费的 ack 策略</strong>：<code>batch.ackAll()</code> 最省事，但同批里一条失败会拖累整批重试，放大重复副作用。我们按消息类型分组处理，异常走单条 <code>retry()</code>。</li>
+<li><strong>消息体上限 128KB</strong>：渡劫code 早期把整个文件 diff 塞进消息，超限后 <code>send()</code> 直接抛错，报错信息还不直白，排查了半天。现在的规矩：消息体只传 ID 和摘要，数据落 D1/R2，消费端按需取回。</li>
+<li><strong>消费端 wall time 上限 15 分钟</strong>：一条消费调用里循环处理整批消息，遇到外部 API 集体超时会撞上限。我们的兜底是单条处理超时 10 秒，超了就 retry 下轮再来。</li>
+</ul>
+
+<h2>三、Cron Triggers：定时任务的正确姿势</h2>
+
+<p>Cron 配置在 wrangler.toml，注意<strong>只认 UTC 时间</strong>：</p>
+
+<pre><code class="language-toml">name = "blog-cron"
+main = "src/index.ts"
+
+[triggers]
+crons = ["0 16 * * *"]   # 每天 UTC 16:00 = 北京时间 00:00</code></pre>
+
+<pre><code class="language-typescript">export default {
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    // 关键：ctx.waitUntil 包住异步任务，否则 Worker 可能被提前挂起
+    ctx.waitUntil(backupD1(env));
+  },
+};</code></pre>
+
+<p>第一个坑就是 <code>ctx.waitUntil</code>。第一版备份脚本没包，定时任务触发时 Worker 本体已经没事干了，运行时判定空闲直接回收，备份执行到一半被掐断——现象是 R2 里每天的文件都在，但大小只有 3KB（只有表头没有数据）。包上 <code>waitUntil</code> 之后才稳定。</p>
+
+<p>第二个坑是时区。「每天凌晨备份」在北京时间要写 <code>0 16 * * *</code>。我在文档里写「16 点」被自己绕晕过一次，后来干脆在 wrangler.toml 里加注释注明对应北京时间，配置即文档。</p>
+
+<p>第三个认知：<strong>Cron 触发是分钟级尽力而为，不是精确闹钟</strong>。高峰期可能延迟几十秒到几分钟，别用它做「整点秒杀」这类强实时调度。我们的备份场景晚几分钟毫无感知，但如果你拿 Cron 做准点抢购，建议再加一层兜底校验。</p>
+
+<h2>四、实战：D1 定时备份落 R2</h2>
+
+<p>备份链路：Cron 触发 → 全表导出拼 SQL → PUT 进 R2 → 记一条元数据到 D1 的 <code>backups</code> 表。</p>
+
+<pre><code class="language-typescript">async function backupD1(env: Env) {
+  const tables = ['comments', 'likes', 'views', 'stats'];
+  const chunks: string[] = [];
+  for (const t of tables) {
+    const { results } = await env.DB.prepare(`SELECT * FROM ${t}`).all();
+    chunks.push(`-- ${t}: ${results.length} rows`);
+    for (const row of results) {
+      const vals = Object.values(row)
+        .map((v) =&gt; (v === null ? 'NULL' : `'${String(v).replaceAll("'", "''")}'`))
+        .join(',');
+      chunks.push(`INSERT INTO ${t} VALUES (${vals});`);
+    }
+  }
+  const sql = chunks.join('\n');
+  const key = `backups/blog-${new Date().toISOString().slice(0, 10)}.sql`;
+  await env.BUCKET.put(key, sql, { customMetadata: { bytes: String(sql.length) } });
+  await env.DB.prepare(
+    'INSERT INTO backups (key, bytes, created_at) VALUES (?, ?, datetime(\'now\'))'
+  ).bind(key, sql.length).run();
+}</code></pre>
+
+<p>几个数字：博客 D1 主库当前约 <strong>12MB</strong>（评论 3.2 万条、点赞 8 千条），导出 SQL 约 <strong>18MB</strong>，整个备份耗时 <strong>2–4 秒</strong>，全部落在免费额度内。R2 侧每天新增 18MB，配生命周期规则 90 天后自动删除，峰值占用约 <strong>1.6GB</strong>，离 10GB 免费额度远得很。备份文件带日期 key，恢复就是 <code>wrangler d1 execute blog --file=backup.sql</code>。我们每季度做一次恢复演练——<strong>没演练过的备份等于没有备份</strong>，这话都说滥了，但真出事时你会感谢自己。</p>
+
+<h2>五、失败重试与死信队列</h2>
+
+<p>Queues 的投递语义是 <strong>at-least-once</strong>：消息至少投一次，失败自动重试，重试也失败进死信队列（DLQ）。配置：</p>
+
+<pre><code class="language-toml">[[queues.consumers]]
+queue = "notify-queue"
+max_batch_size = 25
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "notify-dlq"</code></pre>
+
+<p>实战经验三条：</p>
+
+<ol>
+<li><strong>消费端必须幂等</strong>。at-least-once 意味着同一条通知可能发两遍。我们的解法是消费端用 KV 做去重键 <code>notify:sent:{messageId}</code>，TTL 24 小时，已存在直接 ack。KV 免费额度每天 1000 次写，去重场景刚好够用。</li>
+<li><strong>DLQ 要有人看</strong>。配了死信队列不看等于白配。我们的 Cron 每天检查 DLQ 深度，非零就发 Telegram 告警——上个月靠这个抓到一个 Bot token 被吊销导致的静默失败，通知「发成功」其实全是进 DLQ。</li>
+<li><strong>重试间隔是内置的指数退避</strong>（约 1s、5s、25s、125s、625s 递推），不可自定义。对外部 API 的临时 5xx 很友好，对「永远失败」的消息就是白等——所以 DLQ 深度才是该盯的指标，重试次数只是纵深。</li>
+</ol>
+
+<p>最疼的一次事故：渡劫code 的任务回写消费端有个 bug，异常抛在 <code>ctx.waitUntil</code> 外面，导致整个 Worker 崩溃重启，同批 25 条消息全部重试，放大了 5 倍副作用。修复不只是补 try/catch，而是把<strong>消费逻辑按消息粒度隔离</strong>——一条坏消息不应该毒死整批，这是队列消费的第一纪律。</p>
+
+<h2>六、成本与限额（2026 年 10 月实测）</h2>
+
+<table>
+<thead><tr><th>项目</th><th>免费额度</th><th>我们的月用量</th><th>占比</th></tr></thead>
+<tbody>
+<tr><td>Queues 操作数</td><td>10 万次/月</td><td>约 4.7 万次（评论通知 + 任务状态）</td><td>47%</td></tr>
+<tr><td>Cron Triggers</td><td>按 Worker 请求计</td><td>60 次/月（备份 + DLQ 巡检）</td><td>忽略不计</td></tr>
+<tr><td>备份 R2 存储</td><td>10GB</td><td>约 1.6GB</td><td>16%</td></tr>
+<tr><td>备份 R2 Class A 写</td><td>100 万次/月</td><td>30 次</td><td>≈0%</td></tr>
+</tbody>
+</table>
+
+<p>唯一要注意的是 Queues 免费额度按「操作数」计——生产、消费、删除各算一次，100 条消息走完一遍就是 300 次操作。量涨到接近额度上限时的预案：合并通知（批量聚合后一条消息发多个收件人）、降频（非紧急通知进小时级 Cron 批量处理）。我们评论通知日均 200 条，离上限还远，但这个账要天天心里有数。</p>
+
+<h2>七、本地开发与调试</h2>
+
+<pre><code class="language-bash"># 本地同时起 producer 和 consumer，队列走本地模式
+npx wrangler dev --local
+
+# 实时看消费端日志（生产）
+npx wrangler tail notify-consumer --format=pretty</code></pre>
+
+<p>本地模式队列不落远端，重启即清空，适合开发联调；但有个坑：本地队列的重试行为和线上不完全一致（本地重试更快、DLQ 行为有差异），验证重试与死信逻辑建议用 <code>wrangler dev --remote</code> 打一个专用测试队列，别拿生产队列练手。</p>
+
+<h2>小结</h2>
+
+<p>Queues + Cron 是 Cloudflare 全家桶里存在感最低、但性价比最高的一对组合：它们把 Worker 从「只能同步干活」解放成「可以异步编排」，而且全在免费额度内。核心结论三条：<strong>响应链路只留同步逻辑、消息体克制在几 KB 以内、消费端按消息粒度隔离并做好幂等</strong>。做到这三点，你的 Worker 就可以在凌晨三点安心备份，而你安心睡觉。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="pages-functions-vs-workers.html"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy"><span class="r-body"><b>Pages Functions vs Workers：静态站动态化的两条路怎么选</b><time>2026-10-22</time></span></a><a class="related-card" href="r2-presigned-upload.html"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy"><span class="r-body"><b>R2 预签名上传实战：浏览器直传与工作区文件管理</b><time>2026-10-22</time></span></a><a class="related-card" href="durable-objects-realtime.html"><img src="https://media.520691.xyz/covers/2026v2/durable-objects-realtime.webp" alt="" loading="lazy"><span class="r-body"><b>Durable Objects 实时协作入门：从一个终端房间说起</b><time>2026-10-22</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<p>渡劫code 是一个跑在浏览器里的 AI 编程工作台：<a href="dujiecode-release.html">发布记</a>里介绍了 Monaco 编辑器、虚拟 Shell 与远程执行后端。这篇深入它的心脏——<strong>Agent 循环与人工审批</strong>：AI 如何一步步把自然语言变成可运行的代码，以及在哪些环节必须停下来等人类点头。</p>
+
+<h2>为什么 Web 版 Agent 是不同的物种</h2>
+<p>本地 CLI Agent（Claude Code、Codex CLI 之流）跑在你自己的机器上，文件系统就是战场。Web 版工作台面临三个额外约束：</p>
+<ul>
+  <li><strong>无信任文件系统</strong>：用户的浏览器沙箱里没有真实磁盘，一切文件操作必须先落在虚拟文件系统（VFS）</li>
+  <li><strong>长连接管理</strong>：AI 流式输出、终端回显、执行结果推送都是持续通道，HTTP 短连接撑不住，需要 Durable Objects 承载 WebSocket 房间</li>
+  <li><strong>破坏性操作必须审批</strong>：云端环境里误删、误覆盖的代价比本地高一个数量级</li>
+</ul>
+
+<h2>Agent 循环：五状态机</h2>
+<p>核心是一个显式状态机，每一步都通过 SSE 推送给前端，前端用同一套事件渲染对话区、diff 视图与终端：</p>
+<pre><code class="language-bash">┌──────────┐   计划    ┌──────────┐   生成    ┌──────────┐
+│  PLAN    │ ───────► │  EDIT    │ ───────► │  APPLY   │
+│ 需求拆解 │          │ 生成 diff │          │ 写入 VFS │
+└──────────┘          └──────────┘          └────┬─────┘
+     ▲                                          │
+     │               ┌──────────┐               │
+     └────────────── │  REVIEW  │ ◄─────────────┘
+       根据反馈修订   │ 人工审批 │      涉及危险操作时
+                     └────┬─────┘
+                          │ 批准
+                     ┌────▼─────┐
+                     │  EXECUTE │  虚拟 Shell 校验 / 远程节点执行
+                     └──────────┘</code></pre>
+<p>SSE 事件类型即前后端契约，每种事件对应 UI 的一个组件：</p>
+<pre><code class="language-typescript">type AgentEvent =
+  | { t: 'plan'; steps: string[] }            // 渲染计划列表
+  | { t: 'token'; text: string }              // 流式追加到对话气泡
+  | { t: 'diff'; file: string; patch: string }// 渲染可审阅的 diff 卡片
+  | { t: 'approval'; action: string; risk: 'low' | 'high' } // 弹出审批框
+  | { t: 'applied'; file: string }            // VFS 已更新，刷新编辑器
+  | { t: 'exec'; cmd: string; out?: string }  // 终端输出
+  | { t: 'done'; summary: string };</code></pre>
+
+<h2>审批闸门：哪些操作必须停下来</h2>
+<p>Agent 自主性的边界由一张风险表定义，高风险动作强制进入 REVIEW：</p>
+<table>
+  <tr><th>操作</th><th>风险</th><th>行为</th></tr>
+  <tr><td>新建/修改单个文件</td><td>低</td><td>diff 卡片展示，可自动应用</td></tr>
+  <tr><td>批量重命名 / 删除</td><td>高</td><td>审批框列出全部受影响文件</td></tr>
+  <tr><td>覆盖已有文件</td><td>高</td><td>展示 before/after，需明确批准</td></tr>
+  <tr><td>远程节点执行任意命令</td><td>高</td><td>展示完整命令行，批准后才下发</td></tr>
+  <tr><td>读取密钥/环境变量</td><td>禁止</td><td>Agent 上下文直接过滤</td></tr>
+</table>
+<p>审批不是形式主义：审批框里呈现的是<strong>完整 diff 与完整命令</strong>，用户一眼能看出 AI 要干嘛。批准动作本身也走 WebSocket 回传，与 Agent 事件复用同一条通道。</p>
+
+<h2>虚拟 Shell：浏览器里的安全试炼场</h2>
+<p>AI 生成的命令如果直接打到远程节点上，一次 <code>rm -rf</code> 就是事故。所以中间垫了一层浏览器内的虚拟 Shell：命令先在 VFS 上解释执行，只有 <code>ls / cat / echo / cd / mkdir</code> 等白名单命令被支持，且路径被限制在项目根内（<code>..</code> 越界直接拒绝）。AI 的「运行一下看看」在虚拟层完成，零成本零风险。</p>
+<pre><code class="language-typescript">const ALLOWED = new Set(['ls', 'cat', 'echo', 'cd', 'mkdir', 'pwd', 'touch']);
+function safePath(root: string, input: string): string | null {
+  const p = normalize(join(root, input));
+  return p.startsWith(root) ? p : null;   // 防 .. 逃逸
+}</code></pre>
+<p>真正需要算力的构建与测试，才通过 WebSocket 分发到注册的远程执行节点——通道由 Durable Objects 房间承载，单房间单实例保证命令串行，细节见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a>。</p>
+
+<h2>上下文：AI 能看到什么</h2>
+<p>Agent 的质量上限由上下文决定。渡劫code 的上下文窗口按需组装，不搞「全文件库塞进去」：</p>
+<ul>
+  <li>当前活动文件全文 + 光标位置</li>
+  <li>VFS 目录树（自动裁剪 node_modules 等噪音目录）</li>
+  <li>选中代码片段（用户显式 @ 的文件优先级最高）</li>
+  <li>最近 N 条终端输出（报错信息是最高价值的信号）</li>
+</ul>
+<p>流式输出用 SSE 而不是 WebSocket：Agent 推理是单向广播，SSE 的重连语义（Last-Event-ID）更合适；审批回传与终端推送这类双向流量才走 WebSocket。两种通道在同一页面共存，各司其职。</p>
+
+<h2>失败、恢复与断线</h2>
+<p>Agent 任务动辄几十秒，中途断线是常态，恢复策略分三层。SSE 断线后浏览器自动重连并携带 <code>Last-Event-ID</code>，Worker 从该事件之后补发，对话不丢字；WebSocket 断开则重新进入 DO 房间，会话状态本就持久化在 <code>storage</code> 里，天然恢复；AI 流被限流时，前端指数退避重试并提示「模型繁忙」，绝不静默失败。审批框在断线期间保持挂起，恢复后原样呈现——用户批准过的动作，不会因为刷新页面而丢失。</p>
+
+<h2>工程化：模板与生成器</h2>
+<p>工作台的前端是 Vite + React + MUI + Tailwind，编辑器是 Monaco。整个项目同样遵循「产物可重新生成」的纪律——连这个博客的文章页都由 <code>gen_posts.py</code> 从元数据生成（见<a href="static-blog-seo.html">SEO 全流程</a>）。工作台与博客共享同一条边缘后端：Workers + D1 + KV + R2 + DO 的绑定方式在<a href="cf-workers-fullstack.html">全栈实践</a>里有完整拆解。</p>
+
+<h2>小结</h2>
+<p>Web 版 AI 编程工作台的设计内核只有一句话：<strong>让 AI 自由发挥创造，让人类手握破坏的闸门</strong>。计划可自动、生成可流式、应用可即时，但删除、覆盖、远程执行必须过审批——这条边界划清楚了，浏览器里的 IDE 才能既聪明又敢用。</p>

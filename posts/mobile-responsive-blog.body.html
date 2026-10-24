@@ -1,0 +1,71 @@
+<p>渡劫博客的读者里，超过一半来自手机。静态站没有框架兜底，移动端适配全是硬功夫：断点体系、触控热区、iOS 的输入框自动缩放、代码块的横向滚动……这篇把我们的适配清单完整交出，全部来自真实代码，不是纸上谈兵。</p>
+
+<h2>断点体系：两个值管全站</h2>
+<p>我们的 CSS 变量与媒体查询只认两个断点：<code>640px</code>（手机）与 <code>900px</code>（平板/窄桌面）。超过 900px 走 <code>1fr 260px</code> 双栏，以下全部单栏。断点贵精不贵多——每个断点都要有对应的布局决策，否则就是自找麻烦：</p>
+<pre><code class="language-css">@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr !important; }   /* 侧栏下沉 */
+  .side { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .nav { display: none; }                    /* 导航折叠为抽屉 */
+  .menu-toggle { display: grid; }
+  .side { grid-template-columns: 1fr; }
+  .article-cover { font-size: 64px; }
+}</code></pre>
+
+<h2>触控区：44px 是尊严</h2>
+<p>鼠标时代 20px 的点击目标很舒服，手指时代这是灾难。Apple HIG 与 WCAG 都建议最小 44×44px。我们的按钮、抽屉菜单项、返回顶部全部按这个下限设计，并用 <code>:active</code> 给出即时反馈——移动端没有 hover，按下的那一瞬间必须有视觉响应：</p>
+<pre><code class="language-css">.icon-btn { min-width: 44px; min-height: 44px; display: grid; place-items: center; }
+.icon-btn:active { transform: scale(0.92); background: var(--grad-soft); }
+
+/* 去掉移动端点击高亮块，用自定义反馈替代 */
+* { -webkit-tap-highlight-color: transparent; }</code></pre>
+<p>抽屉菜单（<code>menu-toggle</code>）展开后锁定 body 滚动，点击遮罩或任一菜单项即关——这两处细节漏一个，就会被用户当成 bug。</p>
+
+<h2>iOS 输入框缩放：16px 红线</h2>
+<p>这是移动端最隐蔽的坑：iOS Safari 会在 <strong>输入框 font-size 小于 16px 且获得焦点时自动放大整个页面</strong>，用户敲完字还得 pinch 回去。评论区是重灾区——我们的昵称、邮箱、正文三个输入框全部锁死 16px：</p>
+<pre><code class="language-css">.comment-form input,
+.comment-form textarea { font-size: 16px; }  /* &lt; 16px 会触发 iOS 自动缩放 */</code></pre>
+<p>同理，viewport 必须声明 <code>width=device-width, initial-scale=1.0</code>，并在 html 上加 <code>-webkit-text-size-adjust: 100%</code>，防止横竖屏切换时文字被二次放大。</p>
+
+<h2>代码块：横向滚动，绝不撑破布局</h2>
+<p>技术博客的 <code>&lt;pre&gt;</code> 在 375px 宽度下必然溢出。正确处理是让代码块自己横向滚动，而不是把 body 撑出白边：</p>
+<pre><code class="language-css">.article-body pre {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;   /* 滚动到顶不触发父级/浏览器返回手势 */
+  -webkit-overflow-scrolling: touch;
+}</code></pre>
+<p>配合复制按钮常驻（移动端 hover 不存在，不能靠 hover 才显示），长按代码选中也不再顺带把页面拖走。</p>
+
+<h2>安全区与动态视口</h2>
+<ul>
+  <li><strong><code>env(safe-area-inset-*)</code></strong>：iPhone 的刘海与底部横条会遮住返回顶部按钮和底栏，用 <code>padding-bottom: env(safe-area-inset-bottom)</code> 让内容避开</li>
+  <li><strong><code>100dvh</code></strong>：移动端浏览器工具栏会伸缩，<code>100vh</code> 在 Safari 上算出错高度，全屏元素改用 <code>100dvh</code></li>
+  <li><strong>hover 隔离</strong>：所有 hover 特效包在 <code>@media (hover: hover)</code> 里，否则触屏上「点了不松手」会一直挂着悬停态</li>
+  <li><strong>图片与 emoji</strong>：<code>max-width: 100%; height: auto;</code> 一条不能少，emoji 封面随断点缩放</li>
+</ul>
+
+<h2>表单与输入法</h2>
+<p>移动端输入是比点击更精细的活。评论表单用 <code>inputmode</code> 与 <code>enterkeyhint</code> 引导正确键盘：邮箱框 <code>inputmode="email"</code> 直接弹出带 @ 的键盘，昵称框 <code>enterkeyhint="next"</code> 跳到下一项；<code>autocomplete</code> 让浏览器记住常用信息。iOS 的软键盘会遮住半个屏幕，所以提交按钮必须相对表单固定，而不是死在页面底部——用户敲完字找不到按钮，就会直接离开。</p>
+<p>emoji 面板在移动端应改为上滑出现的底部抽屉，格子不小于 44px。这些交互没有标准答案，唯一的标准是<strong>真机上顺手</strong>——模拟器永远测不出软键盘的狰狞。</p>
+
+<h2>排版：小屏的可读性</h2>
+<p>正文字号移动端不低于 15px、行高 1.8，段间距用 margin 而非空行；辅助文字避免小于 14px。标题层级在移动端整体降一档视觉重量，h2 从 21px 降到 18px，保证一屏放得下一个小节。窄屏一行最多 20–25 个中文字，超过就手动断句或拆表——表格在 375px 下要么精简列数，要么外包一层 <code>overflow-x:auto</code>。图片统一 <code>loading="lazy"</code> 与 <code>decoding="async"</code>，首屏之外的资源不抢带宽；加载中用骨架屏占位，比转圈圈更能安抚等待。</p>
+
+<h2>真机测试：最后一道工序</h2>
+<p>所有清单都抵不过真机上划两分钟。最低覆盖：一台 iPhone（Safari，验证 16px 红线、safe-area、橡皮筋滚动）加一台 Android（Chrome，验证软键盘、输入法与触控反馈）。两家输入法的行为并不一致——只测一种等于没测。浏览器 DevTools 的设备模式用来查布局，查交互永远靠真机。每次适配完，在群里发个链接让朋友用手机点一遍，比任何测试用例都直接。</p>
+
+<h2>适配验收清单</h2>
+<table>
+  <tr><th>检查项</th><th>标准</th></tr>
+  <tr><td>375px 宽度无横向滚动条</td><td>代码块内部滚，页面不滚</td></tr>
+  <tr><td>所有可点目标 ≥ 44px</td><td>含抽屉、返回顶部、复制按钮</td></tr>
+  <tr><td>聚焦输入框页面不放大</td><td>font-size ≥ 16px</td></tr>
+  <tr><td>评论区可正常提交</td><td>真机提交一条验证 API 链路</td></tr>
+  <tr><td>横屏可用</td><td>双栏在 900px 断点正确切换</td></tr>
+</table>
+<p>评论区在移动端的提交链路，与<a href="blog-comment-system.html">评论系统</a>共用同一套 D1 + Worker API；静态站的工程化产出方式则见<a href="static-blog-seo.html">SEO 全流程</a>。</p>
+
+<h2>小结</h2>
+<p>移动端适配没有银弹，只有清单：断点收敛、触控区达标、iOS 红线不碰、溢出内容自己滚、安全区留够。每条都是几行 CSS，凑在一起就是「在手机上敢发给朋友看」的站点。</p>

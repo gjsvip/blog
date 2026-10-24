@@ -1,0 +1,109 @@
+{
+  "updated": "2026-10-21",
+  "friends": [
+    {
+      "name": "渡劫博客",
+      "url": "https://www.520691.xyz",
+      "desc": "Web 版 AI 编程工作台 + Cloudflare 全栈技术博客",
+      "avatar": "https://www.520691.xyz/assets/avatar.svg",
+      "rss": "https://www.520691.xyz/rss.xml",
+      "status": "online"
+    },
+    {
+      "name": "开往 Travellings",
+      "url": "https://www.travellings.cn/go.html",
+      "desc": "开往·友链接力——让网络阅读更有温度的博客联盟",
+      "avatar": "",
+      "rss": "",
+      "status": "online"
+    },
+    {
+      "name": "十年之约",
+      "url": "https://www.foreverblog.cn/",
+      "desc": "ForeverBlog · 博客十年不注销约定",
+      "avatar": "",
+      "rss": "",
+      "status": "online"
+    },
+    {
+      "name": "安知鱼",
+      "url": "https://blog.anheyu.com/",
+      "desc": "前端与生活，安之鱼主题作者的站，Next.js 全栈产品化样本",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "张洪Heo",
+      "url": "https://blog.zhheo.com/",
+      "desc": "分享设计与科技，圈子第一流量，被 8 个站点收录",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "Akilarの糖果屋",
+      "url": "https://akilar.top/",
+      "desc": "Hexo Butterfly 生态元老，友链卡片产品化的标杆",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "小康博客 DreamyTZK",
+      "url": "https://www.antmoe.com/",
+      "desc": "收藏回忆 + 技术，长期高频更新才是护城河",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "云游君",
+      "url": "https://www.yunyoujun.cn",
+      "desc": "有趣的人 · Valaxy 作者，友链表每次刷新随机排序",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "杜老师说",
+      "url": "https://dusays.com",
+      "desc": "师者传道解惑，JSON-LD + 说说 + RSS 的极简内容站",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "贰猹的小窝",
+      "url": "https://noionion.top/",
+      "desc": "心得 + 学习记录，友链门槛宽松、支持邮件申请",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "山岳库博",
+      "url": "https://kmar.top/",
+      "desc": "二刺螈开发学习，暗黑 + PWA + RSS 的轻量组合",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "小冰博客",
+      "url": "https://zfe.space/",
+      "desc": "做个有梦想的人，153 篇文章，友链朋友圈标杆",
+      "avatar": "",
+      "rss": "",
+      "status": "pending"
+    },
+    {
+      "name": "清羽飞扬",
+      "url": "https://blog.liushen.fun/",
+      "desc": "建站教程 + 项目分享，子域工具矩阵最全的站长（已互加）",
+      "avatar": "",
+      "rss": "",
+      "status": "online"
+    }
+  ]
+}

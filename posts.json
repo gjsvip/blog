@@ -1,0 +1,478 @@
+{
+ "posts": [
+  {
+   "slug": "static-blog-seo-advanced",
+   "title": "静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据",
+   "date": "2026-10-21",
+   "category": "实战",
+   "tags": [
+    "SEO",
+    "IndexNow",
+    "百度",
+    "结构化数据"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp",
+   "excerpt": "承接 SEO 全流程，这篇只讲上线后的真事：IndexNow 18 条 URL 的提交记录、百度为什么不认 IndexNow、lastmod 与修订文章的矛盾、JSON-LD 静默失效——以及 Search Console 里三类信号各自的含义。",
+   "words": 1398,
+   "read_time": 3
+  },
+  {
+   "slug": "cloudflare-free-tier",
+   "title": "Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法",
+   "date": "2026-10-21",
+   "category": "实战",
+   "tags": [
+    "Cloudflare",
+    "免费额度",
+    "Workers",
+    "成本"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp",
+   "excerpt": "月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。",
+   "words": 1391,
+   "read_time": 3
+  },
+  {
+   "slug": "hono-workers-engineering",
+   "title": "Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一",
+   "date": "2026-10-21",
+   "category": "实战",
+   "tags": [
+    "Hono",
+    "Workers",
+    "TypeScript",
+    "工程化"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp",
+   "excerpt": "渡劫code 一万二千行 Worker 代码的组织方式：入口分流、路由按域挂载、AppEnv 类型安全 Bindings、{code,message} 错误信封、wrangler dev 调试实战——全部用线上真实代码举例。",
+   "words": 1638,
+   "read_time": 4
+  },
+  {
+   "slug": "git-multi-repo-sync",
+   "title": "Git 多仓库三端同步方案：镜像、CI 双跑与 Gitee Pages 国内加速",
+   "date": "2026-10-21",
+   "category": "实战",
+   "tags": [
+    "Git",
+    "多仓库",
+    "Gitee",
+    "CI/CD"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/git-multi-repo-sync.webp",
+   "excerpt": "架构篇讲完 happy path 与回滚，这篇讲最底层的 Git 组织：孤儿分支为什么必须 force push、显式 refspec 保活、双工作流职责分离、Gitee Pages 国内访问实测与实名认证的坑。",
+   "words": 1578,
+   "read_time": 4
+  },
+  {
+   "slug": "indie-dev-tools-2026",
+   "title": "2026 独立开发者工具栈：从建站到支付的零成本清单",
+   "date": "2026-10-21",
+   "category": "工具",
+   "tags": [
+    "工具栈",
+    "独立开发",
+    "免费",
+    "建站"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/indie-dev-tools-2026.webp",
+   "excerpt": "一个账单 0 元的独立开发者的完整工具箱：建站部署、前后端数据、支付变现、邮件通知、分析统计、监控运维——每项附真实链接与选型理由，务实向不整活。",
+   "words": 1438,
+   "read_time": 4
+  },
+  {
+   "slug": "ai-30-days-three-sites",
+   "title": "我是怎么用 AI 编程助手 30 天搭出三个站的",
+   "date": "2026-10-21",
+   "category": "复盘",
+   "tags": [
+    "AI编程",
+    "复盘",
+    "独立开发",
+    "代码审查"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/ai-30-days-three-sites.webp",
+   "excerpt": "30 天、三个站、一万二千行代码的复盘：哪些该交给 AI，哪些必须人来扛，以及一套救过我们多次的代码审查纪律。不神化，不甩锅。",
+   "words": 1368,
+   "read_time": 3
+  },
+  {
+   "slug": "indie-dev-journey",
+   "title": "独立开发者一年：技术选型复盘与踩坑总结",
+   "date": "2026-10-21",
+   "category": "复盘",
+   "tags": [
+    "独立开发",
+    "复盘",
+    "Cloudflare"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/indie-dev-journey.webp",
+   "excerpt": "从 Hexo 到全边缘架构，独立开发一整年的选型复盘：Cloudflare 而不是 VPS、D1 而不是自建 Postgres、自建评论而不是 Giscus，以及那节最贵的手写 HTML 学费。",
+   "words": 1636,
+   "read_time": 4
+  },
+  {
+   "slug": "edge-security",
+   "title": "边缘安全实践：JWT 会话、限流、XSS 转义与 CORS 白名单",
+   "date": "2026-10-21",
+   "category": "实战",
+   "tags": [
+    "安全",
+    "JWT",
+    "Workers",
+    "CORS"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/edge-security.webp",
+   "excerpt": "Web Crypto 验签、KV 限流桶、五字符转义、Origin 白名单 + Vary 头——渡劫code 线上在跑的边缘安全四件套，全部代码级拆解。",
+   "words": 1642,
+   "read_time": 4
+  },
+  {
+   "slug": "ai-coding-agent",
+   "title": "Web 版 AI 编程工作台架构：渡劫code 的 Agent 循环与人工审批",
+   "date": "2026-10-21",
+   "category": "架构",
+   "tags": [
+    "渡劫code",
+    "AI",
+    "Agent",
+    "Durable Objects"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/ai-coding-agent.webp",
+   "excerpt": "计划→生成→审批→执行的五状态机、SSE 事件契约、虚拟 Shell 沙箱与风险分级审批闸门——浏览器里的 AI 编程工作台是怎么设计又不失控的。",
+   "words": 1378,
+   "read_time": 3
+  },
+  {
+   "slug": "blog-comment-system",
+   "title": "给静态博客装上全球同步的评论系统：D1 + Worker 实战",
+   "date": "2026-10-21",
+   "category": "实战",
+   "tags": [
+    "D1",
+    "Worker",
+    "评论系统",
+    "全栈"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/blog-comment-system.webp",
+   "excerpt": "不引入任何第三方评论服务，用 Cloudflare D1 + Worker 自建评论 API，三端静态站共用一套数据，国内发的评论国际站也能看到。",
+   "words": 807,
+   "read_time": 2
+  },
+  {
+   "slug": "three-end-sync",
+   "title": "渡劫code 三端同步架构记：GitHub + Gitee + Cloudflare",
+   "date": "2026-10-21",
+   "category": "架构",
+   "tags": [
+    "三端同步",
+    "GitHub Actions",
+    "Gitee",
+    "DNS"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/three-end-sync.webp",
+   "excerpt": "一次 push，三端自动更新：GitHub Actions 同时部署 Cloudflare Workers/Pages、GitHub Pages 并镜像 Gitee，520691.xyz 域名体系全可达实录。",
+   "words": 841,
+   "read_time": 2
+  },
+  {
+   "slug": "mobile-responsive-blog",
+   "title": "静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放",
+   "date": "2026-10-20",
+   "category": "实战",
+   "tags": [
+    "移动端",
+    "响应式",
+    "CSS",
+    "博客"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/mobile-responsive-blog.webp",
+   "excerpt": "两个断点管全站、44px 触控下限、16px 防 iOS 自动缩放、代码块内部横向滚动、safe-area 与 100dvh——静态站移动端适配的完整验收清单。",
+   "words": 1462,
+   "read_time": 4
+  },
+  {
+   "slug": "three-end-sync-advanced",
+   "title": "三端同步再进阶：CF Pages + GitHub Pages + Gitee 的冲突与回滚",
+   "date": "2026-10-20",
+   "category": "架构",
+   "tags": [
+    "三端同步",
+    "CI/CD",
+    "回滚",
+    "Git"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/three-end-sync-advanced.webp",
+   "excerpt": "gh-pages 孤儿分支竞态、Gitee 隐式 refspec 拒绝、每端独立的回滚路径、git ls-remote 强制验证——把三端同步从「能跑」打磨到「敢睡」。",
+   "words": 1536,
+   "read_time": 4
+  },
+  {
+   "slug": "static-blog-seo",
+   "title": "静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交",
+   "date": "2026-10-20",
+   "category": "教程",
+   "tags": [
+    "SEO",
+    "sitemap",
+    "RSS",
+    "IndexNow"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/static-blog-seo.webp",
+   "excerpt": "软 404 治理、sitemap 三条纪律（只收主域/lastmod 真实/形态与 canonical 一致）、RFC-822 pubDate、JSON-LD 与 IndexNow 提交——个人站点能做的最大技术 SEO。",
+   "words": 1504,
+   "read_time": 4
+  },
+  {
+   "slug": "dujiecode-release",
+   "title": "渡劫code 发布记：打开网页就能写代码的云端 IDE",
+   "date": "2026-10-20",
+   "category": "项目发布",
+   "tags": [
+    "渡劫code",
+    "Cloudflare",
+    "Workers",
+    "发布"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/dujiecode-release.webp",
+   "excerpt": "对话式编程 + Monaco 编辑器 + 虚拟 Shell + 远程执行后端融为一体。零安装，打开网页即用——渡劫code 第一个公开版本发布。",
+   "pinned": true,
+   "words": 438,
+   "read_time": 1
+  },
+  {
+   "slug": "d1-sqlite-edge",
+   "title": "D1 边缘 SQLite 的坑与优化：事务、批量、索引与冷启动",
+   "date": "2026-10-19",
+   "category": "实战",
+   "tags": [
+    "D1",
+    "SQLite",
+    "性能优化",
+    "Workers"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/d1-sqlite-edge.webp",
+   "excerpt": "batch 即事务、UNIQUE 替代应用层校验、keyset 分页代替深分页、冷启动 20–80ms 的优化排序——边缘 SQLite 的正确写法全部来自线上评论系统。",
+   "words": 1654,
+   "read_time": 4
+  },
+  {
+   "slug": "cf-workers-fullstack",
+   "title": "Cloudflare Workers 全栈实践：KV、D1、R2、DO 各司其职",
+   "date": "2026-10-19",
+   "category": "架构",
+   "tags": [
+    "Cloudflare",
+    "Workers",
+    "D1",
+    "KV",
+    "R2",
+    "Durable Objects"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/cf-workers-fullstack.webp",
+   "excerpt": "无状态走 Worker、配置限流走 KV、关系数据走 D1、大文件走 R2、单点协调走 DO——渡劫code 五种边缘原语的分工、绑定方式与决策速查表。",
+   "words": 1629,
+   "read_time": 4
+  },
+  {
+   "slug": "hello-world",
+   "title": "Hello World",
+   "date": "2024-12-26",
+   "category": "随笔",
+   "tags": [
+    "随笔",
+    "开始"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/hello-world.webp",
+   "excerpt": "一切从这里开始。原 Hexo 博客迁移保留的第一篇文章——欢迎来到渡劫博客。",
+   "words": 557,
+   "read_time": 1
+  },
+  {
+   "slug": "workers-queue-cron-tricks",
+   "title": "Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试",
+   "date": "2026-10-22",
+   "category": "Cloudflare",
+   "tags": [
+    "Cloudflare",
+    "Queues",
+    "Cron",
+    "Workers"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp",
+   "excerpt": "评论通知异步化、D1 每天定时备份进 R2、失败重试与死信队列——Queues + Cron 是 Cloudflare 全家桶里性价比最高的一对组合。附月额度实测占比、三次半夜告警复盘，以及那些文档一笔带过、实战教你做人的坑。",
+   "words": 2233,
+   "read_time": 6
+  },
+  {
+   "slug": "pages-functions-vs-workers",
+   "title": "Pages Functions vs Workers：静态站动态化的两条路怎么选",
+   "date": "2026-10-22",
+   "category": "Cloudflare",
+   "tags": [
+    "Cloudflare",
+    "Pages",
+    "Workers",
+    "架构"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp",
+   "excerpt": "两条路底层同一套 Workers 运行时，但 Pages Functions 不支持 Cron、Queue 消费者与原生 WebSocket。附能力对照表、三条判断线，及新项目为何建议直接上 Workers Static Assets。",
+   "words": 1791,
+   "read_time": 4
+  },
+  {
+   "slug": "r2-presigned-upload",
+   "title": "R2 预签名上传实战：浏览器直传与工作区文件管理",
+   "date": "2026-10-22",
+   "category": "Cloudflare",
+   "tags": [
+    "R2",
+    "Cloudflare",
+    "文件上传",
+    "预签名"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp",
+   "excerpt": "Worker 中转撞上 100MB 请求体上限后，渡劫code 切到 R2 预签名直传：Workers 请求量降 87%，成功率升至 99.7%。六个坑逐个拆：CORS 报错、Content-Type 陷阱、中文名编码、孤儿对象对账。",
+   "words": 1806,
+   "read_time": 5
+  },
+  {
+   "slug": "durable-objects-realtime",
+   "title": "Durable Objects 实时协作入门：从一个终端房间说起",
+   "date": "2026-10-22",
+   "category": "Cloudflare",
+   "tags": [
+    "Durable Objects",
+    "WebSocket",
+    "Cloudflare",
+    "实时协作"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/durable-objects-realtime.webp",
+   "excerpt": "几人共享一个浏览器终端，输入实时广播、断线补发历史——核心是让全球连接共享同一份有序状态。200 行最小实现、hibernation 把 DO 时长费从 8 刀降到 1 刀、三次翻车复盘与单实例规模边界实测。",
+   "words": 1988,
+   "read_time": 5
+  },
+  {
+   "slug": "zero-cost-monitoring",
+   "title": "零成本监控体系：CF Analytics、自建状态页与告警机器人",
+   "date": "2026-10-22",
+   "category": "运维",
+   "tags": [
+    "监控",
+    "Cloudflare",
+    "状态页",
+    "告警"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/zero-cost-monitoring.webp",
+   "excerpt": "没有 SRE 的独立开发者怎么守夜：CF Analytics 看趋势、Cron Worker 每 5 分钟探测 8 端点写 KV 渲染状态页、Telegram Bot 心跳式告警。月成本 0 元，附 KV 额度核算与自监控悖论解法。",
+   "words": 1673,
+   "read_time": 4
+  },
+  {
+   "slug": "blog-domain-migration",
+   "title": "域名迁移实战：双路由兼容、三端无损切换与 SEO 承接",
+   "date": "2026-10-22",
+   "category": "运维",
+   "tags": [
+    "域名迁移",
+    "SEO",
+    "301",
+    "DNS"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/blog-domain-migration.webp",
+   "excerpt": "主域从 dujiecone.com 迁到 520691.xyz 的完整复盘：双路由 301 并行、三端按序切换、GSC 变更地址、IndexNow 密钥留旧域 180 天，含下划线主机名导致证书 pending 两小时的故障。",
+   "words": 1876,
+   "read_time": 5
+  },
+  {
+   "slug": "indexnow-bing-google",
+   "title": "IndexNow 提交实战：Bing 秒收与 Google 的等待",
+   "date": "2026-10-22",
+   "category": "运维",
+   "tags": [
+    "SEO",
+    "IndexNow",
+    "Bing"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/indexnow-bing-google.webp",
+   "excerpt": "IndexNow 接入全流程复盘：key 部署、CI 自动推送、Bing CNAME 26 秒验证、SubmitUrlBatch 24 条全 200；Google 不支持 IndexNow，收录只能靠 sitemap 与等待。",
+   "words": 1888,
+   "read_time": 5
+  },
+  {
+   "slug": "turnstile-spam-defense",
+   "title": "评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计",
+   "date": "2026-10-22",
+   "category": "Cloudflare",
+   "tags": [
+    "安全",
+    "Turnstile",
+    "评论"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/turnstile-spam-defense.webp",
+   "excerpt": "评论上线一周 47 条垃圾评论后，接入 Turnstile 的复盘：无感模式、IP 哈希灰度、3 秒超时 fail-open 进审核队列，全量后 8 周零垃圾，附五个真实踩坑。",
+   "words": 1909,
+   "read_time": 5
+  },
+  {
+   "slug": "ai-agent-workflow",
+   "title": "AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点",
+   "date": "2026-10-22",
+   "category": "AI",
+   "tags": [
+    "AI",
+    "工作流",
+    "效率"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/ai-agent-workflow.webp",
+   "excerpt": "一个人加 AI Agent 维护全栈站点的工作流复盘：Spec 四要素压缩需求歧义、模板化批量生成的适用边界、按风险分级的人工审批节点，以及上下文腐烂与审批疲劳的解法。结论：AI 放大的是判断力，不是产出量。",
+   "words": 1693,
+   "read_time": 4
+  },
+  {
+   "slug": "static-site-perf",
+   "title": "静态站性能清单：缓存分层、版本参数与 LCP 优化的每一毫秒",
+   "date": "2026-10-22",
+   "category": "工程实践",
+   "tags": [
+    "性能",
+    "缓存",
+    "LCP"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/static-site-perf.webp",
+   "excerpt": "静态站 LCP 从 2.8s 压到 1.2s 的完整清单：HTML 短缓存与静态资源永久缓存的分层策略、版本参数的取舍、字体子集化与关键 CSS 内联，每一步都附优化前后的真实数据与缓存踩坑。",
+   "words": 1739,
+   "read_time": 4
+  },
+  {
+   "slug": "open-source-side-project",
+   "title": "独立开发者运营开源副项目：从 README 到第一批真实用户",
+   "date": "2026-10-22",
+   "category": "随笔",
+   "tags": [
+    "独立开发",
+    "开源",
+    "运营"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/open-source-side-project.webp",
+   "excerpt": "开源副项目三个月 1.2k star 的运营复盘：README 四版改版把部署转化率从 15% 提到 40%，第一批真实用户来自定向回复而非流量运气，外加 PR 三问与范围控制的血泪教训。",
+   "words": 1632,
+   "read_time": 4
+  },
+  {
+   "slug": "comment-system-design",
+   "title": "从自用到开源：评论系统的数据模型演化与三级状态机",
+   "date": "2026-10-22",
+   "category": "Cloudflare",
+   "tags": [
+    "D1",
+    "架构",
+    "评论"
+   ],
+   "cover": "https://media.520691.xyz/covers/2026v2/comment-system-design.webp",
+   "excerpt": "评论系统数据模型三版演化复盘：从自用裸表到反垃圾状态字段，再到开源多租户改造，最终收敛于 approved/pending/hidden 三级状态机与四条合法流转边。约束下沉数据库，语义上浮应用层。",
+   "words": 1780,
+   "read_time": 4
+  }
+ ]
+}

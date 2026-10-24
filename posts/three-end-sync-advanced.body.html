@@ -1,0 +1,67 @@
+<p><a href="three-end-sync.html">上一篇</a>讲了三端同步的「happy path」：一次 push，CF Pages、GitHub Pages、Gitee 全部更新。但真实世界里，同步系统的难点从来不是搭建，而是<strong>冲突发生时谁说了算、坏了怎么退回去</strong>。这篇记录我们把三端同步从「能跑」打磨到「敢睡」的完整过程。</p>
+
+<h2>铁律：main 是唯一事实源</h2>
+<p>所有冲突的根源都是多写点。我们的纪律：</p>
+<ul>
+  <li>Gitee 仓库<strong>不接收任何直接推送与 PR</strong>，只做 <code>--force</code> 镜像目标，它的 gh-pages 仅作为 Gitee Pages 的源</li>
+  <li>Cloudflare Pages 与 GitHub Pages 都由 GitHub Actions 从 main 部署，本地 <code>wrangler pages deploy</code> 只用于调试</li>
+  <li>内容只进 <code>posts.json</code> 与 <code>posts/*.body.html</code>，HTML 产物由 <code>gen_posts.py</code> 生成——消灭「手改页面与元数据不一致」这类冲突</li>
+</ul>
+<blockquote><p>产物可重新生成，就没有「保留哪一份」的争吵。这是三端同步里最值钱的一条架构决策。</p></blockquote>
+
+<h2>冲突场景与对策</h2>
+
+<h3>1. gh-pages 的孤儿分支竞态</h3>
+<p>部署 job 用 peaceiris/actions-gh-pages 以 <code>force_orphan</code> 推 gh-pages，而镜像 job 需要 <strong>刚刚生成</strong> 的 gh-pages。首次推送时 gh-pages 尚不存在，镜像 job 直接失败。解法是带退避的等待循环，最多等 2 分钟，超时则跳过而非报错——镜像失败不该阻塞主链路：</p>
+<pre><code class="language-bash">for i in $(seq 1 12); do
+  if git fetch origin '+refs/heads/gh-pages:refs/remotes/origin/gh-pages' 2&gt;/dev/null; then
+    echo "gh-pages 已就绪"; exit 0
+  fi
+  echo "等待 gh-pages 生成… ($i/12)"; sleep 10
+done
+echo "gh-pages 等待超时，跳过"</code></pre>
+
+<h3>2. Gitee 拒绝镜像推送</h3>
+<p>早期 <code>git push gitee main:gh-pages</code> 报 <code>deny updating a hidden ref</code>。Gitee 对隐式 refspec 有额外校验，显式写成 <code>refs/remotes/origin/gh-pages:refs/heads/gh-pages</code> 保活推送即可。同时镜像必须 <code>--force</code>：orphan 分支历史与 main 无共同祖先，非强推永远被拒。</p>
+
+<h3>3. 令牌明文被 push protection 拦截</h3>
+<p>GitHub secret scanning 会拦截含 CF 令牌的提交。纪律：文档与 workflow 里一律占位符（<code>cfat_xxx</code>），真实值只进 Secrets；本地误提交用 <code>git filter-repo</code> 清历史并<strong>立即轮换令牌</strong>——扫描拦截只是提醒，进了历史就等于公开。</p>
+
+<h3>4. wrangler 缓存旧账号 ID</h3>
+<p>Pages 部署报 AuthenticationError，真凶是 <code>node_modules/.cache/wrangler/pages.json</code> 缓存了上一个账号的 ID。CI 里每次 fresh checkout 无此问题，本地复现就删 <code>node_modules/.cache/wrangler/</code> 与 <code>~/.config/.wrangler/</code>。</p>
+
+<h2>回滚：每一端都要有独立的后悔药</h2>
+<table>
+  <tr><th>端</th><th>回滚方式</th><th>耗时</th></tr>
+  <tr><td>Cloudflare Pages</td><td>Dashboard → Deployments → 选旧版本 Rollback</td><td>秒级，无需 git 操作</td></tr>
+  <tr><td>Cloudflare Workers</td><td><code>wrangler rollback --version-id &lt;旧版本&gt;</code></td><td>秒级</td></tr>
+  <tr><td>GitHub Pages</td><td>重新 push 旧 commit 到 main，Actions 重跑</td><td>分钟级</td></tr>
+  <tr><td>Gitee Pages</td><td>跟随 GitHub 重推，无需单独操作</td><td>分钟级</td></tr>
+</table>
+<p>Git 层面的回滚优先 <code>git revert</code> 而非 <code>reset --hard + force push</code>：revert 保留历史且对协作者安全；只有确认远端无其他依赖时才 force。D1 的 schema 变更同理——迁移只加不改，回滚代码不回滚表结构，用「新代码兼容旧表」保证可退（评论系统的表结构见<a href="blog-comment-system.html">评论系统实战</a>）。回滚的目标不是「回到过去」，而是「用最短时间恢复服务」：先止损，再复盘，顺序不能反。</p>
+
+<h2>推送后的强制验证</h2>
+<p><code>git push</code> 成功不等于部署成功。我们的收尾检查是硬规矩：</p>
+<pre><code class="language-bash">git push origin main &amp;&amp; git push gitee main:main
+git ls-remote origin main   # 必须等于本地 HEAD
+curl -sI https://www.520691.xyz/ | head -1        # 200
+curl -sI https://gjsvip.github.io/blog/ | head -1 # 200（可能 404：Pages 部署中）</code></pre>
+<ul>
+  <li><strong>绝不用 <code>git push | tail</code> 之类管道收尾</strong>——退出码被管道吞掉，失败也会显示「成功」</li>
+  <li><code>git ls-remote</code> 比对远端 SHA 与本地 HEAD，防「以为推了其实没推」</li>
+  <li>github.com 间歇超时是已知问题，重试最多 6 次、间隔 15 秒，不做无限重试</li>
+  <li>验证脚本本身进仓库，新人第一次推送就能照着跑，不依赖口口相传</li>
+</ul>
+
+<h3>5. CF Pages 缓存导致的「改了没生效」</h3>
+<p>推完站点刷新却还是旧页面，九成是边缘缓存。HTML 缓存短，但 <code>assets/</code> 下的静态资源带长缓存头——改完 CSS 不换文件名，用户就会持续读到旧版。对策是资源文件名带内容哈希，或部署后 <code>curl -sI</code> 核对 <code>cf-cache-status</code> 与 ETag。这类问题本地永远复现不了，因为它只发生在边缘。静态资源的缓存策略与 sitemap 部署的完整流程，见<a href="static-blog-seo.html">静态博客 SEO 全流程</a>。</p>
+
+<h2>预览部署与灰度</h2>
+<p>Cloudflare Pages 会为每个分支与每次 PR 生成独立预览部署（<code>&lt;hash&gt;.gjsvip-blog.pages.dev</code>）。改样式、改模板先用预览链接自测，再合 main——把「合完才发现样式炸了」消灭在评审阶段。Workers 端没有分支概念，灰度靠 <code>wrangler versions upload</code> 上传新版本后按百分比逐步切流量，出问题一键回退旧版本，比直接 <code>deploy</code> 覆盖安全得多。</p>
+<p>Gitee Pages 没有预览机制，也不需要有：它只镜像已验证过的 gh-pages。三端各用适合自己的灰度手段，但<strong>放行标准只有一条：main 上的版本</strong>。每次部署结束，Actions 把本次 commit、三端地址与耗时写进 Step Summary——看不见的部署等于没部署。</p>
+
+<h2>把回滚当成功能测试</h2>
+<p>没演练过的回滚等于没有回滚。我们定期做一次「故障演习」：故意往 main 合入一个明显错误的提交，然后走一遍三条回滚路径——CF Pages Dashboard 回滚、<code>wrangler rollback</code>、<code>git revert</code>——记录每条的耗时与副作用。早前一次 rollback 之后 D1 迁移没有同步退，新旧代码短暂不兼容，于是定下「<strong>迁移只加不退、新代码兼容旧表</strong>」的规矩。回滚的信心是排练出来的，不是文档写出来的。</p>
+
+<h2>小结</h2>
+<p>三端同步的成熟度不看搭建速度，看两件事：<strong>冲突时有没有唯一事实源，出事时每端有没有独立回滚路径</strong>。做到这两点，剩下交给 Actions——它们从不需要睡觉。</p>

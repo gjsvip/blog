@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计 · 渡劫博客</title>
+<meta name="description" content="评论上线一周 47 条垃圾评论后，接入 Turnstile 的复盘：无感模式、IP 哈希灰度、3 秒超时 fail-open 进审核队列，全量后 8 周零垃圾，附五个真实踩坑。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计 · 渡劫博客">
+<meta property="og:description" content="评论上线一周 47 条垃圾评论后，接入 Turnstile 的复盘：无感模式、IP 哈希灰度、3 秒超时 fail-open 进审核队列，全量后 8 周零垃圾，附五个真实踩坑。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/turnstile-spam-defense">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计 · 渡劫博客">
+<meta name="twitter:description" content="评论上线一周 47 条垃圾评论后，接入 Turnstile 的复盘：无感模式、IP 哈希灰度、3 秒超时 fail-open 进审核队列，全量后 8 周零垃圾，附五个真实踩坑。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/turnstile-spam-defense">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计", "description": "评论上线一周 47 条垃圾评论后，接入 Turnstile 的复盘：无感模式、IP 哈希灰度、3 秒超时 fail-open 进审核队列，全量后 8 周零垃圾，附五个真实踩坑。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/turnstile-spam-defense", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "安全, Turnstile, 评论", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/turnstile-spam-defense"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计", "item": "https://www.520691.xyz/posts/turnstile-spam-defense"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计</div>
+
+    <article>
+      <div class="article-header">
+        <h1>评论系统人机校验实战：Turnstile 接入、灰度与 fail-open 设计</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1909 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 5 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/turnstile-spam-defense.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>评论系统上线第一周，我收到了 47 条"评论"。点开之前以为是友好交流，点开之后全是博彩链接、英文药房广告和俄文乱码——唯一一条真人评论还是我自己测试时留的。这篇文章复盘渡劫博客评论系统接入 Cloudflare Turnstile 的完整过程：为什么不用 reCAPTCHA、灰度开关怎么设计、以及最关键的 fail-open 策略——人机校验挂了，评论功能不能跟着陪葬。</p>
+
+<h2>为什么是 Turnstile，不是 reCAPTCHA</h2>
+<p>市面上的方案其实就四类，先过一遍排除法：</p>
+<table>
+<tr><th>方案</th><th>问题</th></tr>
+<tr><td>reCAPTCHA v2</td><td>九宫格图片点到怀疑人生，体验劝退</td></tr>
+<tr><td>reCAPTCHA v3</td><td>无感但依赖 Google 服务，国内访问不稳，隐私叙事也难看</td></tr>
+<tr><td>hCaptcha</td><td>免费档可用，但国内节点同样不稳</td></tr>
+<tr><td>自建（算术题/蜜罐）</td><td>防不住脚本，只防得住最懒的脚本</td></tr>
+</table>
+<p>Turnstile 的优势总结成三条：免费额度对个人站等于无限、国内可稳定访问 challenges.cloudflare.com、隐私叙事干净——用户不需要背着 Google 生态的包袱。它有三种模式：Managed（自动决定是否交互）、Non-interactive（几乎无感，跑一轮浏览器挑战）、Invisible（完全无感）。我们从 Non-interactive 起步，实测大部分真实用户完全感知不到校验的存在。</p>
+
+<h2>接入：三行前端加一次后端验证</h2>
+<p>前端部分就一个 script 加一个容器，Cloudflare 侧创建一个 widget 拿到 sitekey：</p>
+<p>创建 widget 时有两个配置值得说：一是 Mode 的选择——Managed 还是 Non-interactive。我们先用 Managed 灰度观察了几天，后台统计里交互挑战的出现频率不低，果断切到 Non-interactive，误伤率没有可感知的变化；二是 Domains 白名单要精确到具体域名，别图省事填顶级域，否则别人把你的 sitekey 抠走用在别的站，你的风控数据全乱。</p>
+<pre><code class="language-html">&lt;div id="cf-turnstile" data-sitekey="0x4AAAAAAA..." data-theme="auto"&gt;&lt;/div&gt;
+&lt;script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer&gt;&lt;/script&gt;</code></pre>
+<p>提交时从 widget 里取 token，随评论表单一起 POST 给 Worker：</p>
+<pre><code class="language-javascript">const token = turnstile.getResponse(); // 用户停留过久会是空串，见踩坑
+const body = { nickname, email, content, "cf-turnstile-response": token };
+await fetch("/api/comments", { method: "POST", body: JSON.stringify(body) });</code></pre>
+<p>后端在写入 D1 之前调用 siteverify，这是唯一必须的服务端环节：</p>
+<pre><code class="language-javascript">const form = new FormData();
+form.append("secret", env.TURNSTILE_SECRET);
+form.append("response", token);
+if (request.ip) form.append("remoteip", request.ip);
+
+const ac = new AbortController();
+setTimeout(() = ac.abort(), 3000); // 3 秒超时，见 fail-open
+const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+  method: "POST", body: form, signal: ac.signal,
+}).then(r => r.json());
+
+if (!verify.success) return rejected(verify["error-codes"]);</code></pre>
+<p>secret key 只存在于 Worker 环境变量，这一点没有任何商量余地——把 secret 打进前端 bundle 的事故，每年都有人在犯。</p>
+
+<h2>灰度开关：先让 10% 流量试水</h2>
+<p>评论是站的命脉功能之一，最怕的就是校验本身把真人挡在门外。我们设计了一个三级灰度开关，由 Workers 环境变量控制，改配置不需要重新部署：</p>
+<pre><code class="language-typescript">// wrangler.toml
+// [vars] TURNSTILE_ROLLOUT = "10"   → 只对 10% 请求启用
+//         TURNSTILE_ROLLOUT = "100" → 全量
+//         TURNSTILE_ROLLOUT = "0"   → 紧急关闭（fail-open 态）
+const rollout = Number(env.TURNSTILE_ROLLOUT ?? "0");
+const enabled = rollout >= 100 || (rollout &gt; 0 &amp;&amp; hash(request.ip) % 100 &lt; rollout);</code></pre>
+<p>分流用请求 IP 哈希取模，好处是同一用户多次访问结果一致，不会这次让填下次不让。灰度节奏是三天一批：</p>
+<ul>
+<li>第 1-3 天：10%——灰度组 0 垃圾，对照组照旧每天中招，说明 widget 本身在工作；</li>
+<li>第 4-6 天：50%——盯失败率日志，确认没有误伤真实提交；</li>
+<li>第 7 天起：100% 全量，对照组消失，全站受益。</li>
+</ul>
+<p>这里有个细节：灰度期内对照组的存在非常重要。没有对照组，你无法区分"垃圾变少是因为 Turnstile"还是"垃圾本来这周就少"。数据不会撒谎，但没设计过的数据会。</p>
+
+<h2>fail-open：校验挂了，评论不能陪葬</h2>
+<p>这是整个方案里最容易被忽略、宕机时最救命的设计。Turnstile 的 siteverify 是外部依赖，它超时、502、区域性故障，都不该让评论功能整体不可用。我们的策略分三层：</p>
+<ol>
+<li><strong>验证接口 3 秒超时</strong>：用 AbortController 硬切，超时即视为"未知"；</li>
+<li><strong>超时或故障时 fail-open</strong>：评论照常写入 D1，但 status 强制为 <code>pending</code>，进人工审核队列，不直接外显；</li>
+<li><strong>故障必须留痕</strong>：fail-open 事件写日志并计数，超过阈值触发告警——否则一次持续几小时的静默故障，能给你攒出几百条待审。</li>
+</ol>
+<pre><code class="language-typescript">try {
+  const verify = await siteverify(token, ip);
+  if (!verify.success) return reject(verify["error-codes"]);
+  status = "approved";
+} catch (err) {
+  // Turnstile 不可用：放行但进审核，绝不让用户看到 500
+  status = "pending";
+  metrics.incr("turnstile_fail_open");
+  console.warn("turnstile unavailable, fail-open:", err.message);
+}</code></pre>
+<p>fail-open 与 fail-closed 的取舍没有标准答案，取决于评论的公开风险。我们的语境是技术博客、评论先审后发，所以放行进审核队列的代价远低于"全员无法评论"。换成金融、政务类场景，结论可能反过来。</p>
+<p>告警走的是邮件：计数器每 5 分钟聚合一次，超过阈值（我们设的是 10 次）发一封邮件，标题带站点名和触发次数。8 周里这封邮件只响了 2 次，都是验证接口短时超时、几分钟后自愈的情况。知道它响过，比它没响更让人安心。</p>
+
+<h2>灰度之后的数据</h2>
+<table>
+<tr><th>指标</th><th>接入前</th><th>全量后</th></tr>
+<tr><td>周垃圾评论（进 D1 的）</td><td>47 条</td><td>0 条</td></tr>
+<tr><td>真人评论周提交失败次数</td><td>—</td><td>1 次（token 过期，见下）</td></tr>
+<tr><td>fail-open 触发次数（8 周）</td><td>—</td><td>2 次，均为验证接口超时</td></tr>
+<tr><td>admin 后台 pending 队列</td><td>—</td><td>日常为空，故障时短暂堆积</td></tr>
+</table>
+<p>8 周零垃圾入库，这个结果连我自己都有一点意外。需要坦白的是：关键词黑名单仍在工作（"博彩""casino"等词直接拒），Turnstile 是主力但不是唯一防线。纵深防御的意思就是，任何单层失效都不至于崩盘。</p>
+
+<h2>踩坑清单</h2>
+<ul>
+<li><strong>token 五分钟过期</strong>：用户打开评论区去吃了顿饭，回来提交报 <code>timeout-or-duplicate</code>。解法是监听 <code>cf-turnstile</code> 的 expired 回调，自动 <code>turnstile.reset()</code> 并提示用户重试一次；</li>
+<li><strong>token 一次性</strong>：提交失败后用户点"重试"，旧 token 直接失效，报 duplicate。所有失败路径必须先 reset 再允许二次提交；</li>
+<li><strong>remoteip 别忘传</strong>：不传也能验证成功，但传了能让 Cloudflare 侧的风控信号更准，属于免费的情报；</li>
+<li><strong>错误码要翻译成人话</strong>：<code>invalid-input-response</code> 对用户展示应该是"校验已过期，请重试"，而不是把原始错误码糊到界面上；</li>
+<li><strong>灰度时对照组别撤太早</strong>：我们原定第 7 天全量，实际拖到第 10 天，就因为对照组数据还不够稳。</li>
+</ul>
+
+<h2>结论</h2>
+<p>Turnstile 接入本身的工程量小得惊人——真正花时间的是周边的设计：灰度分流保证不放任不管也不冒进，fail-open 保证外部故障不演变成功能事故，日志与计数保证故障"发生过"这件事可见。评论系统是静态站上少有的有状态组件，值得用有状态系统的标准去要求它。下一篇会聊聊这套评论系统的<a href="comment-system-design.html">数据模型演化与三级状态机</a>，看看 D1 里的表是怎么从一张裸表长成现在这样的。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="pages-functions-vs-workers.html"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy"><span class="r-body"><b>Pages Functions vs Workers：静态站动态化的两条路怎么选</b><time>2026-10-22</time></span></a><a class="related-card" href="r2-presigned-upload.html"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy"><span class="r-body"><b>R2 预签名上传实战：浏览器直传与工作区文件管理</b><time>2026-10-22</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

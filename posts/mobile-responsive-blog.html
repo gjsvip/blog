@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放 · 渡劫博客</title>
+<meta name="description" content="两个断点管全站、44px 触控下限、16px 防 iOS 自动缩放、代码块内部横向滚动、safe-area 与 100dvh——静态站移动端适配的完整验收清单。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放 · 渡劫博客">
+<meta property="og:description" content="两个断点管全站、44px 触控下限、16px 防 iOS 自动缩放、代码块内部横向滚动、safe-area 与 100dvh——静态站移动端适配的完整验收清单。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/mobile-responsive-blog">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放 · 渡劫博客">
+<meta name="twitter:description" content="两个断点管全站、44px 触控下限、16px 防 iOS 自动缩放、代码块内部横向滚动、safe-area 与 100dvh——静态站移动端适配的完整验收清单。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/mobile-responsive-blog">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放", "description": "两个断点管全站、44px 触控下限、16px 防 iOS 自动缩放、代码块内部横向滚动、safe-area 与 100dvh——静态站移动端适配的完整验收清单。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/mobile-responsive-blog", "datePublished": "2026-10-20", "dateModified": "2026-10-20", "inLanguage": "zh-CN", "keywords": "移动端, 响应式, CSS, 博客", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/mobile-responsive-blog"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放", "item": "https://www.520691.xyz/posts/mobile-responsive-blog"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放</div>
+
+    <article>
+      <div class="article-header">
+        <h1>静态博客移动端适配实战：断点体系、触控区与 iOS 输入框缩放</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-20</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>实战</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1462 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/mobile-responsive-blog.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>渡劫博客的读者里，超过一半来自手机。静态站没有框架兜底，移动端适配全是硬功夫：断点体系、触控热区、iOS 的输入框自动缩放、代码块的横向滚动……这篇把我们的适配清单完整交出，全部来自真实代码，不是纸上谈兵。</p>
+
+<h2>断点体系：两个值管全站</h2>
+<p>我们的 CSS 变量与媒体查询只认两个断点：<code>640px</code>（手机）与 <code>900px</code>（平板/窄桌面）。超过 900px 走 <code>1fr 260px</code> 双栏，以下全部单栏。断点贵精不贵多——每个断点都要有对应的布局决策，否则就是自找麻烦：</p>
+<pre><code class="language-css">@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr !important; }   /* 侧栏下沉 */
+  .side { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .nav { display: none; }                    /* 导航折叠为抽屉 */
+  .menu-toggle { display: grid; }
+  .side { grid-template-columns: 1fr; }
+  .article-cover { font-size: 64px; }
+}</code></pre>
+
+<h2>触控区：44px 是尊严</h2>
+<p>鼠标时代 20px 的点击目标很舒服，手指时代这是灾难。Apple HIG 与 WCAG 都建议最小 44×44px。我们的按钮、抽屉菜单项、返回顶部全部按这个下限设计，并用 <code>:active</code> 给出即时反馈——移动端没有 hover，按下的那一瞬间必须有视觉响应：</p>
+<pre><code class="language-css">.icon-btn { min-width: 44px; min-height: 44px; display: grid; place-items: center; }
+.icon-btn:active { transform: scale(0.92); background: var(--grad-soft); }
+
+/* 去掉移动端点击高亮块，用自定义反馈替代 */
+* { -webkit-tap-highlight-color: transparent; }</code></pre>
+<p>抽屉菜单（<code>menu-toggle</code>）展开后锁定 body 滚动，点击遮罩或任一菜单项即关——这两处细节漏一个，就会被用户当成 bug。</p>
+
+<h2>iOS 输入框缩放：16px 红线</h2>
+<p>这是移动端最隐蔽的坑：iOS Safari 会在 <strong>输入框 font-size 小于 16px 且获得焦点时自动放大整个页面</strong>，用户敲完字还得 pinch 回去。评论区是重灾区——我们的昵称、邮箱、正文三个输入框全部锁死 16px：</p>
+<pre><code class="language-css">.comment-form input,
+.comment-form textarea { font-size: 16px; }  /* &lt; 16px 会触发 iOS 自动缩放 */</code></pre>
+<p>同理，viewport 必须声明 <code>width=device-width, initial-scale=1.0</code>，并在 html 上加 <code>-webkit-text-size-adjust: 100%</code>，防止横竖屏切换时文字被二次放大。</p>
+
+<h2>代码块：横向滚动，绝不撑破布局</h2>
+<p>技术博客的 <code>&lt;pre&gt;</code> 在 375px 宽度下必然溢出。正确处理是让代码块自己横向滚动，而不是把 body 撑出白边：</p>
+<pre><code class="language-css">.article-body pre {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;   /* 滚动到顶不触发父级/浏览器返回手势 */
+  -webkit-overflow-scrolling: touch;
+}</code></pre>
+<p>配合复制按钮常驻（移动端 hover 不存在，不能靠 hover 才显示），长按代码选中也不再顺带把页面拖走。</p>
+
+<h2>安全区与动态视口</h2>
+<ul>
+  <li><strong><code>env(safe-area-inset-*)</code></strong>：iPhone 的刘海与底部横条会遮住返回顶部按钮和底栏，用 <code>padding-bottom: env(safe-area-inset-bottom)</code> 让内容避开</li>
+  <li><strong><code>100dvh</code></strong>：移动端浏览器工具栏会伸缩，<code>100vh</code> 在 Safari 上算出错高度，全屏元素改用 <code>100dvh</code></li>
+  <li><strong>hover 隔离</strong>：所有 hover 特效包在 <code>@media (hover: hover)</code> 里，否则触屏上「点了不松手」会一直挂着悬停态</li>
+  <li><strong>图片与 emoji</strong>：<code>max-width: 100%; height: auto;</code> 一条不能少，emoji 封面随断点缩放</li>
+</ul>
+
+<h2>表单与输入法</h2>
+<p>移动端输入是比点击更精细的活。评论表单用 <code>inputmode</code> 与 <code>enterkeyhint</code> 引导正确键盘：邮箱框 <code>inputmode="email"</code> 直接弹出带 @ 的键盘，昵称框 <code>enterkeyhint="next"</code> 跳到下一项；<code>autocomplete</code> 让浏览器记住常用信息。iOS 的软键盘会遮住半个屏幕，所以提交按钮必须相对表单固定，而不是死在页面底部——用户敲完字找不到按钮，就会直接离开。</p>
+<p>emoji 面板在移动端应改为上滑出现的底部抽屉，格子不小于 44px。这些交互没有标准答案，唯一的标准是<strong>真机上顺手</strong>——模拟器永远测不出软键盘的狰狞。</p>
+
+<h2>排版：小屏的可读性</h2>
+<p>正文字号移动端不低于 15px、行高 1.8，段间距用 margin 而非空行；辅助文字避免小于 14px。标题层级在移动端整体降一档视觉重量，h2 从 21px 降到 18px，保证一屏放得下一个小节。窄屏一行最多 20–25 个中文字，超过就手动断句或拆表——表格在 375px 下要么精简列数，要么外包一层 <code>overflow-x:auto</code>。图片统一 <code>loading="lazy"</code> 与 <code>decoding="async"</code>，首屏之外的资源不抢带宽；加载中用骨架屏占位，比转圈圈更能安抚等待。</p>
+
+<h2>真机测试：最后一道工序</h2>
+<p>所有清单都抵不过真机上划两分钟。最低覆盖：一台 iPhone（Safari，验证 16px 红线、safe-area、橡皮筋滚动）加一台 Android（Chrome，验证软键盘、输入法与触控反馈）。两家输入法的行为并不一致——只测一种等于没测。浏览器 DevTools 的设备模式用来查布局，查交互永远靠真机。每次适配完，在群里发个链接让朋友用手机点一遍，比任何测试用例都直接。</p>
+
+<h2>适配验收清单</h2>
+<table>
+  <tr><th>检查项</th><th>标准</th></tr>
+  <tr><td>375px 宽度无横向滚动条</td><td>代码块内部滚，页面不滚</td></tr>
+  <tr><td>所有可点目标 ≥ 44px</td><td>含抽屉、返回顶部、复制按钮</td></tr>
+  <tr><td>聚焦输入框页面不放大</td><td>font-size ≥ 16px</td></tr>
+  <tr><td>评论区可正常提交</td><td>真机提交一条验证 API 链路</td></tr>
+  <tr><td>横屏可用</td><td>双栏在 900px 断点正确切换</td></tr>
+</table>
+<p>评论区在移动端的提交链路，与<a href="blog-comment-system.html">评论系统</a>共用同一套 D1 + Worker API；静态站的工程化产出方式则见<a href="static-blog-seo.html">SEO 全流程</a>。</p>
+
+<h2>小结</h2>
+<p>移动端适配没有银弹，只有清单：断点收敛、触控区达标、iOS 红线不碰、溢出内容自己滚、安全区留够。每条都是几行 CSS，凑在一起就是「在手机上敢发给朋友看」的站点。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

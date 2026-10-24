@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交 · 渡劫博客</title>
+<meta name="description" content="软 404 治理、sitemap 三条纪律（只收主域/lastmod 真实/形态与 canonical 一致）、RFC-822 pubDate、JSON-LD 与 IndexNow 提交——个人站点能做的最大技术 SEO。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交 · 渡劫博客">
+<meta property="og:description" content="软 404 治理、sitemap 三条纪律（只收主域/lastmod 真实/形态与 canonical 一致）、RFC-822 pubDate、JSON-LD 与 IndexNow 提交——个人站点能做的最大技术 SEO。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/static-blog-seo">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交 · 渡劫博客">
+<meta name="twitter:description" content="软 404 治理、sitemap 三条纪律（只收主域/lastmod 真实/形态与 canonical 一致）、RFC-822 pubDate、JSON-LD 与 IndexNow 提交——个人站点能做的最大技术 SEO。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/static-blog-seo">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交", "description": "软 404 治理、sitemap 三条纪律（只收主域/lastmod 真实/形态与 canonical 一致）、RFC-822 pubDate、JSON-LD 与 IndexNow 提交——个人站点能做的最大技术 SEO。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/static-blog-seo", "datePublished": "2026-10-20", "dateModified": "2026-10-20", "inLanguage": "zh-CN", "keywords": "SEO, sitemap, RSS, IndexNow", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/static-blog-seo"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交", "item": "https://www.520691.xyz/posts/static-blog-seo"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交</div>
+
+    <article>
+      <div class="article-header">
+        <h1>静态博客 SEO 全流程：sitemap、RSS、结构化数据与收录提交</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-20</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>教程</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1504 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>静态博客没有后端，但 SEO 的要求一样不少。这篇把渡劫博客的完整 SEO 流程摊开讲：<strong>软 404 治理、sitemap 纪律、RSS 规范、结构化数据、收录提交</strong>，以及我们刚踩过的一个真实大坑——把 GitHub Pages 的 URL 混进了主域 sitemap。</p>
+
+<h2>第一课：软 404 比 404 更伤站</h2>
+<p>所谓软 404，是服务器对不存在的路径返回 <code>200 + text/html</code>。我们之前的 CF Pages 站点没有根级 <code>404.html</code>，访问 <code>/assets/avatar.png</code> 这类错路径会拿到 <strong>200 状态的 index.html 内容</strong>。搜索引擎的判罚很直接：全站不同 URL 返回同一内容 = 重复页 + 低质量信号，收录会被系统性压制。</p>
+<p>修复只需一步：在站点根目录放一个真正的 <code>404.html</code>。CF Pages 检测到根路径存在该文件后，对未命中路径返回它并带上 <code>404</code> 状态码：</p>
+<pre><code class="language-bash">curl -sI https://www.520691.xyz/assets/avatar.png
+# HTTP/2 404   ← 修复后
+curl -sI https://www.520691.xyz/404.html
+# HTTP/2 200   ← 页面本身可访问</code></pre>
+<p>同时给 404 页加 <code>&lt;meta name="robots" content="noindex"&gt;</code>，并提供返回首页与站内搜索入口，把迷路流量导回内容。</p>
+
+<h2>sitemap 的三条纪律</h2>
+<ul>
+  <li><strong>只收主域</strong>：sitemap 是「这个文件描述这些 URL」的契约。把 <code>gjsvip.github.io</code> 的 URL 写进 <code>www.520691.xyz</code> 的 sitemap，搜索引擎要么忽略、要么判定跨域作弊。GitHub 端需要覆盖就单独出 <code>sitemap-github.xml</code></li>
+  <li><strong>lastmod 必须真实</strong>：全部写成同一天等于没写。文章的 lastmod 取 <code>posts.json</code> 里的 date，静态页用 <code>git log -1 --format=%cs -- &lt;文件&gt;</code> 取真实修改日期</li>
+  <li><strong>URL 形态与 canonical 一致</strong>：CF Pages 支持无扩展名 URL（<code>/posts/hello-world</code>），canonical 与 sitemap 就都写无扩展名；GitHub Pages 不支持，所以它的 sitemap 用 <code>.html</code> 形态</li>
+</ul>
+<pre><code class="language-xml">&lt;url&gt;
+  &lt;loc&gt;https://www.520691.xyz/posts/hello-world&lt;/loc&gt;
+  &lt;lastmod&gt;2024-12-26&lt;/lastmod&gt;
+  &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+  &lt;priority&gt;0.8&lt;/priority&gt;
+&lt;/url&gt;</code></pre>
+<p>priority 按页面类型分层：首页 1.0、文章 0.8、归档/标签 0.5、说说/友链/关于 0.4——它只是权重提示，但保持一致性本身就是质量信号。</p>
+
+<h2>robots.txt 与双向声明</h2>
+<p>robots.txt 放行全站，并用 Sitemap 指令声明两个入口（robots.txt 允许多条 Sitemap 行）：</p>
+<pre><code class="language-bash">User-agent: *
+Allow: /
+
+Sitemap: https://www.520691.xyz/sitemap.xml
+Sitemap: https://gjsvip.github.io/blog/sitemap-github.xml</code></pre>
+
+<h2>RSS：把 pubDate 当契约</h2>
+<p>RSS 2.0 要求 <code>pubDate</code> 是 RFC-822 格式，写错的后果是聚合器直接丢弃整条 item。我们的生成规则：文章 date 加 <code>08:00:00 +0800</code>，星期几由程序计算，不手写：</p>
+<pre><code class="language-bash">&lt;pubDate&gt;Wed, 21 Oct 2026 08:00:00 +0800&lt;/pubDate&gt;</code></pre>
+<p>channel 里保留 <code>atom:link rel="self"</code> 指向 RSS 自身，防止订阅源被镜像站抓走改成它们的地址。</p>
+
+<h2>结构化数据与 OG</h2>
+<p>每篇博客文章页嵌 BlogPosting JSON-LD，首页嵌 Blog，配合完整的 OG 标签。关键原则：<strong>og:url 与 canonical 保持同一个值</strong>，否则搜索引擎要在两个「官方地址」之间猜：</p>
+<pre><code class="language-json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "静态博客 SEO 全流程",
+  "datePublished": "2026-10-21",
+  "author": { "@type": "Person", "name": "gjsvip" },
+  "mainEntityOfPage": "https://www.520691.xyz/posts/static-blog-seo"
+}</code></pre>
+<p>这些字段现在由 <code>gen_posts.py</code> 从 posts.json 自动生成，杜绝手写页面漏配——文章模板化的完整方案见<a href="ai-coding-agent.html">工作台架构</a>一文里的工程化思路。</p>
+
+<h2>收录提交</h2>
+<ul>
+  <li><strong>IndexNow</strong>：新文章发布后主动推送给接入的搜索引擎（key 文件托管各站根路径），当天可见收录——机制见<a href="three-end-sync.html">三端同步架构记</a></li>
+  <li><strong>Search Console</strong>：提交 sitemap，盯「网页编入索引」覆盖率，软 404 会在「已抓取 – 尚未编入索引」里现形</li>
+  <li><strong>内链</strong>：归档页、标签页、相关文章全部静态可达，保证爬虫三跳内到达任何文章</li>
+</ul>
+
+<h2>内容层面的 SEO</h2>
+<p>技术 SEO 之外，内容纪律同样影响收录。每篇只谈一个明确主题，标题含关键词但不堆砌；内链锚文本用描述性文字，不写「点击这里」。每篇文章的 description 是搜索结果里的免费广告位，把摘要写成「这篇解决什么问题」，而不是复述标题——标题党换来点击，换不回回访，搜索引擎的停留指标最终会惩罚它。归档页与标签页给每篇文章多个静态入口，配合文章间的相关链接，爬虫三跳内可以到达任何页面——对没有外链积累的新站，这是最廉价的抓取保障。</p>
+<p>重复内容是静态博客的隐形杀手：www 与 apex、http 与 https 必须 301 归一。我们全部收拢到 <code>https://www.520691.xyz</code>，canonical、og:url、sitemap 三处口径一致，杜绝搜索引擎「精神分裂」。修订旧文章时，同步刷新它的 lastmod——搜索引擎对「声明更新但内容没动」的页面会逐渐失去信任。</p>
+<p>结构化数据写完要用 Google Rich Results Test 验证：JSON-LD 有语法错误时是<strong>静默失效</strong>的，不测等于没写。收录本身以周计，个人站最需要的是耐心——把地基做对，然后继续写。</p>
+
+<h2>提交之后的观察</h2>
+<p>提交 sitemap 只是开始。每周看一次 Search Console 的覆盖率报告，三类信号各有含义：sitemap 报错是「文件坏了」，已抓取未索引是「质量存疑」，软 404 是「状态码错了」。我们的软 404 当初就是在这张表里现形的——根目录补上 404.html 后两周，「已抓取 – 尚未编入索引」的数量肉眼可见地下降。数据不会说谎，但它只会回答你真正在看的问题。</p>
+
+<h2>效果与复盘</h2>
+<p>这轮治理后：主域 sitemap 只含 12 篇文章 + 6 个静态页，每条 lastmod 可溯源；错路径统一 404；RSS 全部合法。SEO 没有黑魔法，<strong>把每个「诚实声明」做到位</strong>——状态码、日期、canonical——就是个人站点能做的最大的技术 SEO。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

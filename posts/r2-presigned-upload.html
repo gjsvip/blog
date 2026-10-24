@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R2 预签名上传实战：浏览器直传与工作区文件管理 · 渡劫博客</title>
+<meta name="description" content="Worker 中转撞上 100MB 请求体上限后，渡劫code 切到 R2 预签名直传：Workers 请求量降 87%，成功率升至 99.7%。六个坑逐个拆：CORS 报错、Content-Type 陷阱、中文名编码、孤儿对象对账。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="R2 预签名上传实战：浏览器直传与工作区文件管理 · 渡劫博客">
+<meta property="og:description" content="Worker 中转撞上 100MB 请求体上限后，渡劫code 切到 R2 预签名直传：Workers 请求量降 87%，成功率升至 99.7%。六个坑逐个拆：CORS 报错、Content-Type 陷阱、中文名编码、孤儿对象对账。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/r2-presigned-upload">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="R2 预签名上传实战：浏览器直传与工作区文件管理 · 渡劫博客">
+<meta name="twitter:description" content="Worker 中转撞上 100MB 请求体上限后，渡劫code 切到 R2 预签名直传：Workers 请求量降 87%，成功率升至 99.7%。六个坑逐个拆：CORS 报错、Content-Type 陷阱、中文名编码、孤儿对象对账。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/r2-presigned-upload">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "R2 预签名上传实战：浏览器直传与工作区文件管理", "description": "Worker 中转撞上 100MB 请求体上限后，渡劫code 切到 R2 预签名直传：Workers 请求量降 87%，成功率升至 99.7%。六个坑逐个拆：CORS 报错、Content-Type 陷阱、中文名编码、孤儿对象对账。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/r2-presigned-upload", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "R2, Cloudflare, 文件上传, 预签名", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/r2-presigned-upload"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "R2 预签名上传实战：浏览器直传与工作区文件管理", "item": "https://www.520691.xyz/posts/r2-presigned-upload"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>R2 预签名上传实战：浏览器直传与工作区文件管理</div>
+
+    <article>
+      <div class="article-header">
+        <h1>R2 预签名上传实战：浏览器直传与工作区文件管理</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1806 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 5 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>渡劫code 的工作区要支持用户上传文件：代码片段、图片、打包产物。第一版图省事走 Worker 中转——浏览器 POST 给 Worker，Worker 再 PUT 进 R2。上线两周就撞墙：Cloudflare 账户在 Free/Pro 计划下<strong>请求体上限 100MB</strong>，大文件直接 413；而且中转意味着流量双倍走、免费额度下的 CPU 时间也白白消耗，传几个大文件就见底了。这篇讲我们切到 <strong>R2 S3 API 预签名直传</strong> 的完整方案：Worker 只当「签发机构」，数据一个字节都不经过 Worker。</p>
+
+<h2>一、方案对比：上传的三条路</h2>
+
+<table>
+<thead><tr><th>方案</th><th>优点</th><th>硬伤</th><th>适用</th></tr></thead>
+<tbody>
+<tr><td>Worker 中转</td><td>简单、可校验内容、能直接写元数据</td><td>请求体 100MB 上限；流量与 CPU 双倍计费</td><td>&lt;10MB 的小文件、内部工具</td></tr>
+<tr><td>预签名 PUT 直传</td><td>浏览器直连 R2；Worker 只签个名</td><td>需处理 CORS、签名细节；单次 PUT 上限 5GB</td><td>10MB–5GB，绝大多数场景</td></tr>
+<tr><td>Multipart 分片</td><td>支持超大文件、可断点续传</td><td>三接口编排（initiate/part/complete）复杂度高</td><td>&gt;5GB 或弱网环境</td></tr>
+</tbody>
+</table>
+
+<p>我们的选择：<strong>50MB 以下走预签名 PUT，超过走分片</strong>。这篇先把主战场——预签名 PUT 讲透。</p>
+
+<h2>二、Worker 签发预签名 URL</h2>
+
+<p>R2 兼容 S3 API，用 <code>aws4fetch</code> 库（专为 Workers 设计，基于 Web API，不需要 Node 环境）。密钥用 R2 API Token，权限限定「对象读写 + 指定 bucket」，别用主账号密钥：</p>
+
+<pre><code class="language-typescript">import { AwsClient } from 'aws4fetch';
+
+const r2 = new AwsClient({
+  accessKeyId: env.R2_ACCESS_KEY_ID,
+  secretAccessKey: env.R2_SECRET_ACCESS_KEY,
+  service: 's3',
+  region: 'auto', // R2 固定 auto
+});
+
+// POST /api/upload/presign
+app.post('/api/upload/presign', async (c) =&gt; {
+  const user = await auth(c); // JWT 会话，见边缘安全实践
+  const { filename, size } = await c.req.json();
+
+  if (size &gt; 50 * 1024 * 1024) return c.json({ error: 'too_large' }, 413);
+
+  // key 服务端生成：用户前缀隔离 + UUID 防猜测 + 文件名编码
+  const key = `workspaces/${user.id}/${crypto.randomUUID()}/${encodeURIComponent(filename)}`;
+
+  const url = new URL(
+    `https://${env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.R2_BUCKET}/${key}`
+  );
+  // 过期时间走查询参数，单位秒，SigV4 上限 7 天
+  url.searchParams.set('X-Amz-Expires', '900'); // 15 分钟
+
+  const signed = await r2.sign(new Request(url, { method: 'PUT' }), {
+    aws: { signQuery: true },
+  });
+
+  return c.json({ url: signed.url, key });
+});</code></pre>
+
+<p>注意 <code>X-Amz-Expires</code> 是拼在 URL 上的查询参数再签名，不是 <code>sign()</code> 的选项——aws4fetch 的 README 示例就是这么写的，我第一版找个假 API 参数折腾了半小时。另外 <code>signQuery: true</code> 时<strong>只有 host 头进签名</strong>（返回的 URL 里 <code>X-Amz-SignedHeaders=host</code>），这一点是后面所有坑的根源。</p>
+
+<h2>三、浏览器直传</h2>
+
+<p>前端拿到预签名 URL 后直接 PUT。用 XHR 而不是 fetch，是为了拿上传进度条：</p>
+
+<pre><code class="language-typescript">function uploadFile(file: File, presignUrl: string, onProgress: (p: number) =&gt; void) {
+  return new Promise&lt;void&gt;((resolve, reject) =&gt; {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', presignUrl);
+    // 注意：不要手动设 Content-Type，让浏览器按 file.type 自动加
+    xhr.upload.onprogress = (e) =&gt; e.lengthComputable &amp;&amp; onProgress(e.loaded / e.total);
+    xhr.onload = () =&gt; (xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`)));
+    xhr.onerror = () =&gt; reject(new Error('network'));
+    xhr.send(file);
+  });
+}</code></pre>
+
+<p>上传成功后前端再回调我们自己的 API，把 key、大小、类型写进 D1 的 <code>files</code> 表——<strong>对象存储和元数据必须分两步</strong>，这是后面坑四的伏笔。</p>
+
+<h2>四、踩坑实录</h2>
+
+<h3>坑 1：CORS 没配，一切免谈</h3>
+
+<p>浏览器跨域 PUT 到 R2，bucket 不配 CORS 全部报 <code>No 'Access-Control-Allow-Origin'</code>。R2 的 CORS 策略用 wrangler 下发：</p>
+
+<pre><code class="language-bash">npx wrangler r2 bucket cors put dujiecode-files --file cors.json</code></pre>
+
+<pre><code class="language-json">{
+  "rules": [{
+    "allowedOrigins": ["https://dujiecode.com"],
+    "allowedMethods": ["PUT", "GET"],
+    "allowedHeaders": ["*"],
+    "exposeHeaders": ["ETag"],
+    "maxAgeSeconds": 3600
+  }]
+}</code></pre>
+
+<h3>坑 2：CORS 报错和签名报错，长得一模一样</h3>
+
+<p>最迷惑的现象：签名错了，浏览器报的也是 CORS 错误。因为 403 响应没带 CORS 头，浏览器就把底层错误吞掉显示成跨域失败。我们的排查口诀：<strong>先用 curl 同源直传验证签名，再上浏览器测跨域</strong>。同源 curl 能过、浏览器挂，问题在 CORS；curl 都挂，问题在签名。</p>
+
+<h3>坑 3：Content-Type 陷阱</h3>
+
+<p>因为 <code>signQuery</code> 只签 host，如果你在签名时把 <code>Content-Type</code> 签进去，浏览器 PUT 时又没带（或带了不一样的值），R2 直接 <code>SignatureDoesNotMatch</code>。我们的策略是<strong>不签 Content-Type</strong>，浏览器按文件类型自动加，R2 存下来的 content-type 仍然正确。代价是无法用签名约束类型，类型校验放在我们自己的 API 层做（按文件扩展名 + magic number 双校验）。</p>
+
+<h3>坑 4：中文文件名的编码地狱</h3>
+
+<p>用户上传「测试报告.docx」，前端直接把原始文件名拼进 key 签名——SigV4 对路径编码极其敏感，浏览器自动编码一次、签名算一次，两边不一致就 403。我们的规矩：<strong>key 一律服务端生成</strong>，文件名 <code>encodeURIComponent</code> 后作为 key 一部分，原始文件名另外存进 D1 元数据表。下载时服务端重新签发 GET 预签名 URL，Content-Disposition 里带原始文件名。前端永远碰不到 key 的生成逻辑，这个坑就彻底消失了。</p>
+
+<h3>坑 5：预签名 URL 的泄漏面</h3>
+
+<p>URL 出现在浏览器网络面板、前端日志、甚至用户截图里。缓解三件套：过期 15 分钟（够慢网传完 50MB）、key 带 UUID 随机段（猜不到相邻文件）、访问日志不记录完整 query string。真正敏感的场景（合同、身份证件），正确做法是 bucket 私有 + 下载也走签名 GET，一秒都不公开。</p>
+
+<h3>坑 6：对象和元数据的一致性</h3>
+
+<p>PUT 成功但写 D1 失败的瞬间，系统里就有一个「孤儿对象」；反过来先写元数据后传失败，就是「幽灵记录」。我们的取舍：<strong>先传对象、再写元数据</strong>（用户可感知完成态），配一个每天跑的 Cron 对账任务——扫 R2 里超过 24 小时无对应 D1 记录的对象，删掉。删除走「先删记录、再删对象」，避免记录没了对象还在。</p>
+
+<h2>五、数字：直传到底省了多少</h2>
+
+<p>渡劫code 工作区当前状态：R2 存储 <strong>4.2GB</strong>、对象 <strong>1.1 万个</strong>、日均上传 <strong>120 次</strong>、日均下载 <strong>900 次</strong>。切到预签名直传前后的对比：</p>
+
+<table>
+<thead><tr><th>指标</th><th>Worker 中转（前）</th><th>预签名直传（后）</th></tr></thead>
+<tbody>
+<tr><td>Workers 日均请求</td><td>约 3.1 万（含上传下载）</td><td>约 4000（只剩签发和下载代理）</td></tr>
+<tr><td>免费额度占用</td><td>31%</td><td>4%</td></tr>
+<tr><td>单文件大小上限</td><td>100MB（硬顶）</td><td>5GB（R2 单 PUT 上限）</td></tr>
+<tr><td>上传成功率</td><td>96.2%（413 + 超时）</td><td>99.7%</td></tr>
+</tbody>
+</table>
+
+<p>R2 免费额度是 10GB 存储/月、Class A（写）100 万次/月、Class B（读）1000 万次/月。我们 Class B 月均 27 万次，占 2.7%——<strong>直传模式最大的节省其实是 Workers 请求数</strong>，从 31% 降到 4%，等于给免费额度续了命。上传成功率从 96.2% 到 99.7% 是意外之喜，413 和 Worker 超时这两类错误直接归零。</p>
+
+<h2>小结</h2>
+
+<p>预签名直传的核心思想一句话：<strong>Worker 当签发机构，不当搬运工</strong>。三条铁律记住就能避开九成坑：key 服务端生成并做用户前缀隔离、Content-Type 不签进签名、文件名先编码再进 key。CORS 先配再测、签名用 curl 同源验、元数据与对象分离靠 Cron 对账——做到这些，浏览器直传 R2 就是独立开发者能白嫖到的最香上传方案。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="pages-functions-vs-workers.html"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy"><span class="r-body"><b>Pages Functions vs Workers：静态站动态化的两条路怎么选</b><time>2026-10-22</time></span></a><a class="related-card" href="durable-objects-realtime.html"><img src="https://media.520691.xyz/covers/2026v2/durable-objects-realtime.webp" alt="" loading="lazy"><span class="r-body"><b>Durable Objects 实时协作入门：从一个终端房间说起</b><time>2026-10-22</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

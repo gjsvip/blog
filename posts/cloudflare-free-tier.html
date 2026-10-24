@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法 · 渡劫博客</title>
+<meta name="description" content="月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法 · 渡劫博客">
+<meta property="og:description" content="月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/cloudflare-free-tier">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法 · 渡劫博客">
+<meta name="twitter:description" content="月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/cloudflare-free-tier">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法", "description": "月账单 0 元不是运气：10 万 Workers 请求/天、1,000 KV 写/天、500 万 D1 行读/天、10GB R2 出流量免费——逐项拆免费额度边界，以及渡劫code 和博客是怎么设计成「永远用不超」的。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/cloudflare-free-tier", "datePublished": "2026-10-21", "dateModified": "2026-10-21", "inLanguage": "zh-CN", "keywords": "Cloudflare, 免费额度, Workers, 成本", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/cloudflare-free-tier"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法", "item": "https://www.520691.xyz/posts/cloudflare-free-tier"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-21</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>实战</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1391 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 3 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>独立开发者一年复盘里我写过「月度账单 0 元」。很多人问怎么做到的——答案不是省，是<strong>掐着免费额度的线做架构设计</strong>。这篇把 Cloudflare 免费档的边界逐项拆开，讲讲我们的用量模型，以及第一个会炸的地方到底在哪。</p>
+
+<h2>免费额度总表</h2>
+<table>
+  <tr><th>产品</th><th>免费档额度（2026-10 核对）</th><th>我们的用途</th></tr>
+  <tr><td>Workers</td><td>10 万请求/天，单次 10ms CPU</td><td>全部 API + 渡劫code 后端</td></tr>
+  <tr><td>Pages</td><td>不限带宽与请求数</td><td>博客三端静态站</td></tr>
+  <tr><td>KV</td><td>10 万读/天、1,000 写/天、1 GiB 存储</td><td>会话、限流桶</td></tr>
+  <tr><td>D1</td><td>5 GiB 存储、500 万行读/天、10 万行写/天</td><td>评论/点赞/浏览/说说</td></tr>
+  <tr><td>R2</td><td>10 GiB 存储/月；Class A 100 万次/月、Class B 1,000 万次/月；出流量永久免费</td><td>工作区文件</td></tr>
+  <tr><td>Durable Objects</td><td>随 Workers 请求池，按请求 + GB-s 时长计费</td><td>TerminalRoom 终端房间</td></tr>
+</table>
+<p>数字以官方文档与 Dashboard 实时显示为准，免费档策略会变，但用法不会变：<strong>读走缓存、写走批处理、大文件走对象存储</strong>。先读额度表再画架构图，顺序反了等于裸奔。</p>
+
+<h2>Workers 请求数：最舒服的一项</h2>
+<p>10 万请求/天对个人项目是天文数字——摊到每小时只有 4,166 次。渡劫code 全部 API、博客评论系统、三端静态站的动态部分都走 Worker，内测期日请求量离上限差两个数量级。</p>
+<p>真正的风险不是总量，是<strong>单次 10ms CPU</strong>：LLM 流式响应的拼装、大 JSON 序列化、没走索引的 join 都可能超。我们的对策是流式响应不缓冲、重活扔给异步上下文——在 Workers 里，CPU 时间才是隐形货币，请求数只是明码标价的那个。</p>
+
+<h2>KV：读写不对称，写才是天花板</h2>
+<p>KV 的免费档极度不对称：读 10 万/天，写只有 1,000/天。我们的 KV 用法有三处：登录写 session、每次 API 请求写限流桶（<code>ratelimit:api:{userId}:{minuteBucket}</code>）、登出删 session。</p>
+<p>问题就在第二处：<strong>限流桶意味着每一次 API 调用都伴随一次 KV 写</strong>。1,000 次写/天，相当于 API 请求持续上限约每 86 秒一次——个人项目随便用，但这是全站第一个会触顶的额度，比 Workers 请求数早得多撞墙。</p>
+<p>预案有两种：限流计数降级为 isolate 本地内存（牺牲跨实例精度换零成本，适合个人站的量级），或在 KV 写失败时直接放行（限流降级为尽力而为）。<strong>限流组件自己成为单点，是架构里最尴尬的死法</strong>——所以这项用量我们列进了重点监控，撞墙之前就该看到曲线抬头。</p>
+
+<h2>D1：为「读多写少」而生</h2>
+<p>评论系统的数据模型完美命中 D1 甜蜜点：5 GiB 存储对文本评论是另一个天文数字；500 万行读/天覆盖任意量级的页面浏览；10 万行写/天——按评论接口 2 条/分钟/指纹的限流算，要把写额度烧满需要连续 69 天不间断被人发评论，真到那天高兴还来不及。</p>
+<p>D1 的优化纪律（batch 即事务、keyset 分页、索引先行）在 <a href="d1-sqlite-edge.html">D1 实战</a>里写过，这里只补一句成本视角：<strong>行读按行计费，深分页是烧额度最快的写法</strong>——OFFSET 翻一页就多读一段废行。优化手段和免费额度同向，这种巧合是选型选对了的信号。</p>
+
+<h2>R2：出流量免费改变一切</h2>
+<p>R2 最被低估的一条是<strong>出流量（egress）永久免费</strong>。S3 系存储的账单大头从来不是存储，是流量。个人项目把用户上传、头像、工作区文件放 R2，等于把最不可控的成本项直接归零。10 GiB 存储对代码工作区文件是起步容量，Class A/B 操作限额（100 万/1,000 万次每月）对 CRUD 型用法几乎无感。</p>
+<p>渡劫code 的工作区文件就走 <code>R2: ws/{workspaceId}/{path}</code>，元数据进 D1，KV 只放索引——分层的目的就是让每一级存储都待在自己的免费档里，谁也不越界。</p>
+
+<h2>Pages：被低估的免费之王</h2>
+<p>Cloudflare Pages 免费档不限带宽、不限请求数，还白送每个分支的预览部署。博客三端里最烧流量的静态站全放 Pages，动态 API 全走 Workers——<strong>把「不限量」的产品用在最可能爆的流量形态上</strong>，这是整套 0 元架构的核心思路。Durable Objects 同理：TerminalRoom 长连接是唯一有状态ful 需求的场景，恰好也是 DO 的免费额度最难触达的场景（个人项目的并发终端房间数个十数）。</p>
+
+<h2>榨干的本质是分层</h2>
+<table>
+  <tr><th>数据/流量形态</th><th>去处</th><th>为什么</th></tr>
+  <tr><td>静态页面、图片、CSS</td><td>Pages</td><td>不限带宽请求</td></tr>
+  <tr><td>API 逻辑、鉴权、限流</td><td>Workers</td><td>10 万请求/天够个人站</td></tr>
+  <tr><td>会话、热配置</td><td>KV</td><td>读廉价，写要省着用</td></tr>
+  <tr><td>关系数据、评论</td><td>D1</td><td>读多写少模型</td></tr>
+  <tr><td>文件、上传物</td><td>R2</td><td>出流量免费</td></tr>
+  <tr><td>单点协调、长连接</td><td>DO</td><td>有状态需求的唯一解</td></tr>
+</table>
+<p>最后一条可执行建议：<strong>把 Dashboard 的用量页面当日报看</strong>。免费额度不是保证书，是悬崖边的护栏——知道每项用了百分之几，才知道哪条增长曲线会先撞墙。额度用超之前 Cloudflare 会发邮件，但读懂用量曲线，比等邮件主动得多。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a><a class="related-card" href="git-multi-repo-sync.html"><img src="https://media.520691.xyz/covers/2026v2/git-multi-repo-sync.webp" alt="" loading="lazy"><span class="r-body"><b>Git 多仓库三端同步方案：镜像、CI 双跑与 Gitee Pages 国内加速</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<p>常有人问：独立开发是不是很烧钱？我的答案是一年下来云账单 0 元（方法见 <a href="cloudflare-free-tier.html">额度榨干指南</a>），工具链全部免费或近免费。这篇把栈里的每一项摊开——场景、首选、备选、成本、为什么。不整活，只放真实在用的，链接全部公开可查。</p>
+
+<h2>建站与部署</h2>
+<table>
+  <tr><th>场景</th><th>首选</th><th>备选</th></tr>
+  <tr><td>静态站全球分发</td><td>Cloudflare Pages（不限带宽）</td><td>GitHub Pages / Netlify</td></tr>
+  <tr><td>国内可达镜像</td><td>Gitee Pages</td><td>CF Pages + 入口提示</td></tr>
+  <tr><td>API / 全栈后端</td><td>Cloudflare Workers + Hono</td><td>Vercel / Netlify Functions</td></tr>
+  <tr><td>域名解析</td><td>DNSPod（国内）/ Cloudflare（国际）</td><td>Namesilo</td></tr>
+  <tr><td>域名注册</td><td>Cloudflare Registrar（成本价）/ 腾讯云</td><td>Namesilo</td></tr>
+</table>
+<p>入口都是公开域名：<code>pages.cloudflare.com</code>、<code>pages.github.com</code>、<code>gitee.com</code>、<code>vercel.com</code>、<code>netlify.com</code>、<code>dnspod.cloud.tencent.com</code>、<code>dash.cloudflare.com</code>。域名是全年最大固定支出（.xyz 首年常驻个位数到十几元人民币），服务器成本为 0 的秘密全在免费额度分层——哪类流量走哪个产品，上一篇刚拆过。</p>
+
+<h2>前后端与数据</h2>
+<ul>
+  <li><strong>前端</strong>：Vite + React + TypeScript；样式 Tailwind CSS（tailwindcss.com）与 MUI（mui.com）按项目混用；代码编辑器 Monaco（microsoft.github.io/monaco-editor）——渡劫code 的编辑区就是它</li>
+  <li><strong>边缘数据</strong>：Cloudflare D1 / KV / R2 / Durable Objects，选型逻辑见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a></li>
+  <li><strong>传统后端备选</strong>：Supabase（supabase.com，免费档含 Postgres + Auth）、Neon（neon.tech，免费 Serverless Postgres）、Upstash（upstash.com，免费 Redis）——需要关系型或缓存时，从这三家里挑</li>
+  <li><strong>ORM</strong>：Drizzle（orm.drizzle.team）——SQLite 优先项目的类型安全首选，和 D1 是绝配</li>
+</ul>
+<p>选型原则只有一条：<strong>读写模型先想清楚，再选存储</strong>。读多写少上 D1，热配置上 KV，大对象上 R2——反过来用，免费额度也救不了你。</p>
+
+<h2>邮件与通知</h2>
+<ul>
+  <li><strong>Resend</strong>（resend.com）：免费档每月 3,000 封，API 优先，Workers 里 <code>fetch</code> 直发——评论回复通知就靠它</li>
+  <li><strong>MailChannels</strong>（mailchannels.com）：Workers 生态原生，免费档给开发用，适合事务邮件</li>
+  <li><strong>企业微信 / 钉钉机器人</strong>：监控告警推送，个人开发者的「短信平替」——UptimeRobot 的 webhook 直接对接</li>
+</ul>
+<p>自建评论系统的邮件回复通知（见 <a href="blog-comment-system.html">评论系统实战</a>）走的就是这条路：读者留邮箱 → Worker 调 Resend → 回复上线发信。整套零固定成本，发多少付多少。</p>
+
+<h2>支付与变现</h2>
+<p>国内个人开发者的现实路径，和教程里的 Stripe 故事差距很大。务实排序：</p>
+<table>
+  <tr><th>方式</th><th>门槛</th><th>适合</th></tr>
+  <tr><td>爱发电 afdian.com</td><td>个人实名</td><td>赞助 / 会员 / 早期用户</td></tr>
+  <tr><td>面包多 mbd.pub</td><td>个人实名</td><td>卖软件 Key / 模板 / 资料</td></tr>
+  <tr><td>Gumroad gumroad.com</td><td>邮箱即可</td><td>数字商品出海</td></tr>
+  <tr><td>Lemon Squeezy / Paddle</td><td>MoR 模式，免海外主体</td><td>SaaS 订阅（有抽成）</td></tr>
+  <tr><td>Stripe</td><td>需海外/香港主体</td><td>有主体之后的终点</td></tr>
+  <tr><td>微信支付</td><td>个体户 / 企业执照</td><td>有执照再考虑</td></tr>
+</table>
+<p>我的用法：爱发电挂赞助和高级功能，面包多卖一次性买断。<strong>在没有主体之前，MoR 平台和国内实名平台是仅有的现实选项</strong>——别在支付渠道上烧启动资金，那是最贵的学费。</p>
+
+<h2>数据与分析</h2>
+<ul>
+  <li><strong>Cloudflare Web Analytics</strong>（dash.cloudflare.com）：免费、无 cookie、<strong>不需要同意弹窗</strong>——个人站合规成本最低的分析，没有之一</li>
+  <li><strong>Umami</strong>（umami.is）：自托管，Workers 可跑，数据完全自有</li>
+  <li><strong>GoatCounter</strong>（goatcounter.com）：非商业用途免费，极简，一屏看完所有指标</li>
+  <li><strong>百度统计</strong>：国内流量参考维度的补充，广告网络略重，按需</li>
+  <li><strong>Google Analytics</strong>：功能最强，但 consent 弹窗的合规成本对个人站不划算——我的栈里没有它</li>
+</ul>
+<p>分析工具的选择标准不是功能多，是<strong>不吓跑读者</strong>：一个弹窗联盟能赶走的访客，比它能多分析的维度值钱。</p>
+
+<h2>监控与运维</h2>
+<ul>
+  <li><strong>UptimeRobot</strong>（uptimerobot.com）：50 个监控免费，邮件告警，三端各挂一个，SSL 过期也能盯</li>
+  <li><strong>Better Stack</strong>（betterstack.com）：免费档含公开状态页，停机时给用户一个解释入口，比 404 体面</li>
+  <li><strong>Cloudflare Notifications</strong>：额度用量、Workers 错误率告警，免费档策略管够</li>
+  <li><strong>国内测速</strong>：ITDog（itdog.cn）、17CE（17ce.com）——验证 Gitee 镜像国内可达性的日常工具，<a href="git-multi-repo-sync.html">Gitee Pages 的坑</a>靠它们提前发现</li>
+</ul>
+
+<h2>内容、AI 与杂项</h2>
+<ul>
+  <li><strong>LLM API</strong>：DeepSeek、智谱 GLM、Kimi 等按量计费，个人开发月成本几十元量级——渡劫code 的多 provider 适配就是给它们准备的</li>
+  <li><strong>图床 / 媒体</strong>：Cloudflare R2 + Images（出流量免费），备选 SM.MS</li>
+  <li><strong>图标</strong>：Lucide（lucide.dev）、Iconify（iconify.design）</li>
+  <li><strong>CI</strong>：GitHub Actions 公开仓库全免费、私有仓库每月 2000 分钟——博客的部署链路白嫖到底</li>
+  <li><strong>凭据管理</strong>：wrangler secret 管 Workers，Gitee/GitHub 令牌只进 Actions Secrets，本地密钥文件一律进 .gitignore</li>
+</ul>
+
+<h2>选型三原则</h2>
+<ol>
+  <li><strong>免费档的边界就是架构的边界</strong>——先读额度表再画架构图，顺序反了等于裸奔</li>
+  <li><strong>数据自主权优先于功能</strong>——评论、分析、用户数据能自持就不外包，迁移成本永远比想象高</li>
+  <li><strong>国内可达性当一等公民</strong>——三端同步不是炫技，是读者在杭州连不上 GitHub Pages 时的尊严</li>
+</ol>
+<p>这套栈的总拥有成本：一个域名加几十块 LLM 费用加 0 元基础设施。算笔总账：</p>
+<table>
+  <tr><th>项目</th><th>月成本</th><th>说明</th></tr>
+  <tr><td>域名</td><td>约 1–2 元（年付摊）</td><td>.xyz 首年折扣常见</td></tr>
+  <tr><td>Pages / Workers / D1 / KV / R2</td><td>0 元</td><td>全在免费档内（见榨干指南）</td></tr>
+  <tr><td>GitHub Actions / Gitee</td><td>0 元</td><td>公开仓库 + 自动镜像</td></tr>
+  <tr><td>LLM API</td><td>几十元</td><td>按量，开发期大头</td></tr>
+  <tr><td>邮件 / 监控</td><td>0 元</td><td>免费档管够</td></tr>
+  <tr><td><strong>合计</strong></td><td><strong>几十元/月</strong></td><td>这就是独立开发的入场券</td></tr>
+</table>
+<p>下一篇复盘这 30 天<a href="ai-30-days-three-sites.html">怎么用 AI 把它们全搭出来</a>，以及哪些活真的不该交给 AI。</p>

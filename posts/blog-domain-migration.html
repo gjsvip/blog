@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>域名迁移实战：双路由兼容、三端无损切换与 SEO 承接 · 渡劫博客</title>
+<meta name="description" content="主域从 dujiecone.com 迁到 520691.xyz 的完整复盘：双路由 301 并行、三端按序切换、GSC 变更地址、IndexNow 密钥留旧域 180 天，含下划线主机名导致证书 pending 两小时的故障。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="域名迁移实战：双路由兼容、三端无损切换与 SEO 承接 · 渡劫博客">
+<meta property="og:description" content="主域从 dujiecone.com 迁到 520691.xyz 的完整复盘：双路由 301 并行、三端按序切换、GSC 变更地址、IndexNow 密钥留旧域 180 天，含下划线主机名导致证书 pending 两小时的故障。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/blog-domain-migration">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="域名迁移实战：双路由兼容、三端无损切换与 SEO 承接 · 渡劫博客">
+<meta name="twitter:description" content="主域从 dujiecone.com 迁到 520691.xyz 的完整复盘：双路由 301 并行、三端按序切换、GSC 变更地址、IndexNow 密钥留旧域 180 天，含下划线主机名导致证书 pending 两小时的故障。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/blog-domain-migration">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "域名迁移实战：双路由兼容、三端无损切换与 SEO 承接", "description": "主域从 dujiecone.com 迁到 520691.xyz 的完整复盘：双路由 301 并行、三端按序切换、GSC 变更地址、IndexNow 密钥留旧域 180 天，含下划线主机名导致证书 pending 两小时的故障。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/blog-domain-migration", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "域名迁移, SEO, 301, DNS", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/blog-domain-migration"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "域名迁移实战：双路由兼容、三端无损切换与 SEO 承接", "item": "https://www.520691.xyz/posts/blog-domain-migration"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>域名迁移实战：双路由兼容、三端无损切换与 SEO 承接</div>
+
+    <article>
+      <div class="article-header">
+        <h1>域名迁移实战：双路由兼容、三端无损切换与 SEO 承接</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>运维</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1876 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 5 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/blog-domain-migration.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>渡劫博客今年换了主域名：从早期的 <code>dujiecone.com</code> 切到 <code>520691.xyz</code>，旧域名保留 301 跳转。域名迁移表面上是改个 DNS 记录，实际是<strong>一次涉及证书、SEO、外链、三端部署的系统工程</strong>——处理不好，收录掉一半、排名归零、读者书签 404。这篇完整复盘全过程，包括那个因为一个下划线挂了两小时的证书故障，和迁移后 30 天的真实流量数据。</p>
+
+<h2>一、迁移前的资产盘点</h2>
+
+<p>动手前先把「指向旧域的所有东西」列成清单，漏一项就是一个暗雷：</p>
+
+<ul>
+<li><strong>DNS</strong>：A/AAAA/CNAME/TXT 记录，包括 GSC 站点验证的 TXT</li>
+<li><strong>证书</strong>：Cloudflare 通用 SSL（自定义域自动签）、旧域证书要保留到跳转期结束</li>
+<li><strong>SEO 资产</strong>：Google Search Console 资源、Bing Webmaster、IndexNow 密钥文件（放在旧域根目录，见下文）、sitemap.xml、robots.txt</li>
+<li><strong>绝对链接</strong>：RSS enclosure、OG 图 URL、JSON-LD 结构化数据、RSS feed 自身地址</li>
+<li><strong>三端部署</strong>：CF Pages 自定义域、GitHub Pages 的 CNAME 文件、Gitee Pages 自定义域</li>
+<li><strong>数据层</strong>：评论按文章 slug 归属（不存域名）——当初这个设计救了命，D1 里没有一条记录依赖域名</li>
+<li><strong>外部回调</strong>：渡劫code 的 GitHub 登录回调地址在 api 子域，这次不动，但清单里要标记</li>
+</ul>
+
+<p>盘点结论：真正耦合域名的只有「部署配置」和「SEO 资产」两层，业务数据零耦合。这让迁移从「拆房子」变成「换门牌」，心里先有底了。</p>
+
+<h2>二、双路由并行：新旧域同时服务</h2>
+
+<p>迁移最稳的姿势不是「一刀切」，而是<strong>双域并行期</strong>：新旧域同时能访问，旧域全量 301 到新域，观察两周再收缩。CF Pages 自定义域名里同时加 <code>www.520691.xyz</code> 和 <code>dujiecone.com</code>，301 规则用 Pages Functions 高级模式按 Host 判断：</p>
+
+<pre><code class="language-typescript">// _worker.js：旧域一切请求 301 到新域，保留路径和查询参数
+export default {
+  fetch(request: Request, env: Env) {
+    const url = new URL(request.url);
+    if (url.hostname === 'dujiecone.com') {
+      url.hostname = 'www.520691.xyz';
+      url.protocol = 'https:';
+      return Response.redirect(url.toString(), 301);
+    }
+    return env.ASSETS.fetch(request);
+  },
+};</code></pre>
+
+<p>并行期最大的 SEO 风险是重复内容——同篇文章两个 URL 都能打开。对策是 canonical 按请求 Host 动态输出主域，OG URL、JSON-LD 的 url 字段同理；sitemap.xml 由构建脚本生成，链接从配置文件读，<strong>不吃请求 Host</strong>，永远只输出主域。三个「绝对 URL 出口」全部收口到同一个配置项，这是并行期不翻车的关键。</p>
+
+<h2>三、那个下划线的坑</h2>
+
+<p>压测新链路时我先把博客测试域配成了 <code>dujie_cone.520691.xyz</code>——手滑打了个下划线（从旧笔记里抄的，原笔记就是错的）。DNS 层 CNAME 添加成功，Cloudflare 通用 SSL 证书签发却一直 pending，两天没好转，站点 TLS 报错。</p>
+
+<p>查了两小时才定位：<strong>下划线不是合法 hostname 字符</strong>。RFC 1035 规定主机名标签只允许字母、数字和连字符，ACME/CA 校验见到 <code>_</code> 直接拒签。删掉重建为 <code>dujiecone.520691.xyz</code>，5 分钟证书签好。教训记下来：<strong>看到证书 pending，先检查记录名是不是「脏」的</strong>——下划线、空格、中文，DNS 层的静默失败比代码 bug 更耗时。说起来丢人，渡劫博客这个项目早期确实在 dujie_cone 这个带下划线的名字上绊过一跤，这次迁移算是把旧账一次性清了。</p>
+
+<h2>四、三端无损切换</h2>
+
+<p>博客三端部署（CF Pages 主 + GitHub Pages + Gitee Pages 镜像），切换按「主端先行、镜像跟进、每步验证」的顺序：</p>
+
+<ol>
+<li><strong>CF Pages</strong>：自定义域加新域、旧域留跳转——双路由生效，读者侧无感知</li>
+<li><strong>GitHub Pages</strong>：CNAME 文件内容从旧域改成 <code>www.520691.xyz</code>，push 后 Let's Encrypt 自动签（实际等了 40 分钟，比 CF 慢但省心）</li>
+<li><strong>Gitee Pages</strong>：后台自定义域换新域，Gitee 要求域名所有权验证（TXT 记录或验证文件），证书由平台自动签</li>
+<li><strong>同步 CI</strong>：三端同步 workflow 里的站点 URL、sitemap 域名全部参数化，一处改动三端生效（见 <a href="three-end-sync-advanced.html">三端同步再进阶</a>）</li>
+</ol>
+
+<p>每一步的验收标准：HTTPS 正常、301 正确、页面无混合内容报错，三项全过才动下一步。全程读者侧唯一的变化是「旧域名打开会自动跳到新域名」——这就是无损。回滚预案也先想好：新域出问题就删 Pages 自定义域、DNS 切回旧域，10 分钟内恢复。<strong>旧域名续费留到 2027 年</strong>，迁移完成后至少一年内别注销，它是最后的救生艇。</p>
+
+<h2>五、SEO 承接：流量不能掉</h2>
+
+<p>技术切换只完成了迁移的一半，另一半是让搜索引擎跟着搬家：</p>
+
+<ol>
+<li><strong>301 全量且永久</strong>：不是 302 临时跳转。搜索引擎随爬取逐步把旧域权重转移到新域，这个过程以「周」计。</li>
+<li><strong>GSC 变更地址</strong>：旧资源执行「变更地址」指向新资源，新资源添加并验证。<strong>两个资源都保留</strong>——旧资源的「网页」报表还能继续看外链分布，删了就瞎了。</li>
+<li><strong>IndexNow 密钥文件留在旧域根目录至少 6 个月</strong>：key 文件的验证和提交资格绑在域名上，旧域一删，已验证的提交资格直接丢失，新域要重新养。这是最容易被忽视的暗雷。</li>
+<li><strong>sitemap/robots 更新</strong>：robots.txt 的 Sitemap 指向新域绝对地址，随双路由一起上线。</li>
+<li><strong>外链平滑</strong>：外站反链全是旧域，301 会把权重带过来，但「带过来」需要时间，期间排名波动是正常的，别慌。</li>
+</ol>
+
+<p>迁移后 30 天真实数据（Google Analytics + GSC 合并口径）：</p>
+
+<table>
+<thead><tr><th>时间</th><th>日均 UV</th><th>Google 日均点击</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td>迁移前 30 天（旧域）</td><td>1100</td><td>380</td><td>基线</td></tr>
+<tr><td>切换后第 1 周</td><td>700</td><td>240</td><td>301 传导中，GSC 数据未迁移，最低谷</td></tr>
+<tr><td>第 2 周</td><td>950</td><td>330</td><td>开始恢复</td></tr>
+<tr><td>第 4 周</td><td>1150</td><td>410</td><td>反超基线</td></tr>
+</tbody>
+</table>
+
+<p>Bing 恢复更快（约两周），毕竟 IndexNow 是微软主推的协议。「渡劫」相关关键词排名稳在第 3 页没动。结论：<strong>301 + GSC 变更 + IndexNow 密钥保留三件套做到位，流量谷底大约一周，一个月反超</strong>。中间还踩了个小坑：3 篇文章 frontmatter 里硬编码了旧域 OG 图地址，迁移后微信分享缩略图裂了——批量 sed 替换加模板参数化根治。全站 grep 一遍旧域名，这个动作值得放进任何域名迁移的 checklist。</p>
+
+<h2>六、迁移 Checklist</h2>
+
+<ol>
+<li>资产盘点：DNS/证书/GSC/IndexNow/绝对链接/三端配置</li>
+<li>双路由并行：旧域 301 到新域，canonical/sitemap 输出主域</li>
+<li>证书验证：主机名无下划线等非法字符（ACME pending 先查这个）</li>
+<li>三端按序切换，每步验收 HTTPS/301/混合内容</li>
+<li>GSC 变更地址 + 双资源保留 + IndexNow 密钥留旧域 6 个月</li>
+<li>全站 grep 旧域名，绝对 URL 参数化</li>
+<li>旧域名续费至少一年，回滚预案演练一次</li>
+<li>盯 30 天流量曲线，谷底一周、一个月反超才算渡劫成功</li>
+</ol>
+
+<h2>小结</h2>
+
+<p>域名迁移的本质是<strong>「让所有指向旧资产的引用平滑改道」</strong>。技术上没有难事，难在清单完备：301 传权重、双域并行保体验、IndexNow 密钥和 GSC 旧资源留足 180 天、域名本身别急着注销。30 天后 UV 反超旧域、点击创新高——这次渡劫，圆满。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="zero-cost-monitoring.html"><img src="https://media.520691.xyz/covers/2026v2/zero-cost-monitoring.webp" alt="" loading="lazy"><span class="r-body"><b>零成本监控体系：CF Analytics、自建状态页与告警机器人</b><time>2026-10-22</time></span></a><a class="related-card" href="indexnow-bing-google.html"><img src="https://media.520691.xyz/covers/2026v2/indexnow-bing-google.webp" alt="" loading="lazy"><span class="r-body"><b>IndexNow 提交实战：Bing 秒收与 Google 的等待</b><time>2026-10-22</time></span></a><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<p>边缘应用的安全模型和传统服务器不一样：没有内网、没有防火墙、每个请求都暴露在公网，但好在每个请求也都经过你的 Worker。这篇把渡劫code 的四件套讲清楚：<strong>JWT 会话、KV 限流、XSS 转义、CORS 白名单</strong>——全部是线上在跑的真实代码。</p>
+
+<h2>JWT 会话：无状态令牌 + 短有效期</h2>
+<p>用户登录后签发 JWT（HS256），载荷只放必要的 <code>sub</code>、<code>exp</code>、<code>role</code>。验签在 Worker 里用 Web Crypto 完成，零依赖：</p>
+<pre><code class="language-typescript">async function verifyJwt(req: Request, env: Env): Promise&lt;Payload | null&gt; {
+  const auth = req.headers.get('Authorization') || '';
+  const token = auth.replace(/^Bearer /, '');
+  try {
+    const [header, payload, sig] = token.split('.');
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(env.JWT_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+    const ok = await crypto.subtle.verify(
+      'HMAC', key, b64urlDecode(sig),
+      new TextEncoder().encode(`${header}.${payload}`));
+    if (!ok) return null;
+    const claims = JSON.parse(atob(payload));
+    return claims.exp * 1000 &gt; Date.now() ? claims : null;
+  } catch { return null; }
+}</code></pre>
+<p>三条纪律：<strong>密钥只进 Cloudflare Secrets 不进代码</strong>（GitHub push protection 会拦截明文，见<a href="three-end-sync-advanced.html">三端同步进阶</a>）；<strong>access token 短有效期（小时级）</strong>，敏感操作重新鉴权；<strong>不在载荷里放敏感数据</strong>——JWT 是 Base64 不是加密，谁都看得见。</p>
+
+<h2>限流：KV 计数桶</h2>
+<p>匿名接口（评论、登录尝试）按访客指纹限流，指纹 = <code>sha256(IP + User-Agent + salt)</code>，KV 桶带 <code>expirationTtl</code> 自动过期：</p>
+<pre><code class="language-typescript">app.use('/api/blog/*', async (c, next) =&gt; {
+  const fp = await fingerprint(c.req.raw, c.env);
+  const allowed = await rateLimit(c.env, `comment:${fp}`, 2, 60); // 2 条/分钟
+  if (!allowed) return c.json({ code: 429, message: '操作太频繁，缓一缓' }, 429);
+  await next();
+});</code></pre>
+<p>KV 是最终一致的，精确限额请叠加 D1 的 UNIQUE 约束双保险——评论的 UV 去重就是靠 <code>UNIQUE(slug, visitor)</code> 在数据库层兜底，见 <a href="d1-sqlite-edge.html">D1 实战</a>。</p>
+
+<h2>XSS：转义是默认动作</h2>
+<p>我们的原则是<strong>能 textContent 就不 innerHTML，必须拼 HTML 时强制过 esc()</strong>。博客前端渲染评论、搜索结果等所有用户内容，统一走这一个函数：</p>
+<pre><code class="language-javascript">function esc(s) {
+  return String(s == null ? '' : s).replace(/[&amp;&lt;&gt;"']/g, function (c) {
+    return { '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;', "'": '&amp;#39;' }[c];
+  });
+}
+// 用法：el.innerHTML = '&lt;b&gt;' + esc(userInput) + '&lt;/b&gt;';</code></pre>
+<p>五个字符一个不漏——漏了单引号，<code>onclick=</code> 就能从属性里逃出来。富文本场景（如果未来支持 Markdown 评论）再引入白名单净化，绝不用黑名单过滤。</p>
+
+<h2>CORS：白名单 + 预检缓存</h2>
+<p>博客跑在三个域名下（CF Pages、GitHub Pages、Gitee Pages），全部调用同一个 API 根。CORS 策略按 Origin 白名单放行，未命中的一律不回 CORS 头，让浏览器自己拦：</p>
+<pre><code class="language-typescript">const ALLOWED_ORIGINS = [
+  'https://www.520691.xyz',
+  'https://gjsvip.github.io',
+  'https://gitee.com',
+];
+
+app.use('/api/*', async (c, next) =&gt; {
+  const origin = c.req.header('Origin') || '';
+  if (ALLOWED_ORIGINS.some((o) =&gt; origin === o || origin.startsWith(o + '/'))) {
+    c.res.headers.set('Access-Control-Allow-Origin', origin);
+    c.res.headers.set('Vary', 'Origin');              // 防缓存串站
+    c.res.headers.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    c.res.headers.set('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    c.res.headers.set('Access-Control-Max-Age', '86400'); // 预检缓存一天
+  }
+  if (c.req.method === 'OPTIONS') return c.body(null, 204);
+  await next();
+});</code></pre>
+<p>注意 <code>Vary: Origin</code>——CDN 缓存响应时若不带 vary，A 站的 CORS 头会被缓存给 B 站用。同时<strong>不要把 Allow-Origin 设成 <code>*</code> 又允许携带凭证</strong>，浏览器直接拒绝这种组合。</p>
+
+<p>刷新机制用「双令牌」：access token 两小时过期，refresh token 七天、只用于换新且可被服务端吊销（D1 记录 jti 黑名单）。这样即便 access token 被截获，攻击窗口也只有两小时；用户侧无感，因为前端在收到 401 时自动用 refresh token 续期。</p>
+
+<h2>输入校验：第一道闸门</h2>
+<p>所有写接口先过 Schema 校验再碰数据库：字段类型、长度上限、必填项、白名单枚举。评论接口的规则是——昵称 1–24 字、正文 1–1000 字、邮箱选填但格式必须对、parent_id 必须是同一篇文章下已审核的评论。校验失败直接 400，不让脏数据有到达 D1 的机会。SQL 注入在 D1 上几乎不可能（预编译参数绑定是唯一写法），但<strong>长度炸弹与编码攻击</strong>依然要靠这一层挡掉。</p>
+
+<h2>日志与审计</h2>
+<p>安全设施是否在工作，要靠日志说话。Worker 对以下事件打点：登录成功与失败、限流触发、JWT 验签失败、CORS 拒绝。日志只记指纹与路径，<strong>绝不记令牌与敏感表单内容</strong>——日志本身也是攻击面。用 <code>wrangler tail --format pretty</code> 实时观察，异常模式（同一指纹连续失败、陌生 Origin 爆发）一目了然。</p>
+<p>泄露响应的纪律只有一句：<strong>怀疑泄露，立即轮换</strong>。JWT_SECRET 一换，所有旧令牌自然失效，代价是全员重新登录——比起被盗号，这个代价便宜得像免费。密钥只进 Cloudflare Secrets，本地 <code>.dev.vars</code> 加进 <code>.gitignore</code>，提交前的预检钩子再兜一层。</p>
+
+<h2>纵深：其他该有的件</h2>
+<ul>
+  <li><strong>CSP</strong>：<code>default-src 'self'</code>；我们用内联 style 属性，故 <code>style-src</code> 需带 <code>'unsafe-inline'</code>——这是功能与安全的显式取舍，脚本侧必须严格 <code>'self'</code></li>
+  <li><strong>HSTS</strong>：Cloudflare 面板开启，全站强制 HTTPS（友链申请也要求对方 HTTPS，见<a href="../friends.html">友链页</a>）</li>
+  <li><strong>安全响应头</strong>：<code>X-Content-Type-Options: nosniff</code>、<code>Referrer-Policy: strict-origin-when-cross-origin</code></li>
+  <li><strong>密钥卫生</strong>：所有令牌走 Secrets；本地日志打印前脱敏；泄露即轮换，不赌「没人看」</li>
+</ul>
+
+<h2>Worker 层的硬限制</h2>
+<p>安全策略再严密，也怕一个慢查询把整个 Worker 拖到超时。Cloudflare 对 Worker 有明确的资源红线：请求体大小上限、单请求 CPU 时间（超限直接 502）、子请求数量。实践准则：<strong>给每个下游调用设置超时与兜底值</strong>，重计算（如慢哈希）要么挪进 Durable Objects，要么直接用 Web Crypto 原生实现；数据库查询全部走索引，批量接口的 slugs 数量截断。可用性本身就是安全的一部分——一个总是 502 的接口，不需要被攻击就已经输了。</p>
+
+<h2>小结</h2>
+<p>边缘安全的优势是「所有流量必经一个关卡」：JWT 在入口验、限流在中间件拦、输入在闸门查、输出在渲染层转、跨域在响应头管。五层各自独立、互不依赖——任何一层被绕过，其他层还在。这套四件套没有用到任何商业产品，全部是 Cloudflare 原生能力加一个 Worker 中间件——安全的成本，有时候只是把默认配置改成正确的配置。而安全最大的敌人从来不是技术难度，是侥幸心理：每一个「应该没事」，都是未来的事故报告。</p>

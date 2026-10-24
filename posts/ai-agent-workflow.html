@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点 · 渡劫博客</title>
+<meta name="description" content="一个人加 AI Agent 维护全栈站点的工作流复盘：Spec 四要素压缩需求歧义、模板化批量生成的适用边界、按风险分级的人工审批节点，以及上下文腐烂与审批疲劳的解法。结论：AI 放大的是判断力，不是产出量。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点 · 渡劫博客">
+<meta property="og:description" content="一个人加 AI Agent 维护全栈站点的工作流复盘：Spec 四要素压缩需求歧义、模板化批量生成的适用边界、按风险分级的人工审批节点，以及上下文腐烂与审批疲劳的解法。结论：AI 放大的是判断力，不是产出量。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/ai-agent-workflow">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点 · 渡劫博客">
+<meta name="twitter:description" content="一个人加 AI Agent 维护全栈站点的工作流复盘：Spec 四要素压缩需求歧义、模板化批量生成的适用边界、按风险分级的人工审批节点，以及上下文腐烂与审批疲劳的解法。结论：AI 放大的是判断力，不是产出量。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/ai-agent-workflow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点", "description": "一个人加 AI Agent 维护全栈站点的工作流复盘：Spec 四要素压缩需求歧义、模板化批量生成的适用边界、按风险分级的人工审批节点，以及上下文腐烂与审批疲劳的解法。结论：AI 放大的是判断力，不是产出量。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/ai-agent-workflow", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "AI, 工作流, 效率", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/ai-agent-workflow"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点", "item": "https://www.520691.xyz/posts/ai-agent-workflow"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点</div>
+
+    <article>
+      <div class="article-header">
+        <h1>AI Agent 编程工作流：Spec 驱动、批量生成与人工审批节点</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>AI</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1693 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/ai-agent-workflow.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>过去一年，渡劫博客这个站点从基础设施到 20 多篇文章的产出，背后大概只有一个半人类。说得更准确点：人类负责拍板和擦屁股，AI Agent 负责搬砖。这篇文章复盘我与 AI Agent 协作的完整工作流——Spec 驱动、批量生成、人工审批节点，以及那些没人告诉你、但每个用 AI 写代码的人都会踩的坑。</p>
+
+<h2>先说结论：AI 放大的是判断力，不是产出量</h2>
+<p>很多人对 AI 编程的期待是"我说需求，它给我成品"。实际跑下来，这个期待既对又不对。对的部分是：一个描述清楚的任务，AI 的完成度确实高得惊人；不对的部分是：什么叫"描述清楚"，这件事本身就是工程能力。我的工作流核心就一句话：<strong>把模糊需求压缩成无歧义的 Spec，再让 AI 执行，人在关键节点验收</strong>。少了任何一环，产出质量都会断崖式下跌。</p>
+
+<h2>Spec 驱动：动代码之前先动文档</h2>
+<p>每个功能动工前，先有一份 Spec。不是八股文的 PRD，是一页纸，包含四件事：</p>
+<ul>
+<li><strong>目标</strong>：这个功能做成什么事算成，必须可验证；</li>
+<li><strong>非目标</strong>：明确不做什么，防范围蔓延；</li>
+<li><strong>验收标准</strong>：3-5 条可执行检查项，比如"curl /api/health 返回 200 且耗时低于 100ms"；</li>
+<li><strong>边界</strong>：涉及哪些文件、哪些目录不能碰。</li>
+</ul>
+<p>Spec 的价值在 AI 场景下被放大了。人类程序员会自己猜需求，AI 不会——你写得含糊，它就自由发挥，而自由发挥的方差大得惊人。我们的评论系统 Spec 里有这么一条："状态流转只允许 pending 到 approved、pending 到 hidden、hidden 到 pending 三条边，其余组合一律返回 400。"有了这句，AI 生成的状态机代码一次通过；没有这句，它大概率给你画一张全连通图。</p>
+<blockquote><p>经验：Spec 写到"换一个同类项目的工程师来看，不会来问你第二遍"的程度，就可以发给 AI 了。</p></blockquote>
+
+<h2>批量生成：模板化任务的最优解</h2>
+<p>Spec 驱动的下一个形态是模板化。当一类任务的结构完全同构时，人工逐个描述是浪费——写好一个模板加变量，批量生成。这次博客的 6 篇文章就是典型：同一个 Prompt 骨架，六个不同的主题变量，六篇一千五百字以上的正文。</p>
+<p>但批量生成有两个前提，缺一不可：</p>
+<ol>
+<li><strong>模板必须经过单点验证</strong>：先用一个样本跑通全流程、人工验收合格，确认模板没问题，再复制。跳过这步直接批量，等于把错误乘以 N；</li>
+<li><strong>输出必须可批量校验</strong>：比如文章有明确的下限字数、必须的章节结构、manifest 的 JSON 合法性——这些都能写成脚本一次性检查，而不是肉眼看六遍。</li>
+</ol>
+<pre><code class="language-bash"># 批量校验示例：字数下限 + JSON 合法性
+for f in /tmp/articles-batch-b/*.body.html; do
+  hanzi=$(grep -oP '[\x{4e00}-\x{9fa5}]' "$f" | wc -l)
+  [ "$hanzi" -lt 1200 ] &amp;&amp; echo "FAIL $f: $hanzi"
+done
+python3 -c "import json;json.load(open('/tmp/articles-batch-b/manifest-b.json'))" &amp;&amp; echo "manifest OK"</code></pre>
+<p>批量生成的边界也要说清楚：<strong>结构同构的任务才配批量</strong>。写六篇文章是批量，设计六个不同架构不是——后者每一个都值得单独一轮 Spec 与评审。</p>
+
+<h2>人工审批节点：哪些必须人看</h2>
+<p>这是整个工作流里最反效率、也最不能砍的环节。我给自己定的规矩是按风险分级：</p>
+<table>
+<tr><th>风险级</th><th>场景</th><th>审批方式</th></tr>
+<tr><td>高</td><td>密钥处理、数据迁移、破坏性操作、安全逻辑</td><td>逐行看，命令级确认</td></tr>
+<tr><td>中</td><td>API 契约变更、状态机流转、缓存策略</td><td>看 diff 概要 + 关键文件全文</td></tr>
+<tr><td>低</td><td>文案微调、样式调整、重复性模板产出</td><td>抽查 + 自动化校验兜底</td></tr>
+</table>
+<p>高风险级没有商量空间。AI 提议一条 <code>wrangler d1 execute --file=reset.sql</code> 的时候，它不知道你那表里有 800 条真实评论，你必须知道。审批节点的本质是把"领域后果"的最终判断权留给人——AI 能看到代码，看不到业务。</p>
+
+<h2>数据：这套流程到底省了多少</h2>
+<p>拿这次 6 篇文章的批量生产做基准，对比人工纯手写：</p>
+<table>
+<tr><th>环节</th><th>纯人工</th><th>AI 工作流</th></tr>
+<tr><td>6 篇 × 1500 字正文</td><td>约 18-24 小时（含查资料）</td><td>约 2.5 小时（含人工审批）</td></tr>
+<tr><td>模板与 Spec 打磨</td><td>—</td><td>1 小时（一次性）</td></tr>
+<tr><td>批量校验脚本</td><td>—</td><td>0.5 小时（一次性）</td></tr>
+<tr><td>人工返工</td><td>—</td><td>约 0.5 小时</td></tr>
+</table>
+<p>效率提升大概一个数量级，但我要主动拆穿一个幻觉：省下的时间没有变成假期，而是变成了更多功能、更多文章、更细的监控。独立开发者的时间瓶颈从"写不完"变成了"审不及"——所以下一步我准备把中风险级的审批也部分自动化，比如用另一轮 AI 做 diff 预审，人只看它标记的可疑点。</p>
+
+<h2>坑与对策</h2>
+<ul>
+<li><strong>上下文腐烂</strong>：单个任务塞太多文件，AI 后半段开始"发明"不存在的 API。对策：一个任务的上下文控制在一屏内，超过就拆。我们的硬规矩是单个提交不超过 200 行改动；</li>
+<li><strong>幻觉 API 与过期知识</strong>：AI 会信心满满地写出三年前就变更的接口签名。对策：Spec 里附真实文件片段和官方文档链接，让它有据可查；</li>
+<li><strong>审批疲劳</strong>：连续看 20 个 diff 之后，第 21 个基本是闭眼签的。对策：批量任务拆批，每批不超过 5 个单元，批间休息；</li>
+<li><strong>静默偏差</strong>：AI 完成度 90%，但改了你没注意的默认值。对策：验收标准里写"未在 Spec 中列出的改动一律回退"，把"别乱改"变成显式契约；</li>
+<li><strong>模板污染</strong>：模板里一个笔误被复制到全部 6 个产物。对策：单点验证先行，校验脚本兜底，两条都别省。</li>
+</ul>
+
+<h2>结论</h2>
+<p>这套工作流跑通之后，我对"AI 编程"的理解收敛成三句话：Spec 决定上限，审批决定下限，批量只放大已经验证过的东西。它不浪漫，甚至有点工业化，但一个人维护全栈站点、持续产出内容的场景里，这套无聊的流程就是最可靠的东西。下一篇聊聊静态站<a href="static-site-perf.html">性能优化的每一毫秒</a>，那是另一个"抠细节抠到无聊"的故事。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

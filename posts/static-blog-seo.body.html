@@ -1,0 +1,67 @@
+<p>静态博客没有后端，但 SEO 的要求一样不少。这篇把渡劫博客的完整 SEO 流程摊开讲：<strong>软 404 治理、sitemap 纪律、RSS 规范、结构化数据、收录提交</strong>，以及我们刚踩过的一个真实大坑——把 GitHub Pages 的 URL 混进了主域 sitemap。</p>
+
+<h2>第一课：软 404 比 404 更伤站</h2>
+<p>所谓软 404，是服务器对不存在的路径返回 <code>200 + text/html</code>。我们之前的 CF Pages 站点没有根级 <code>404.html</code>，访问 <code>/assets/avatar.png</code> 这类错路径会拿到 <strong>200 状态的 index.html 内容</strong>。搜索引擎的判罚很直接：全站不同 URL 返回同一内容 = 重复页 + 低质量信号，收录会被系统性压制。</p>
+<p>修复只需一步：在站点根目录放一个真正的 <code>404.html</code>。CF Pages 检测到根路径存在该文件后，对未命中路径返回它并带上 <code>404</code> 状态码：</p>
+<pre><code class="language-bash">curl -sI https://www.520691.xyz/assets/avatar.png
+# HTTP/2 404   ← 修复后
+curl -sI https://www.520691.xyz/404.html
+# HTTP/2 200   ← 页面本身可访问</code></pre>
+<p>同时给 404 页加 <code>&lt;meta name="robots" content="noindex"&gt;</code>，并提供返回首页与站内搜索入口，把迷路流量导回内容。</p>
+
+<h2>sitemap 的三条纪律</h2>
+<ul>
+  <li><strong>只收主域</strong>：sitemap 是「这个文件描述这些 URL」的契约。把 <code>gjsvip.github.io</code> 的 URL 写进 <code>www.520691.xyz</code> 的 sitemap，搜索引擎要么忽略、要么判定跨域作弊。GitHub 端需要覆盖就单独出 <code>sitemap-github.xml</code></li>
+  <li><strong>lastmod 必须真实</strong>：全部写成同一天等于没写。文章的 lastmod 取 <code>posts.json</code> 里的 date，静态页用 <code>git log -1 --format=%cs -- &lt;文件&gt;</code> 取真实修改日期</li>
+  <li><strong>URL 形态与 canonical 一致</strong>：CF Pages 支持无扩展名 URL（<code>/posts/hello-world</code>），canonical 与 sitemap 就都写无扩展名；GitHub Pages 不支持，所以它的 sitemap 用 <code>.html</code> 形态</li>
+</ul>
+<pre><code class="language-xml">&lt;url&gt;
+  &lt;loc&gt;https://www.520691.xyz/posts/hello-world&lt;/loc&gt;
+  &lt;lastmod&gt;2024-12-26&lt;/lastmod&gt;
+  &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+  &lt;priority&gt;0.8&lt;/priority&gt;
+&lt;/url&gt;</code></pre>
+<p>priority 按页面类型分层：首页 1.0、文章 0.8、归档/标签 0.5、说说/友链/关于 0.4——它只是权重提示，但保持一致性本身就是质量信号。</p>
+
+<h2>robots.txt 与双向声明</h2>
+<p>robots.txt 放行全站，并用 Sitemap 指令声明两个入口（robots.txt 允许多条 Sitemap 行）：</p>
+<pre><code class="language-bash">User-agent: *
+Allow: /
+
+Sitemap: https://www.520691.xyz/sitemap.xml
+Sitemap: https://gjsvip.github.io/blog/sitemap-github.xml</code></pre>
+
+<h2>RSS：把 pubDate 当契约</h2>
+<p>RSS 2.0 要求 <code>pubDate</code> 是 RFC-822 格式，写错的后果是聚合器直接丢弃整条 item。我们的生成规则：文章 date 加 <code>08:00:00 +0800</code>，星期几由程序计算，不手写：</p>
+<pre><code class="language-bash">&lt;pubDate&gt;Wed, 21 Oct 2026 08:00:00 +0800&lt;/pubDate&gt;</code></pre>
+<p>channel 里保留 <code>atom:link rel="self"</code> 指向 RSS 自身，防止订阅源被镜像站抓走改成它们的地址。</p>
+
+<h2>结构化数据与 OG</h2>
+<p>每篇博客文章页嵌 BlogPosting JSON-LD，首页嵌 Blog，配合完整的 OG 标签。关键原则：<strong>og:url 与 canonical 保持同一个值</strong>，否则搜索引擎要在两个「官方地址」之间猜：</p>
+<pre><code class="language-json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "静态博客 SEO 全流程",
+  "datePublished": "2026-10-21",
+  "author": { "@type": "Person", "name": "gjsvip" },
+  "mainEntityOfPage": "https://www.520691.xyz/posts/static-blog-seo"
+}</code></pre>
+<p>这些字段现在由 <code>gen_posts.py</code> 从 posts.json 自动生成，杜绝手写页面漏配——文章模板化的完整方案见<a href="ai-coding-agent.html">工作台架构</a>一文里的工程化思路。</p>
+
+<h2>收录提交</h2>
+<ul>
+  <li><strong>IndexNow</strong>：新文章发布后主动推送给接入的搜索引擎（key 文件托管各站根路径），当天可见收录——机制见<a href="three-end-sync.html">三端同步架构记</a></li>
+  <li><strong>Search Console</strong>：提交 sitemap，盯「网页编入索引」覆盖率，软 404 会在「已抓取 – 尚未编入索引」里现形</li>
+  <li><strong>内链</strong>：归档页、标签页、相关文章全部静态可达，保证爬虫三跳内到达任何文章</li>
+</ul>
+
+<h2>内容层面的 SEO</h2>
+<p>技术 SEO 之外，内容纪律同样影响收录。每篇只谈一个明确主题，标题含关键词但不堆砌；内链锚文本用描述性文字，不写「点击这里」。每篇文章的 description 是搜索结果里的免费广告位，把摘要写成「这篇解决什么问题」，而不是复述标题——标题党换来点击，换不回回访，搜索引擎的停留指标最终会惩罚它。归档页与标签页给每篇文章多个静态入口，配合文章间的相关链接，爬虫三跳内可以到达任何页面——对没有外链积累的新站，这是最廉价的抓取保障。</p>
+<p>重复内容是静态博客的隐形杀手：www 与 apex、http 与 https 必须 301 归一。我们全部收拢到 <code>https://www.520691.xyz</code>，canonical、og:url、sitemap 三处口径一致，杜绝搜索引擎「精神分裂」。修订旧文章时，同步刷新它的 lastmod——搜索引擎对「声明更新但内容没动」的页面会逐渐失去信任。</p>
+<p>结构化数据写完要用 Google Rich Results Test 验证：JSON-LD 有语法错误时是<strong>静默失效</strong>的，不测等于没写。收录本身以周计，个人站最需要的是耐心——把地基做对，然后继续写。</p>
+
+<h2>提交之后的观察</h2>
+<p>提交 sitemap 只是开始。每周看一次 Search Console 的覆盖率报告，三类信号各有含义：sitemap 报错是「文件坏了」，已抓取未索引是「质量存疑」，软 404 是「状态码错了」。我们的软 404 当初就是在这张表里现形的——根目录补上 404.html 后两周，「已抓取 – 尚未编入索引」的数量肉眼可见地下降。数据不会说谎，但它只会回答你真正在看的问题。</p>
+
+<h2>效果与复盘</h2>
+<p>这轮治理后：主域 sitemap 只含 12 篇文章 + 6 个静态页，每条 lastmod 可溯源；错路径统一 404；RSS 全部合法。SEO 没有黑魔法，<strong>把每个「诚实声明」做到位</strong>——状态码、日期、canonical——就是个人站点能做的最大的技术 SEO。</p>

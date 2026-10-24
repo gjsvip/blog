@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pages Functions vs Workers：静态站动态化的两条路怎么选 · 渡劫博客</title>
+<meta name="description" content="两条路底层同一套 Workers 运行时，但 Pages Functions 不支持 Cron、Queue 消费者与原生 WebSocket。附能力对照表、三条判断线，及新项目为何建议直接上 Workers Static Assets。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="Pages Functions vs Workers：静态站动态化的两条路怎么选 · 渡劫博客">
+<meta property="og:description" content="两条路底层同一套 Workers 运行时，但 Pages Functions 不支持 Cron、Queue 消费者与原生 WebSocket。附能力对照表、三条判断线，及新项目为何建议直接上 Workers Static Assets。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/pages-functions-vs-workers">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pages Functions vs Workers：静态站动态化的两条路怎么选 · 渡劫博客">
+<meta name="twitter:description" content="两条路底层同一套 Workers 运行时，但 Pages Functions 不支持 Cron、Queue 消费者与原生 WebSocket。附能力对照表、三条判断线，及新项目为何建议直接上 Workers Static Assets。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/pages-functions-vs-workers">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Pages Functions vs Workers：静态站动态化的两条路怎么选", "description": "两条路底层同一套 Workers 运行时，但 Pages Functions 不支持 Cron、Queue 消费者与原生 WebSocket。附能力对照表、三条判断线，及新项目为何建议直接上 Workers Static Assets。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/pages-functions-vs-workers", "datePublished": "2026-10-22", "dateModified": "2026-10-22", "inLanguage": "zh-CN", "keywords": "Cloudflare, Pages, Workers, 架构", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/pages-functions-vs-workers"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "Pages Functions vs Workers：静态站动态化的两条路怎么选", "item": "https://www.520691.xyz/posts/pages-functions-vs-workers"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>Pages Functions vs Workers：静态站动态化的两条路怎么选</div>
+
+    <article>
+      <div class="article-header">
+        <h1>Pages Functions vs Workers：静态站动态化的两条路怎么选</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-22</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Cloudflare</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1791 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/pages-functions-vs-workers.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>把静态博客做出动态能力，在 Cloudflare 上有两条路：<strong>Pages Functions</strong>（函数文件跟着 Pages 项目一起部署）和<strong>独立 Workers</strong>（单独一个 Worker 应用）。两条路底层是同一套 Workers 运行时，HTTP 场景下 API 几乎一样，但选错了会在部署耦合、路由规则、额度核算上付出代价。这篇用渡劫博客和渡劫code 一年的真实分工讲清楚怎么选。先说结论：<strong>给静态站「打补丁」用 Pages Functions，给产品「开 API」用独立 Workers；新项目建议直接上 Workers Static Assets</strong>。</p>
+
+<h2>一、两条路分别长什么样</h2>
+
+<p>Pages Functions 的写法是「文件即路由」：在 Pages 项目里放 <code>functions/</code> 目录，文件路径决定路由，导出的 <code>onRequestGet</code>、<code>onRequestPost</code> 处理对应方法：</p>
+
+<pre><code class="language-typescript">// functions/api/hello.ts → /api/hello
+export const onRequestGet: PagesFunction = async (ctx) =&gt; {
+  return Response.json({ ok: true, ts: Date.now() });
+};</code></pre>
+
+<p>也可以用高级模式：在输出目录放一个 <code>_worker.js</code>，整个 Worker 接管 Pages 的全部请求——先匹配静态资产，再走你的逻辑，相当于「Pages 壳 + 完整 Worker」。</p>
+
+<p>独立 Workers 就是常规 Worker 项目，<code>export default { fetch }</code>，自己配路由或自定义域名，部署、版本、日志、回滚全部独立于 Pages，跟静态站没有任何绑定关系。</p>
+
+<h2>二、正面 PK：一张能力对照表</h2>
+
+<p>按 Cloudflare 官方兼容矩阵（2026 年 10 月核对），关键差异如下：</p>
+
+<table>
+<thead><tr><th>能力</th><th>Pages Functions</th><th>独立 Workers</th></tr></thead>
+<tbody>
+<tr><td>静态资产托管</td><td>✅ 原生，免费带宽</td><td>✅ Static Assets</td></tr>
+<tr><td>Cron Triggers</td><td>❌ 不支持</td><td>✅ 原生</td></tr>
+<tr><td>Queue 消费者</td><td>❌ 只能生产消息</td><td>✅ 原生</td></tr>
+<tr><td>Durable Objects</td><td>🟡 类要写在独立 Worker 里</td><td>✅ 原生</td></tr>
+<tr><td>WebSocket</td><td>🟡 仅高级模式</td><td>✅ 原生</td></tr>
+<tr><td>Workers Logs / Tail / Logpush</td><td>❌ 有限</td><td>✅ 完整</td></tr>
+<tr><td>灰度发布（Gradual Deployments）</td><td>❌</td><td>✅</td></tr>
+<tr><td>分支预览部署</td><td>✅ 原生</td><td>需 Workers Builds</td></tr>
+<tr><td>_redirects / _headers 约定</td><td>✅ 原生</td><td>需代码实现</td></tr>
+</tbody>
+</table>
+
+<p>还有个更大的背景：Cloudflare 已官宣 <strong>Pages 进入维护模式</strong>，新功能（Secrets Store、Workflows 等）全部只上 Workers，官方原话是「把 Pages 的能力逐步变成 Workers 的通用能力」。所以这篇的选型建议带一层时间维度：现有 Pages 项目放心继续用，但<strong>新起项目建议直接 Workers Static Assets</strong>，一套通吃，避免以后再迁一次。</p>
+
+<h2>三、本站的真实分工</h2>
+
+<p>渡劫博客主站（CF Pages 端）：</p>
+<ul>
+<li>静态资产、文章页、列表页、RSS：Pages 静态托管，免费带宽随便造</li>
+<li>边缘补丁逻辑：Pages Functions 高级模式做<strong>整站 301 重写</strong>——旧域名的请求按 Host 判断后跳转到新域（详见 <a href="blog-domain-migration.html">域名迁移实战</a>）</li>
+<li>状态页数据接口：<code>functions/status-data.json.ts</code> 读 KV 返回 JSON（见 <a href="zero-cost-monitoring.html">零成本监控体系</a>）</li>
+</ul>
+
+<p>评论 API（独立 Worker，api.520691.xyz）：为什么拆出来？三个理由：</p>
+<ol>
+<li><strong>三端共用</strong>：博客三端部署里 Gitee、GitHub 端没有 Functions，只有 CF 端有——API 必须独立于 Pages 存在，三端才能调同一套（架构见 <a href="three-end-sync.html">三端同步架构记</a>）</li>
+<li><strong>需要非 HTTP 触发器</strong>：评论通知走 Queues 消费者、D1 备份走 Cron，这两样 Pages Functions 都不支持</li>
+<li><strong>部署节奏不同</strong>：评论系统一周改三次，不该拖着博客构建一起发布</li>
+</ol>
+
+<p>渡劫code（全套独立 Workers）：它本身是个应用不是站——AI Agent 循环跑在 DO 里、终端房间要原生 WebSocket、工作区文件要 R2 直传（见 <a href="r2-presigned-upload.html">R2 预签名上传</a>），这些 Pages 要么不支持要么很别扭，没有任何纠结的必要。</p>
+
+<h2>四、怎么选：三条判断线</h2>
+
+<ol>
+<li><strong>触发器是不是 HTTP？</strong>纯 HTTP 请求才能进 Pages Functions。需要 Cron、Queue 消费、邮件触发——一律独立 Workers，没有第二条路。</li>
+<li><strong>逻辑生命周期跟不跟站点绑定？</strong>跟着 git push 一起发布、只服务这个站的逻辑（重定向、header 注入、小表单、SSR 注水），进 Pages；独立演化、给多个前端共用的 API，进 Workers。</li>
+<li><strong>要不要 DO / 原生 WebSocket / 灰度 / 完整日志？</strong>要任何一个，进 Workers。Pages 的 DO 玩法要求类声明在独立 Worker 里，等于脱裤子放屁。</li>
+</ol>
+
+<h2>五、新项目的默认答案：Workers Static Assets</h2>
+
+<p>如果今天从零开始，我会跳过 Pages 直接选 Workers Static Assets——同一个运行时，静态资产 + Worker 逻辑一个项目搞定，Cron、Queue、DO、WebSocket、灰度发布、Workers Logs 全都有，不用再做「Pages + 独立 Worker」的拆分。代价是失去 Pages 的两个原生便利：_redirects/_headers 约定文件（要用代码或 Cloudflare 规则实现）、开箱即用的分支预览（要用 Workers Builds 补）。对个人项目来说，这两个便利远不如「一套通吃」值钱。存量 Pages 项目（比如本站）继续用，Pages 明确说了长期支持，主动迁移是自找麻烦。</p>
+
+<h2>六、踩过的坑</h2>
+
+<ul>
+<li><strong><code>_worker.js</code> 接管一切</strong>：高级模式下静态资产的 404 逻辑、缓存逻辑都要自己写。我们第一版重写脚本写崩了，整站 502，靠 Pages 部署历史一键回滚才恢复—— Pages 的部署历史救了我们，这也是它至今唯一让我舍不得搬去 Workers 的原因。</li>
+<li><strong>额度核算要想清楚</strong>：Pages 的静态请求不计入 Workers 请求额度（免费带宽），但 Functions 请求计入，免费 10 万/天全账户共享。我们把高 QPS 逻辑放过 Functions 试过，额度烧得比想象快得多——Functions 只放低频边缘逻辑。</li>
+<li><strong>部署耦合有体感成本</strong>：改一行 Functions 也要等整个 Pages 构建（我们博客构建 40–90 秒）。急性子会被反复折磨，这也是评论 API 拆独立 Worker 的隐藏原因——<code>wrangler deploy</code> 三秒发布。</li>
+<li><strong>本地开发命令不一样</strong>：Pages 用 <code>wrangler pages dev ./dist</code>，Worker 用 <code>wrangler dev</code>。两个项目的 dev 脚本别混，CI 里更要写清楚。</li>
+<li><strong>函数路由大小写敏感、动态段用方括号</strong>：<code>functions/api/posts/[slug].ts</code>。从 Next.js 转过来的人容易按文件系统直觉写错。</li>
+</ul>
+
+<h2>七、灰度与回滚：被低估的选型因素</h2>
+
+<p>独立开发者上线也讲灰度——先让 10% 流量用新代码，错误率不涨再全量。Workers 原生支持 Gradual Deployments，一个 <code>wrangler versions upload</code> 加 <code>wrangler gradual-deployments create</code> 就能按百分比切流，出问题秒级回滚上一个版本。Pages 没有这个能力，它的「灰度」是分支预览部署——能看不能切流，生产环境回滚靠部署历史整个回退。我们评论 Worker 每次涉及鉴权的改动都走灰度，这个能力在 Pages 上要么没有要么很笨。选型时把它和安全边际放在一起掂量：<strong>能灰度发布的系统，才敢频繁发布</strong>。</p>
+
+<h2>小结</h2>
+
+<p>Pages Functions 和独立 Workers 不是竞争关系，而是分层：<strong>Pages Functions 是「站的边缘层」，独立 Workers 是「产品的 API 层」</strong>。技术上所有 HTTP 逻辑两者都能写，分水岭在非 HTTP 能力和部署节奏。再考虑到 Pages 已进入维护模式、投资全部转向 Workers，我的最终建议是：存量 Pages 项目继续用、别折腾迁移；新项目直接 Workers Static Assets；需要定时、队列、DO 的部分，从第一天起就放进独立 Worker。这条线划清楚了，架构至少能少吵一半的架。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="workers-queue-cron-tricks.html"><img src="https://media.520691.xyz/covers/2026v2/workers-queue-cron-tricks.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare Queues + Cron Triggers 实战：异步任务、定时备份与失败重试</b><time>2026-10-22</time></span></a><a class="related-card" href="r2-presigned-upload.html"><img src="https://media.520691.xyz/covers/2026v2/r2-presigned-upload.webp" alt="" loading="lazy"><span class="r-body"><b>R2 预签名上传实战：浏览器直传与工作区文件管理</b><time>2026-10-22</time></span></a><a class="related-card" href="durable-objects-realtime.html"><img src="https://media.520691.xyz/covers/2026v2/durable-objects-realtime.webp" alt="" loading="lazy"><span class="r-body"><b>Durable Objects 实时协作入门：从一个终端房间说起</b><time>2026-10-22</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<p>一切从这里开始。这是本站的第一篇文章，从早年的 Hexo 博客迁移而来，保留原样，以作纪念。</p>
+
+<p>欢迎来到 <strong>渡劫博客</strong>。这里记录技术实践、项目开发与踩坑实录。早年这里由 Hexo 驱动，主题换来换去、插件越装越多，直到某天半夜一次构建失败，才下决心把它重建成「渡劫code」项目体系的一部分：</p>
+
+<ul>
+  <li><a href="https://www.520691.xyz/">个人官网</a>——小开发者的数字客厅</li>
+  <li><a href="https://dujiecone.520691.xyz/">渡劫code</a>——打开网页就能写代码的云端 IDE</li>
+  <li>本博客——技术手记与独立开发实录</li>
+</ul>
+
+<h2>为什么重建</h2>
+<p>老 Hexo 站的问题很典型：本地环境一崩就发不了文章，主题升级一次伤一次，评论只能靠第三方脚本续命。与其缝补，不如推倒重来——现在的渡劫博客是一套<strong>零构建、纯静态</strong>的站点：手写 HTML 与 CSS 变量，文章由自研生成器 <code>gen_posts.py</code> 从 <code>posts.json</code> 元数据与正文文件批量产出，一次 <code>git push</code>，GitHub、Gitee、Cloudflare 三端同步上线，完整过程记录在<a href="three-end-sync.html">《渡劫code 三端同步架构记》</a>里。</p>
+
+<h2>现在用什么</h2>
+<p>整套栈围绕 Cloudflare 免费额度搭建，月成本为零：Workers 提供边缘 API 与评论后端，D1（SQLite）承载评论、点赞与浏览数据，Pages 负责静态托管，Gitee Pages 兜底国内访问。相关实践已经整理成系列文章，欢迎按兴趣取用：</p>
+<ul>
+  <li><a href="cf-workers-fullstack.html">Cloudflare Workers 全栈实践</a>——KV、D1、R2、DO 五种原语各司其职</li>
+  <li><a href="d1-sqlite-edge.html">D1 边缘 SQLite 的坑与优化</a>——事务、批量、索引与冷启动</li>
+  <li><a href="static-blog-seo.html">静态博客 SEO 全流程</a>——sitemap、RSS、结构化数据与收录提交</li>
+</ul>
+
+<h2>会写什么</h2>
+<p>老文章会陆续迁移归档，新内容持续更新：云端 IDE 的架构拆解、Cloudflare 踩坑实录、自动化工作流，以及一个独立开发者的所有顿悟与深夜哀嚎。如果你也对独立开发、边缘计算、自动化部署感兴趣，欢迎常来坐坐，评论区聊上两句——评论系统三端共用，从哪个镜像站留言都能看见。</p>
+
+<blockquote><p>Hello, world. 渡劫之路，自此始也。</p></blockquote>

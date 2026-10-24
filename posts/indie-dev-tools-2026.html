@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 独立开发者工具栈：从建站到支付的零成本清单 · 渡劫博客</title>
+<meta name="description" content="一个账单 0 元的独立开发者的完整工具箱：建站部署、前后端数据、支付变现、邮件通知、分析统计、监控运维——每项附真实链接与选型理由，务实向不整活。">
+<meta name="author" content="gjsvip · 渡劫">
+<meta property="og:title" content="2026 独立开发者工具栈：从建站到支付的零成本清单 · 渡劫博客">
+<meta property="og:description" content="一个账单 0 元的独立开发者的完整工具箱：建站部署、前后端数据、支付变现、邮件通知、分析统计、监控运维——每项附真实链接与选型理由，务实向不整活。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="渡劫博客">
+<meta property="og:url" content="https://www.520691.xyz/posts/indie-dev-tools-2026">
+<meta property="og:image" content="https://www.520691.xyz/assets/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="2026 独立开发者工具栈：从建站到支付的零成本清单 · 渡劫博客">
+<meta name="twitter:description" content="一个账单 0 元的独立开发者的完整工具箱：建站部署、前后端数据、支付变现、邮件通知、分析统计、监控运维——每项附真实链接与选型理由，务实向不整活。">
+<meta name="twitter:image" content="https://www.520691.xyz/assets/og-default.png">
+<link rel="canonical" href="https://www.520691.xyz/posts/indie-dev-tools-2026">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/style.css?v=20261025c">
+<link rel="stylesheet" href="../assets/theme.css?v=20261025c">
+<link rel="alternate" type="application/rss+xml" title="渡劫博客 RSS" href="../rss.xml">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "2026 独立开发者工具栈：从建站到支付的零成本清单", "description": "一个账单 0 元的独立开发者的完整工具箱：建站部署、前后端数据、支付变现、邮件通知、分析统计、监控运维——每项附真实链接与选型理由，务实向不整活。", "image": "https://www.520691.xyz/assets/og-default.png", "url": "https://www.520691.xyz/posts/indie-dev-tools-2026", "datePublished": "2026-10-21", "dateModified": "2026-10-21", "inLanguage": "zh-CN", "keywords": "工具栈, 独立开发, 免费, 建站", "author": {"@type": "Person", "name": "gjsvip", "alternateName": "渡劫", "url": "https://www.520691.xyz/about"}, "publisher": {"@type": "Organization", "name": "渡劫博客", "url": "https://www.520691.xyz/", "logo": {"@type": "ImageObject", "url": "https://www.520691.xyz/assets/og-default.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://www.520691.xyz/posts/indie-dev-tools-2026"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "首页", "item": "https://www.520691.xyz/"}, {"@type": "ListItem", "position": 2, "name": "归档", "item": "https://www.520691.xyz/archive"}, {"@type": "ListItem", "position": 3, "name": "2026 独立开发者工具栈：从建站到支付的零成本清单", "item": "https://www.520691.xyz/posts/indie-dev-tools-2026"}]}
+</script>
+<meta name="msvalidate.01" content="48B9573DAB77D5857E5532B001FE1642" />
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<header class="site-header" id="main-header">
+  <div class="app-layout">
+    <div class="top-nav-wrap">
+      <div class="nav-left">
+        <a class="logo" href="../index.html">
+          <span class="logo-badge">🌊</span>渡劫博客<small>dujie.dev</small>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav class="nav">
+          <a href="../index.html">首页</a>
+          <a href="../archive.html">归档</a>
+          <a href="../tags.html">标签</a>
+          <a href="../says.html">说说</a>
+          <a href="../friends.html">友链</a>
+          <a href="../about.html">关于</a>
+        </nav>
+        <button class="search-trigger" aria-label="搜索文章">
+          <span class="s-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span><span>搜索文章…</span><kbd>Ctrl K</kbd>
+        </button>
+        <button class="icon-btn theme-toggle" aria-label="切换主题"><svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+        <button class="icon-btn menu-toggle" aria-label="菜单">☰</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="layout has-side">
+  <div>
+    <div class="breadcrumb"><a href="../index.html">首页</a><span class="sep">/</span><a href="../archive.html">归档</a><span class="sep">/</span>2026 独立开发者工具栈：从建站到支付的零成本清单</div>
+
+    <article>
+      <div class="article-header">
+        <h1>2026 独立开发者工具栈：从建站到支付的零成本清单</h1>
+        <div class="article-meta">
+          <span class="avatar-mini">🌊</span>
+          <span class="who">渡劫 · gjsvip</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2026-10-21</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.83z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>工具</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>1438 字</span>
+          <span class="am-item"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>约 4 分钟</span>
+        </div>
+      </div>
+
+      <div class="article-cover cover-img"><img src="https://media.520691.xyz/covers/2026v2/indie-dev-tools-2026.webp" alt="" loading="lazy" decoding="async"></div>
+
+      <div class="article-body">
+<p>常有人问：独立开发是不是很烧钱？我的答案是一年下来云账单 0 元（方法见 <a href="cloudflare-free-tier.html">额度榨干指南</a>），工具链全部免费或近免费。这篇把栈里的每一项摊开——场景、首选、备选、成本、为什么。不整活，只放真实在用的，链接全部公开可查。</p>
+
+<h2>建站与部署</h2>
+<table>
+  <tr><th>场景</th><th>首选</th><th>备选</th></tr>
+  <tr><td>静态站全球分发</td><td>Cloudflare Pages（不限带宽）</td><td>GitHub Pages / Netlify</td></tr>
+  <tr><td>国内可达镜像</td><td>Gitee Pages</td><td>CF Pages + 入口提示</td></tr>
+  <tr><td>API / 全栈后端</td><td>Cloudflare Workers + Hono</td><td>Vercel / Netlify Functions</td></tr>
+  <tr><td>域名解析</td><td>DNSPod（国内）/ Cloudflare（国际）</td><td>Namesilo</td></tr>
+  <tr><td>域名注册</td><td>Cloudflare Registrar（成本价）/ 腾讯云</td><td>Namesilo</td></tr>
+</table>
+<p>入口都是公开域名：<code>pages.cloudflare.com</code>、<code>pages.github.com</code>、<code>gitee.com</code>、<code>vercel.com</code>、<code>netlify.com</code>、<code>dnspod.cloud.tencent.com</code>、<code>dash.cloudflare.com</code>。域名是全年最大固定支出（.xyz 首年常驻个位数到十几元人民币），服务器成本为 0 的秘密全在免费额度分层——哪类流量走哪个产品，上一篇刚拆过。</p>
+
+<h2>前后端与数据</h2>
+<ul>
+  <li><strong>前端</strong>：Vite + React + TypeScript；样式 Tailwind CSS（tailwindcss.com）与 MUI（mui.com）按项目混用；代码编辑器 Monaco（microsoft.github.io/monaco-editor）——渡劫code 的编辑区就是它</li>
+  <li><strong>边缘数据</strong>：Cloudflare D1 / KV / R2 / Durable Objects，选型逻辑见 <a href="cf-workers-fullstack.html">Workers 全栈实践</a></li>
+  <li><strong>传统后端备选</strong>：Supabase（supabase.com，免费档含 Postgres + Auth）、Neon（neon.tech，免费 Serverless Postgres）、Upstash（upstash.com，免费 Redis）——需要关系型或缓存时，从这三家里挑</li>
+  <li><strong>ORM</strong>：Drizzle（orm.drizzle.team）——SQLite 优先项目的类型安全首选，和 D1 是绝配</li>
+</ul>
+<p>选型原则只有一条：<strong>读写模型先想清楚，再选存储</strong>。读多写少上 D1，热配置上 KV，大对象上 R2——反过来用，免费额度也救不了你。</p>
+
+<h2>邮件与通知</h2>
+<ul>
+  <li><strong>Resend</strong>（resend.com）：免费档每月 3,000 封，API 优先，Workers 里 <code>fetch</code> 直发——评论回复通知就靠它</li>
+  <li><strong>MailChannels</strong>（mailchannels.com）：Workers 生态原生，免费档给开发用，适合事务邮件</li>
+  <li><strong>企业微信 / 钉钉机器人</strong>：监控告警推送，个人开发者的「短信平替」——UptimeRobot 的 webhook 直接对接</li>
+</ul>
+<p>自建评论系统的邮件回复通知（见 <a href="blog-comment-system.html">评论系统实战</a>）走的就是这条路：读者留邮箱 → Worker 调 Resend → 回复上线发信。整套零固定成本，发多少付多少。</p>
+
+<h2>支付与变现</h2>
+<p>国内个人开发者的现实路径，和教程里的 Stripe 故事差距很大。务实排序：</p>
+<table>
+  <tr><th>方式</th><th>门槛</th><th>适合</th></tr>
+  <tr><td>爱发电 afdian.com</td><td>个人实名</td><td>赞助 / 会员 / 早期用户</td></tr>
+  <tr><td>面包多 mbd.pub</td><td>个人实名</td><td>卖软件 Key / 模板 / 资料</td></tr>
+  <tr><td>Gumroad gumroad.com</td><td>邮箱即可</td><td>数字商品出海</td></tr>
+  <tr><td>Lemon Squeezy / Paddle</td><td>MoR 模式，免海外主体</td><td>SaaS 订阅（有抽成）</td></tr>
+  <tr><td>Stripe</td><td>需海外/香港主体</td><td>有主体之后的终点</td></tr>
+  <tr><td>微信支付</td><td>个体户 / 企业执照</td><td>有执照再考虑</td></tr>
+</table>
+<p>我的用法：爱发电挂赞助和高级功能，面包多卖一次性买断。<strong>在没有主体之前，MoR 平台和国内实名平台是仅有的现实选项</strong>——别在支付渠道上烧启动资金，那是最贵的学费。</p>
+
+<h2>数据与分析</h2>
+<ul>
+  <li><strong>Cloudflare Web Analytics</strong>（dash.cloudflare.com）：免费、无 cookie、<strong>不需要同意弹窗</strong>——个人站合规成本最低的分析，没有之一</li>
+  <li><strong>Umami</strong>（umami.is）：自托管，Workers 可跑，数据完全自有</li>
+  <li><strong>GoatCounter</strong>（goatcounter.com）：非商业用途免费，极简，一屏看完所有指标</li>
+  <li><strong>百度统计</strong>：国内流量参考维度的补充，广告网络略重，按需</li>
+  <li><strong>Google Analytics</strong>：功能最强，但 consent 弹窗的合规成本对个人站不划算——我的栈里没有它</li>
+</ul>
+<p>分析工具的选择标准不是功能多，是<strong>不吓跑读者</strong>：一个弹窗联盟能赶走的访客，比它能多分析的维度值钱。</p>
+
+<h2>监控与运维</h2>
+<ul>
+  <li><strong>UptimeRobot</strong>（uptimerobot.com）：50 个监控免费，邮件告警，三端各挂一个，SSL 过期也能盯</li>
+  <li><strong>Better Stack</strong>（betterstack.com）：免费档含公开状态页，停机时给用户一个解释入口，比 404 体面</li>
+  <li><strong>Cloudflare Notifications</strong>：额度用量、Workers 错误率告警，免费档策略管够</li>
+  <li><strong>国内测速</strong>：ITDog（itdog.cn）、17CE（17ce.com）——验证 Gitee 镜像国内可达性的日常工具，<a href="git-multi-repo-sync.html">Gitee Pages 的坑</a>靠它们提前发现</li>
+</ul>
+
+<h2>内容、AI 与杂项</h2>
+<ul>
+  <li><strong>LLM API</strong>：DeepSeek、智谱 GLM、Kimi 等按量计费，个人开发月成本几十元量级——渡劫code 的多 provider 适配就是给它们准备的</li>
+  <li><strong>图床 / 媒体</strong>：Cloudflare R2 + Images（出流量免费），备选 SM.MS</li>
+  <li><strong>图标</strong>：Lucide（lucide.dev）、Iconify（iconify.design）</li>
+  <li><strong>CI</strong>：GitHub Actions 公开仓库全免费、私有仓库每月 2000 分钟——博客的部署链路白嫖到底</li>
+  <li><strong>凭据管理</strong>：wrangler secret 管 Workers，Gitee/GitHub 令牌只进 Actions Secrets，本地密钥文件一律进 .gitignore</li>
+</ul>
+
+<h2>选型三原则</h2>
+<ol>
+  <li><strong>免费档的边界就是架构的边界</strong>——先读额度表再画架构图，顺序反了等于裸奔</li>
+  <li><strong>数据自主权优先于功能</strong>——评论、分析、用户数据能自持就不外包，迁移成本永远比想象高</li>
+  <li><strong>国内可达性当一等公民</strong>——三端同步不是炫技，是读者在杭州连不上 GitHub Pages 时的尊严</li>
+</ol>
+<p>这套栈的总拥有成本：一个域名加几十块 LLM 费用加 0 元基础设施。算笔总账：</p>
+<table>
+  <tr><th>项目</th><th>月成本</th><th>说明</th></tr>
+  <tr><td>域名</td><td>约 1–2 元（年付摊）</td><td>.xyz 首年折扣常见</td></tr>
+  <tr><td>Pages / Workers / D1 / KV / R2</td><td>0 元</td><td>全在免费档内（见榨干指南）</td></tr>
+  <tr><td>GitHub Actions / Gitee</td><td>0 元</td><td>公开仓库 + 自动镜像</td></tr>
+  <tr><td>LLM API</td><td>几十元</td><td>按量，开发期大头</td></tr>
+  <tr><td>邮件 / 监控</td><td>0 元</td><td>免费档管够</td></tr>
+  <tr><td><strong>合计</strong></td><td><strong>几十元/月</strong></td><td>这就是独立开发的入场券</td></tr>
+</table>
+<p>下一篇复盘这 30 天<a href="ai-30-days-three-sites.html">怎么用 AI 把它们全搭出来</a>，以及哪些活真的不该交给 AI。</p>
+      </div>
+
+      <div class="article-actions">
+        <button class="like-btn" id="like-btn"><span class="heart">❤️</span><span>点赞 <b id="stat-likes">0</b></span></button>
+        <div class="stats-inline">
+          <span>👁 阅读 <b id="stat-views">-</b></span>
+          <span>💬 评论 <b id="stat-comments">-</b></span>
+        </div>
+      </div>
+
+      <nav class="post-nav" id="post-nav"></nav>
+      <div class="related"><h2 class="related-head">相关阅读</h2><div class="related-grid"><a class="related-card" href="static-blog-seo-advanced.html"><img src="https://media.520691.xyz/covers/2026v2/static-blog-seo-advanced.webp" alt="" loading="lazy"><span class="r-body"><b>静态博客 SEO 实战进阶：IndexNow、百度收录与结构化数据的坑与数据</b><time>2026-10-21</time></span></a><a class="related-card" href="cloudflare-free-tier.html"><img src="https://media.520691.xyz/covers/2026v2/cloudflare-free-tier.webp" alt="" loading="lazy"><span class="r-body"><b>Cloudflare 免费额度榨干指南：Workers、D1、KV、R2 的边界与活法</b><time>2026-10-21</time></span></a><a class="related-card" href="hono-workers-engineering.html"><img src="https://media.520691.xyz/covers/2026v2/hono-workers-engineering.webp" alt="" loading="lazy"><span class="r-body"><b>Hono + Cloudflare Workers 工程化：路由分层、类型安全与错误归一</b><time>2026-10-21</time></span></a></div></div>
+    </article>
+
+    <section class="comments">
+      <div class="comments-title">💬 评论 <span class="count" id="comment-count">0</span></div>
+      <form class="comment-form" id="comment-form">
+        <div class="form-row">
+          <input type="text" id="c-nickname" placeholder="昵称 *" maxlength="24" required>
+          <input type="email" id="c-email" placeholder="邮箱（选填，用于 Gravatar 头像）">
+        </div>
+        <textarea id="c-content" placeholder="说点什么吧… 遵守社区公约，友善交流 💬" maxlength="1000" required></textarea>
+        <div class="form-foot">
+          <button type="button" class="emoji-btn" id="emoji-btn" aria-label="选择表情">😊</button>
+          <span class="form-hint">评论数据全球同步 · 国内 Gitee / 海外 GitHub 与 CF 均可访问</span>
+          <button type="submit" class="submit-btn" id="c-submit">发布评论</button>
+        </div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+        <div id="cf-turnstile-slot"></div>
+        <div class="comment-pending-hint" id="comment-pending-hint" hidden>🔍 评论已提交，博主审核通过后展示</div>
+      </form>
+      <div class="comment-list" id="comment-list"></div>
+    </section>
+  </div>
+
+  <aside class="side">
+    <div class="panel alliance-panel" aria-label="博客联盟">
+      <div class="panel-title"><span class="ico">🌐</span>博客联盟</div>
+      <div class="alliance-badges">
+        <a class="alliance-badge" href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力"><img class="tv-logo" src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" width="108" height="27" loading="lazy"></a>
+        <a class="alliance-badge" href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约 · 博客十年不注销约定"><img class="fb-logo" src="https://www.foreverblog.cn/favicon.ico" alt="十年之约" width="20" height="20" loading="lazy" onerror="this.style.display='none'"><span>十年之约</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">📖</span>目录</div>
+      <div class="toc" id="toc-list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="ico">🔗</span>相关</div>
+      <div class="tag-cloud">
+        <a href="../index.html">🏠 首页</a>
+        <a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener">💻 渡劫code</a>
+        <a href="https://www.520691.xyz/" target="_blank" rel="noopener">🏠 个人官网</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-line" aria-hidden="true"></div>
+  <div class="app-layout footer-wrap">
+    <a class="footer-brand" href="../index.html"><span class="logo-badge">🌊</span>渡劫博客</a>
+    <p class="footer-desc">独立开发者 gjsvip 的技术自留地。静态博客 + Cloudflare 全栈驱动，国内 Gitee 镜像，全球 CDN 加速。评论数据全球实时同步。</p>
+    <ul class="footer-social">
+      <li><a href="https://github.com/gjsvip" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg></a></li>
+      <li><a href="https://gitee.com/gjsvip" target="_blank" rel="noopener" aria-label="Gitee" title="Gitee"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M11.98 0C5.36 0 0 5.36 0 11.98c0 6.62 5.36 11.98 11.98 11.98 6.61 0 11.97-5.36 11.97-11.98C23.95 5.36 18.6 0 11.98 0zM6.4 13.4l-2.5-3.3c-.2-.26 0-.63.32-.63h8.6c.4 0 .62.46.37.77l-2.7 3.16c-.4.47-1 .74-1.62.74H6.4zm13.5-2.4l-5.6 6.5c-.4.46-1 .73-1.6.73H5.8c-.4 0-.63-.47-.37-.77l2.4-2.8h4.4c.9 0 1.75-.4 2.33-1.08l2.86-3.35c.25-.3.72-.31.96-.02l1.5 1.7c.18.22.2.53.03.78z"/></svg></a></li>
+      <li><a href="https://dujiecone.520691.xyz/" target="_blank" rel="noopener" title="渡劫code">💻</a></li>
+      <li><a href="https://www.520691.xyz/" target="_blank" rel="noopener" title="个人官网">🏠</a></li>
+      <li><a href="../rss.xml" aria-label="RSS" title="RSS 订阅"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0zM2 8.73v3.09c5.06 0 9.18 4.12 9.18 9.18h3.09C14.27 14.22 8.78 8.73 2 8.73zM2 2v3.09C10.4 5.09 17.91 12.6 17.91 21H21C21 10.5 12.5 2 2 2z"/></svg></a></li>
+    </ul>
+    <div class="footer-bottom">
+      © 2024 - 2026 渡劫博客 · Powered by <span class="heart">❤️</span> HTML + Cloudflare | <a href="../rss.xml">RSS 订阅</a>
+    </div>
+  </div>
+</footer>
+
+<div class="search-modal" id="search-modal" role="dialog" aria-label="站内搜索">
+  <div class="search-panel">
+    <div class="search-input-row">
+      <span class="ico">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索标题、标签、内容…" autocomplete="off">
+      <kbd>ESC 关闭</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+<button id="back-top" aria-label="返回顶部">↑</button>
+<script src="../assets/blog.js?v=20261025c" defer></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<p>独立开发者没有 SRE 团队，但线上东西挂了一晚上不知道，是很伤的事——读者流失、评论丢一条是一条、渡劫code 用户会话全断。我的目标很明确：<strong>零预算搭一套「知道它挂了、知道它慢了、知道谁在搞事」的监控体系</strong>。整套跑了一年，月成本 0 元，全在 Cloudflare 免费额度和 Telegram 免费 Bot 里。这篇把每一层拆开讲，包括那个让告警自己「活着」的心跳设计。</p>
+
+<h2>一、第一层：Cloudflare 自带 Analytics</h2>
+
+<p>Cloudflare 后台白送的能力，很多人压根没看过：</p>
+
+<ul>
+<li><strong>Workers Analytics</strong>：Dashboard 里每个 Worker 的请求数、错误数、CPU 时间分布（P50/P99）、按 Colo（PoP）拆分。还能通过 GraphQL Analytics API 编程拉取，写进自己的周报。</li>
+<li><strong>Web Analytics（RUM）</strong>：博客前端注入一段 beacon 脚本，白拿 PV/UV/来源/设备/国家分布。不跨站跟踪、隐私友好，读者不用弹 Cookie 同意。</li>
+<li><strong>免费额度内的保留</strong>：Workers Analytics 保留期有限（够看趋势，不够考古），长期数据定期用 API 导出到 R2 存证。</li>
+</ul>
+
+<p>我们的日常数字：博客日均 PV <strong>2400</strong>、UV <strong>900</strong>；Workers 全家桶日均请求 <strong>3.1 万</strong>；P99 CPU <strong>4.2ms</strong>（免费上限 10ms，还有余量但值得盯）；错误率长期 &lt;0.1%，超过 0.5% 就人工介入。Analytics 的定位是<strong>看趋势和容量</strong>，它不是告警源——数据有几分钟延迟，拿它报警等于马后炮。</p>
+
+<h2>二、第二层：Cron 状态页</h2>
+
+<p>架构一句话：<strong>一个 Cron Worker 每 5 分钟探测所有端点，结果写 KV，静态状态页读 KV 渲染</strong>。</p>
+
+<p>探测清单（8 个端点）：</p>
+
+<ol>
+<li>博客主站首页（CF Pages 端）</li>
+<li>GitHub Pages 端、Gitee Pages 端（三端都要活，见 <a href="three-end-sync.html">三端同步架构记</a>）</li>
+<li>评论 API <code>/health</code></li>
+<li>渡劫code 主站</li>
+<li>DO 房间 ping（带 token 的探针请求，同时测 DO 冷启动耗时）</li>
+<li>D1 备份结果检查（前一天备份文件是否出现在 R2，见 <a href="workers-queue-cron-tricks.html">Queues + Cron 实战</a>）</li>
+</ol>
+
+<p>结果写两个 KV key：<code>status:latest</code> 存当前各端点状态 JSON；<code>status:history</code> 存环形数组，5 分钟一个点、保留 30 天共 8640 条，序列化后约 600KB——KV 单 value 上限 25MiB，毫无压力。状态页是纯静态 HTML，JS fetch <code>/status-data.json</code>（一个 Pages Function 读 KV 返回，带 60 秒 Cache-Control），渲染 90 天 Uptime 热力图，长得像 statuspage.io 但不要钱。</p>
+
+<p>三个坑：</p>
+
+<ul>
+<li><strong>KV 最终一致性</strong>：刚写入立刻读，跨 PoP 可能读到旧值。状态页允许 60 秒缓存无所谓，但告警判断绝不能依赖「读 KV」——直接在 Worker 内存里判断本次探测结果，KV 只是给页面看的。</li>
+<li><strong>自监控悖论</strong>：探测 Worker 和状态页自己挂了怎么办？我们的解法是 Telegram 告警走<strong>心跳模式</strong>：每 6 小时发一条「还活着」静默消息，超过 6 小时没收到心跳，说明监控链本身出问题了。Cloudflare 全球故障的那天，你收到的不是一堆误报，而是「没有消息」——这恰是设计意图。</li>
+<li><strong>探测超时要分级</strong>：普通端点 5 秒超时，DO ping 放宽到 10 秒（冷启动 + 跨区）。第一版全部 5 秒，DO 探针天天误报「超时」，其实是正常冷启动。</li>
+</ul>
+
+<p>成本核算：8 端点 × 每天 288 次 = <strong>2304 次请求/天</strong>，全走 Workers 免费额度（10 万/天），占比 2.3%。KV 写每天 288 次，免费额度 1000 次/天，占 29%——这是唯一需要留意的指标，端点清单别再涨了。</p>
+
+<h2>三、第三层：告警机器人</h2>
+
+<p>Telegram Bot，@BotFather 两分钟建好，代码二十行：</p>
+
+<pre><code class="language-typescript">async function alert(env: Env, text: string) {
+  await fetch(`https://api.telegram.org/bot${env.TG_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: env.TG_CHAT_ID,
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    }),
+  });
+}</code></pre>
+
+<p>告警策略比代码重要，四条军规：</p>
+
+<ol>
+<li><strong>连续 2 次失败（10 分钟）才发</strong>——单次网络抖动不打扰，半夜的告警必须值钱</li>
+<li><strong>恢复也要通知</strong>：带上「持续了 X 分钟」，否则你不知道故障是真恢复还是探测挂了</li>
+<li><strong>聚合发送</strong>：同一轮探测多个端点失败，合成一条消息。CF 大面积故障时 8 个端点同时挂，8 条告警是噪音，1 条「CF 全局故障，8/8 端点不可达」才是信息</li>
+<li><strong>每晚 23 点汇总</strong>：当天异常条数，无异常也发。连续「一切正常」的汇总建立信任，真告警时你才不会当成垃圾推送忽略</li>
+</ol>
+
+<p>限额完全不是问题：Telegram 30 条/秒，个人监控一天最多几十条。国内网络环境访问 api.telegram.org 不稳的读者，平替是企业微信机器人 webhook（一条 URL 搞定）或 Server酱（推微信），接口形态一模一样，改个 fetch 地址而已。</p>
+
+<p>真实案例：上个月 03:17，Telegram 弹出「api.520691.xyz 连续 2 次 502，耗时 1.8s」——一次 D1 主库短暂写锁导致评论接口 502。从告警到定位 10 分钟，早高峰前恢复。这条告警值回全部票价。</p>
+
+<h2>四、日志层：tail 的艺术</h2>
+
+<ul>
+<li><strong><code>wrangler tail</code></strong>：实时日志流，调试神器，但有采样和限流，不适合 7×24 常开。我们的用法：告警触发后开 10 分钟看现场，看完就关。</li>
+<li><strong>结构化日志</strong>：全部 <code>console.log(JSON.stringify({ level, msg, requestId, ms }))</code>，tail 里直接 jq 过滤。纯文本日志在边缘环境等于没日志。</li>
+<li><strong>慢查询打点</strong>：D1 查询超 200ms 记 warn 级日志，细节在 <a href="d1-sqlite-edge.html">D1 优化那篇</a>——监控的另一半是「慢」，而不只是「挂」。</li>
+<li><strong>Logpush</strong>：全量日志外推到 R2/S3 是付费能力，免费版 tail + Analytics 对个人项目够用，别为不需要的持久化花钱。</li>
+</ul>
+
+<h2>五、业务指标：比 HTTP 状态码更重要的事</h2>
+
+<p>「站点 200」不等于「业务健康」。我们额外盯四个业务信号：</p>
+
+<ol>
+<li><strong>Queues DLQ 深度</strong>：非零即告警（通知在静默死亡）</li>
+<li><strong>DO 在线房间数</strong>：突然掉零说明 WebSocket 通道出问题，比用户反馈快得多</li>
+<li><strong>D1 备份成功标记</strong>：备份失败是最高优先级——数据是独立开发者的最后底线</li>
+<li><strong>R2 用量水位</strong>：超过免费额度 80% 时预警，留时间清理而不是等账单</li>
+</ol>
+
+<h2>小结</h2>
+
+<p>监控的性价比公式：<strong>覆盖关键路径 × 及时触达 ÷ 维护成本</strong>。三层各司其职——Analytics 看趋势、Cron 状态页看当下、Bot 负责叫你。全套 0 元，维护成本就是那 300 行 Worker 代码，写它的那个周末之后，我再没为「挂了不知道」失眠过。独立开发者最划算的投资，就是让机器替你守夜。</p>
