@@ -1,39 +1,33 @@
-# 渡劫博客（dujie blog）
+# 渡劫博客（自研版 · 已归档）
 
-独立开发者 gjsvip（渡劫）的技术博客。**纯静态 HTML**，零构建、零依赖，评论与互动由 Cloudflare D1 + Worker 驱动。
+> 本仓库是渡劫博客的**初代自研版本**，现已被 [flare-stack-blog](https://github.com/du2333/flare-stack-blog) 方案取代并归档。开源出来给有需要的朋友参考学习。
 
-## 三端同步
+## 特性
 
-| 端 | 地址 | 触发方式 |
-|---|---|---|
-| Cloudflare Pages | https://www.520691.xyz | push main → wrangler pages deploy |
-| GitHub Pages | https://gjsvip.github.io/blog/ | push main → gh-pages 分支（Gitee 镜像源） |
-| Gitee Pages | https://dujie_nb_admin.gitee.io/blog/ | mirror-to-gitee.yml 自动同步 |
+- 纯手写静态站：零框架、零依赖，原生 HTML/CSS/JS
+- 双主题（墨色/纸感语义变量一键切换）+ 衬线标题排版
+- 评论/点赞/浏览量/说说（Cloudflare Worker + D1，全球同步）
+- 文章生成器 `gen_posts.py`：Markdown → HTML、封面图自动上传图床（Pillow 压缩 ≤20KB）、字数统计、相关推荐
+- SEO：sitemap / RSS / IndexNow / 结构化数据
+- Cloudflare Pages 自动部署（连 GitHub 仓库）
 
-**评论全球同步**：三端前端共用同一 API `https://dujiecone.520691.xyz/api/blog/*`，
-国内 Gitee 入口发布的评论，海外 GitHub / CF 入口实时可见（同一套 D1 数据）。
-
-## 功能
-
-- 深/浅双主题（localStorage 记忆）
-- Ctrl+K 站内搜索（标题/标签/摘要）
-- 树形评论 + 楼中楼回复 + Gravatar 头像 + emoji
-- 点赞 / 浏览（UV 级）/ 评论数统计
-- 阅读进度条、TOC 目录、代码一键复制 + 轻量高亮
-- 归档时间线、标签云、友链、说说
-- RSS（rss.xml）+ sitemap.xml + IndexNow 收录
-
-## 目录
+## 结构
 
 ```
-├── index.html / archive / tags / says / friends / about
-├── posts/            # 4 篇文章
-├── assets/           # style.css（设计系统）+ blog.js
-├── posts.json        # 文章元数据（搜索/列表/归档共用）
-├── rss.xml / sitemap.xml / robots.txt
-└── .github/workflows/  # deploy-cf-pages.yml + mirror-to-gitee.yml
+├── gen_posts.py        # 文章生成器（含图床上传/字数统计/相关推荐）
+├── index.html          # 首页（信息流卡片 + 打字机 hero）
+├── posts/              # 生成的文章页（30 篇）
+├── assets/             # style.css / blog.js（原生实现）
+├── friends.json        # 友链数据
+└── _headers            # CF Pages 缓存策略（immutable + SWR）
 ```
 
-## 本地预览
+## 部署
 
-任意静态服务器即可，如 `python3 -m http.server 8080`。
+推送到 GitHub → Cloudflare Pages 连接仓库即可。评论后端需要另配 Worker + D1（参考 dujiecode 仓库）。
+
+## 后记
+
+自研版跑了 4 天，完成度尚可，但功能密度、后台管理、内容管理效率远不如现成方案。**建议独立开发者优先用现成项目，把时间花在内容上。**
+
+—— 渡劫 gjsvip · 2026-10
